@@ -6,5 +6,3 @@ __date__ ="$Mar 13, 2013 3:09:21 PM$"
 
 if __name__ == "__main__":
     print "Hello World"
-
-TEST TEST TEST
