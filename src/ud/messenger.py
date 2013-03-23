@@ -180,28 +180,31 @@ class SerialPort:
         import serial
         import settings
         import time
-
-		i = 0
-		while not done:
-			tempPort = self.port + str(i)
-			print("trying to connect to "+tempPort+ "...")
-			try:
-				self.__ser = serial.Serial( 
-					port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
-				self.connected = True
-				print("Yes! Connected to "+tempPort)
-			except:
-				print("...Nope!")
-				i += 1
-			if i > 30:
-				print("no serial today, guy")
-				done = True
-				return -1
+		#the following section is for Max's computer.
+		#increments through port names until it finds an available one
         
-        self.__ser = serial.Serial( 
-            port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
+        i = 0
+        done = False
+        self.port = "/dev/ttyACM"
+        while not done:
+            tempPort = self.port + str(i)
+            print("trying to connect to "+tempPort+ "...")
+            try:
+                self.__ser = serial.Serial( 
+                    port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
+                self.connected = True
+                print("Yes! Connected to "+tempPort)
+            except:
+                print("...Nope!")
+                i += 1
+            if i > 30:
+                print("no serial today, guy")
+                done = True
+                raise Exception("Either you have 30 serial connections\
+						or something else is wrong")
+        
         # Avoid race condition
-        time.sleep(2)
+        time.sleep(1)
         # Wait 100 ms while reading.
         #ser.timeout = 0.1
 
@@ -316,10 +319,11 @@ class SerialPort:
         self.__ser.write( str( serializable ) )
 
 if __name__=="__main__":
-	print("hello world")
-	messenger = Messenger( SerialPort() )
-	# Request the scan.
-	messenger.sendMessage( settings.ROBOT_PING_TEST )
-	# Check for messages. Pass any messages to the mode.
-	if messenger.checkInBox():
-		print( messenger.getMessage() )
+    print("hello world")
+    with SerialPort() as serialPort:
+        messenger = Messenger( serialPort )
+        # Request the scan.
+        messenger.sendMessage( settings.ROBOT_PING_TEST )
+        # Check for messages. Pass any messages to the mode.
+        if messenger.checkInBox():
+            print( messenger.getMessage() )

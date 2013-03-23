@@ -37,21 +37,21 @@ gui.takeTerrain(landmarkList)
 running = True
 
 while running == True:
-	for event in pygame.event.get():
-		if event.type==QUIT:
-			pygame.quit()
-			sys.exit()	
-		if event.type == MOUSEBUTTONDOWN:
-			if event.button == 1:
-				for frame in gui.frameList:
-					frame.feelClickDown(pygame.mouse.get_pos())
-		if event.type == MOUSEBUTTONUP:
-			if event.button == 1:
-				for frame in gui.rameList:
-					frame.feelClickUp(pygame.mouse.get_pos())
-			if event.button == 2:
-				for frame in gui.frameList:
-					frame.feelMiddleClick()
+    for event in pygame.event.get():
+        if event.type==QUIT:
+            pygame.quit()
+            sys.exit()    
+        if event.type == MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for frame in gui.frameList:
+                    frame.feelClickDown(pygame.mouse.get_pos())
+        if event.type == MOUSEBUTTONUP:
+            if event.button == 1:
+                for frame in gui.rameList:
+                    frame.feelClickUp(pygame.mouse.get_pos())
+            if event.button == 2:
+                for frame in gui.frameList:
+                    frame.feelMiddleClick()
 
-	mode.act(state)
-	gui.takeState(state)
+    mode.act(state)
+    gui.takeState(state)
