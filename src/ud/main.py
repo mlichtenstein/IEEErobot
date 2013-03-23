@@ -53,6 +53,7 @@ while running == True:
             if event.button == 2:
                 for frame in gui.frameList:
                     frame.feelMiddleClick()
-
-    mode.act(states)
+    # Tell the robot brain to take action.
+    mode.act(state)
+    # Update the GUI with the current robot state
     gui.takeState(state)
