@@ -249,4 +249,9 @@ while 1:
         drawAll()
         drawFlag=0
 
+def findPath( graph, startingNode ):
+    """
+    Return:
+    The path.
+    """
 
