@@ -83,10 +83,15 @@ void loop() {
             int numOfVars = sscanf( inBoxBuffer, "%c%d", &type, &id );
             if ( numOfVars == 2 ) {
                 switch ( type ) {
-                  #ifdef ROBOT_PING_TEST
-                case ROBOT_PING_TEST: {
+/*  The following are where you paste your arduino code.  Make sure an entry in Settings.h corresponds to your case.
+Your response message should take the form ":[char][id],[payload];"
+*/                  
+                
+                    #ifdef ROBOT_PING_TEST
+                    case ROBOT_PING_TEST: {
                     Serial.write( ":P" );
                     Serial.print( id );
+                    Serial.print(",PONG");
                     Serial.write( ';' );
                 }
                 break;
@@ -119,6 +124,7 @@ void loop() {
                 case ROBOT_SERVICE_IRSENSOR_POLL: {
                     Serial.write( ':' );
                     Serial.write( ROBOT_RESPONSE_COMFIRM );
+                    Serial.write( ';' );
                     for (pos = 0; pos <= 180; pos += deltaPos) {
                         int USreading[2];  //each eye's US reading in usec
                         int IRreading[2];  //each eye's US reading in 5/1024 v
@@ -133,19 +139,24 @@ void loop() {
                         for (int i=0; i<2; i++) {
                             Serial.print( char(':'));
                             Serial.write( ROBOT_SERVICE_IRSENSOR_POLL );
-                            Serial.print( char(pos));
-                            Serial.print( char(IRreading[i] & 255));
-                            Serial.print( char(IRreading[i] >> 8));
-                            Serial.print( char(USreading[i] & 255));
-                            Serial.print( char(USreading[i] >> 8));
-                            Serial.print( char(i)); //ServoNum
+                            Serial.write( ',' );
+                            Serial.print( (pos));
+                            Serial.write( ',' );
+                            Serial.print( (IRreading[i] & 255));
+                            Serial.write( ',' );
+                            Serial.print( (IRreading[i] >> 8));
+                            Serial.write( ',' );
+                            Serial.print( (USreading[i] & 255));
+                            Serial.write( ',' );
+                            Serial.print( (USreading[i] >> 8));
+                            Serial.write( ',' );
+                            Serial.print( (i)); //ServoNum
                             Serial.print( char(';'));
                         }
                     }
                     for (int i = 0; i<2; i++) {
                         myservo[i].write(0);
                     }
-                    Serial.write( ';' );
                 }
                 break;
                 #endif

@@ -11,6 +11,7 @@ import messenger
 """=================CREATE WORLD====================================="""
 
 state = State()
+state.mode = Pathfind()
 
 landmarklist = list()
 landmarklist.append(landmarks)
