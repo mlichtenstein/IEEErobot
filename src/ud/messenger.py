@@ -1,3 +1,5 @@
+import settings
+
 class Messenger:
     """
     Facilitates communication accrossed the serial port to the Arduino.
@@ -178,8 +180,26 @@ class SerialPort:
         import serial
         import settings
         import time
+
+		i = 0
+		while not done:
+			tempPort = self.port + str(i)
+			print("trying to connect to "+tempPort+ "...")
+			try:
+				self.__ser = serial.Serial( 
+					port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
+				self.connected = True
+				print("Yes! Connected to "+tempPort)
+			except:
+				print("...Nope!")
+				i += 1
+			if i > 30:
+				print("no serial today, guy")
+				done = True
+				return -1
+        
         self.__ser = serial.Serial( 
-            port = port, baudrate = settings.SERIAL_PORT_SPEED )
+            port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
         # Avoid race condition
         time.sleep(2)
         # Wait 100 ms while reading.
@@ -297,3 +317,9 @@ class SerialPort:
 
 if __name__=="__main__":
 	print("hello world")
+	messenger = Messenger( SerialPort() )
+	# Request the scan.
+	messenger.sendMessage( settings.ROBOT_PING_TEST )
+	# Check for messages. Pass any messages to the mode.
+	if messenger.checkInBox():
+		print( messenger.getMessage() )
