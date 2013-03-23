@@ -208,7 +208,7 @@ class SerialPort:
         # Avoid race condition
         time.sleep(1)
         # Wait 100 ms while reading.
-        #ser.timeout = 0.1
+        self.__ser.timeout = 0.1
 
     def makeContact( self, timeout = settings.SERIAL_PORT_SESSION_TIMEOUT ):
         """
