@@ -173,7 +173,7 @@ if __name__ == "__main__":
                     for frame in frameList:
                         frame.feelMiddleClick()
 
-        boardView.takeState()                
+        boardView.takeState(state)                
         boardView.update()
         pygame.display.update()
         #runNum -= 1
