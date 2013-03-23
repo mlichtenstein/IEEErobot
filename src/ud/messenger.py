@@ -188,14 +188,15 @@ class SerialPort:
         self.port = "/dev/ttyACM"
         while not done:
             tempPort = self.port + str(i)
-            print("trying to connect to "+tempPort+ "...")
+            print("trying to connect to " + tempPort + "...")
             try:
                 self.__ser = serial.Serial( 
-                    port = tempport, baudrate = settings.SERIAL_PORT_SPEED )
+                    port = tempPort, baudrate = settings.SERIAL_PORT_SPEED )
                 self.connected = True
-                print("Yes! Connected to "+tempPort)
-            except:
-                print("...Nope!")
+                print("Yes! Connected to " + tempPort)
+                done = True
+            except serial.SerialException as e:
+                print "...Nope!",  e
                 i += 1
             if i > 30:
                 print("no serial today, guy")
