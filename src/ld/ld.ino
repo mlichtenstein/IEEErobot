@@ -84,12 +84,12 @@ void loop() {
             if ( numOfVars == 2 ) {
                 switch ( type ) {
 /*  The following are where you paste your arduino code.  Make sure an entry in Settings.h corresponds to your case.
-Your response message should take the form ":[char][id],[payload];"
+Your response message should take the form ":[char],[id],[payload];"
 */                  
                 
                     #ifdef ROBOT_PING_TEST
                     case ROBOT_PING_TEST: {
-                    Serial.write( ":P" );
+                    Serial.write( ":P," );
                     Serial.print( id );
                     Serial.print(",PONG");
                     Serial.write( ';' );

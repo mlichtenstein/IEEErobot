@@ -120,12 +120,18 @@ class Messenger:
             String -- the message stored.
         """
         if len( self.__message ) == 0:
+            print("message of zero length")
             return False
         ret = self.__message
         self.__message = ""
         #import copy
         return ret
         #copy.copy( self.__message )
+    def getMessageTuple(self):
+        string = self.getMessage()
+        print("Arduino says: " + string)
+        tup = string.split(",", 3)
+        return tup
 
 class SerialPort:
     """
@@ -321,11 +327,14 @@ class SerialPort:
         self.__ser.write( str( serializable ) )
 
 if __name__=="__main__":
+    import time
     print("hello world")
     with SerialPort() as serialPort:
         messenger = Messenger( serialPort )
         # Request the scan.
         messenger.sendMessage( settings.ROBOT_PING_TEST )
+        #avoid race condition
+        time.sleep(0.5)
         # Check for messages. Pass any messages to the mode.
         if messenger.checkInBox():
-            print( messenger.getMessage() )
+            print( messenger.getMessageTuple() )
