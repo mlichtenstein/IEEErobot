@@ -109,6 +109,10 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
                 drawable.draw(self, self.state)
 
 class BoardView(View):
+    """
+    BoardView will be constant as the GUI runs.  It shows a
+    birds-eye map of the board.
+    """
     def setup(self):
         import world
         self.robot = Robot()
@@ -116,13 +120,59 @@ class BoardView(View):
         self.landmarkSet = LandmarkSet(world.World().landmarkList)
         self.drawList = [self.robot, self.logSet, self.landmarkSet]
 
+class ModeView(View):
+    """
+    ModeView
+    """
+    pass
+
+class StatusBanner(Frame):
+    """
+    this frame is a long horizontal bar that displays crucial info about
+    the bot's state:  It's current mode, the pucks it still wants to
+    collect, and the run time.
+    """
+    def setup(self):
+        self.font = pygame.font.Font(None, 26)
+        self.string = [""]*3
+        self.startTime = -1
+    def takeState(self, state):
+        import time
+        ti = time.time() - state.startTime
+        self.modifyStrings(state.mode, state.remainingPucks, ti)
+    def draw(self):
+        self.surface.fill(0x07BB07)
+        UpperLeft = [0,250, 800]
+        for i in range(0,3):
+            tempSurface = self.font.render(self.string[i], True, (0,0,0))
+            tempUL = (UpperLeft[i],0)
+            self.surface.blit(tempSurface,tempUL)
+    def modifyStrings(self, mode, pucksRemaining, time):
+        if mode == None:
+			self.string[0] = "MODE: NONE"
+        else:
+			self.string[0] = "MODE: " + mode
+        tempstring1 = ""
+        for puck in pucksRemaining:
+            tempstring1 += str(puck) + ","
+        self.string[1] = "PUCKS REMAINING: " + tempstring1[:-1]
+        self.string[2] = "TIME: " + str(time)
+
+        
 class GUI:
     frameList = list()
+    prevMode = None
     def __init__( self, pygame, screen):
-        self.boardView = BoardView(pygame, screen, 10, 120, 540, 540)
+        self.boardView = BoardView(pygame, screen, 10, 60, 540, 540)
         self.frameList.append(self.boardView)
+        self.statusBanner = StatusBanner(pygame, screen, 10, 10, 1080, 40)
+        self.frameList.append(self.statusBanner)
+        
     def takeState(self, state):
         for frame in self.frameList:
+            if self.prevMode != state.mode:
+                #insert mode-specific reactions here
+                self.prevMode = state.mode
             frame.takeState(state)
     def update(self,screen):
         for frame in self.frameList:

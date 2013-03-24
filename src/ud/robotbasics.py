@@ -22,7 +22,8 @@ class Pose:
 class State:
     #The robot's internal state variables go here:
     def __init__(self):
-        pass
+        import time
+        self.startTime = time.time()
     mode = None
     moving = False
     pose = Pose(0,0,0)
