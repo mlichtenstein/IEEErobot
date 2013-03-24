@@ -11,7 +11,7 @@ import messenger
 """=================CREATE WORLD====================================="""
 
 state = State()
-state.mode = Pathfind()
+robotMode = Pathfind()
 
 landmarklist = list()
 landmarklist.append(landmarks)
@@ -54,5 +54,5 @@ while running == True:
                 for frame in gui.frameList:
                     frame.feelMiddleClick()
 
-    mode.act(state)
+    mode.act(states)
     gui.takeState(state)

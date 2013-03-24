@@ -21,7 +21,9 @@ class State:
     def __init__(self):
         pass
     mode = None
+    moving = False
     pose = Pose(0,0,0)
+    poseUncertainty = Pose(0,0,0)
     pitch = 0.0
     roll = 0.0
     distanceSinceScan = Pose(0,0,0) #distance, in feet, since last scan

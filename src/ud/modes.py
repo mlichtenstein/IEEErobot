@@ -4,9 +4,16 @@ Module Tests:
 
 class Mode:
     """
+    Initializes the robot and provides a base of functionality to build on
+     and override via polymorphism.
     Class Tests:
     >>> instance = Mode()
     """
+    def __init__( self ):
+        """
+        Get the robot setup to go."
+        """
+        raise Exception( "Please write your wonderful code here." )
     def onMessageReceived( self, message ):
         if __debug__ and not isinstance( message, str ):
             raise TypeError, "Bad arguments: Should be a \"str\" type."
@@ -18,6 +25,24 @@ class Mode:
     def onIRReadingReceived( self, reading ):
         if __debug__ and not isinstance( message, utility.Reading ):
             raise TypeError, "Bad arguments: Should be a \"utility.Reading\" type."
+    def act( self, robotStatus ):
+        """
+        The robot takes action based on the the state. Please override in any 
+        inheriting classes that you need.
+        
+        Arguments:
+        robotStatus -- contains information such as position, mode, ect.
+        """
+        raise Exception( "Please write your wonderful code here." )
+        
+class ReadUSBDrive:
+    def __init__( self ):
+        raise Exception( "Please write your wonderful code here." )
+    def act(self, state):
+        raise Exception("Write code that reads from the USB here")
+        state.remainingPucks = puckList #get puckList 
+        self = Localize()
+        
 
 class Go( Mode ):
     """
