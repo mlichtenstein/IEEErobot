@@ -67,25 +67,24 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
     def draw(self):
         for drawable in self.drawList:
             if drawable.active == True:
-                drawable.obj.draw(self)
+                drawable.obj.draw(self, self.state)
 
 class WorldObj:
     def draw(view):
         pass
 
 class Robot:
-    def __init__(self, state, color):
-        self.state = state
+    def __init__(self, color):
         self.color = color
-    def draw(self, view):
+    def draw(self, view, state):
         CC = view.CC
         s = CC*worldConst.robotWidth/2
-        xa = s*math.sin(self.state.pose.theta)
-        ya = s*math.cos(self.state.pose.theta)
-        xb = s*math.cos(self.state.pose.theta)
-        yb = s*math.sin(self.state.pose.theta)
-        x = self.state.pose.x * CC
-        y = self.state.pose.y * CC
+        xa = s*math.sin(state.pose.theta)
+        ya = s*math.cos(state.pose.theta)
+        xb = s*math.cos(state.pose.theta)
+        yb = s*math.sin(state.pose.theta)
+        x = state.pose.x * CC
+        y = state.pose.y * CC
         pygame.draw.polygon(view.surface, self.color,
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
@@ -127,34 +126,47 @@ class Button(Frame):
 class BoardView(View):
     state = State()
     state.pose = Pose(4,4,45)
-    robot = Robot(state, (255,255,255))
+    robot = Robot((255,255,255))
     drawList = [Drawable(robot)]
 
-class GUI(Frame): 
-    pass
-
+class GUI:
+    frameList = list()
+    def __init__( self, pygame, screen):
+        self.boardView = BoardView(pygame, screen, 10, 10, 540, 540)
+        self.frameList.append(self.boardView)
+    def takeState(self, state):
+        for frame in self.frameList:
+            frame.takeState(state)
+    def update(self):
+        for frame in self.frameList:
+            frame.update()
+            
+        
 if __name__ == "__main__":
     print "Hello World"
     H = 700
     W = 1100
     textHeight = 18
 
+    state = State()
+    
     pygame.init()
     pygame.font.init()
     Font = pygame.font.Font(None, textHeight)
     screen=pygame.display.set_mode((W,H),0,32)
     screen.fill((127,127,127))
+    gui = GUI(pygame,screen)
     #set up frames:
     #BoardView = boardView(pygame, screen, 5, 30, 540, 540, LandmarkList, LogList, EyeList)
     #BoardView.takeBestGuessBot(BestGuessBot)
     #buttons for BoardView:
-
+    """
     boardView=BoardView(pygame, screen, 10, 10, 540, 540)
+    """
+
     runNum = 0
 
-    frameList = []
-    frameList.append(boardView)
-
+    
     """----------------MAIN LOOP -------------------"""
     while runNum >= 0:
         for event in pygame.event.get():
@@ -163,17 +175,20 @@ if __name__ == "__main__":
                 sys.exit()        
             if event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    for frame in frameList:
+                    for frame in gui.frameList:
                         frame.feelClickDown(pygame.mouse.get_pos())
             if event.type == MOUSEBUTTONUP:
                 if event.button == 1:
-                    for frame in frameList:
+                    for frame in gui.frameList:
                         frame.feelClickUp(pygame.mouse.get_pos())
                 if event.button == 2:
-                    for frame in frameList:
+                    for frame in gui.frameList:
                         frame.feelMiddleClick()
-
-        boardView.takeState(state)                
-        boardView.update()
+                        
+        gui.takeState(state)
+        gui.update()
         pygame.display.update()
+
+        state.pose.randPose()
+        
         #runNum -= 1

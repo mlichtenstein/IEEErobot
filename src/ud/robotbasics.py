@@ -15,6 +15,11 @@ class Pose:
         self.x = x
         self.y = y
         self.theta = theta
+    def randPose(self):
+        import random
+        self.x = random.random()*8
+        self.y = random.random()*8
+        self.theta = random.random()*360
 
 class State:
     #The robot's internal state variables go here:
