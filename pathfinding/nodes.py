@@ -2,7 +2,8 @@ import pygame, sys, math, edit, random, pickle, easygui
 from pygame.locals import *
 import graph as g
 
-LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
+if __name__ == "__main__":
+    LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
 
 def loadFile( name ) :
     try:
