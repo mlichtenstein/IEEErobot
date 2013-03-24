@@ -97,7 +97,7 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
         pass
     def takeState(self, state):
         self.state = state
-    def takeWorld(self, logList, landmarkList):
+    def takeWorld(self, logList, landmarkList): #DEPRECATED -- delete this when you're in the mood for a bughunt
         self.logList = logList
         self.landmarkList = landmarkList
     def addObj(self,objList):
@@ -113,12 +113,13 @@ class BoardView(View):
         import world
         self.robot = Robot()
         self.logSet = LogSet(world.World().logList)
-        self.drawList = [self.robot, self.logSet]
+        self.landmarkSet = LandmarkSet(world.World().landmarkList)
+        self.drawList = [self.robot, self.logSet, self.landmarkSet]
 
 class GUI:
     frameList = list()
     def __init__( self, pygame, screen):
-        self.boardView = BoardView(pygame, screen, 10, 10, 540, 540)
+        self.boardView = BoardView(pygame, screen, 10, 120, 540, 540)
         self.frameList.append(self.boardView)
     def takeState(self, state):
         for frame in self.frameList:

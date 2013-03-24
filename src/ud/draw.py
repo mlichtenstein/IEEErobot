@@ -74,6 +74,32 @@ class LogSet(Drawable):
             pt3=(int((log[2]+delX)*view.coordConversion), int((log[3]+delY)*view.coordConversion))
             pygame.draw.aalines(view.surface, self.color, True, (pt0,pt1,pt2,pt3))
 
+class LandmarkSet(Drawable):
+    def __init__(self, landmarkList, color=None, default=None):
+        self.landmarkList = landmarkList
+        self.color=(255,255,255)
+        if color is None:
+            import random
+            self.color = (int(random.random()*256),
+                            int(random.random()*256),
+                            int(random.random()*256))
+        else:
+            self.color = color
+        if default!=None:
+            self.active = default
+    def draw(self, view, state):
+        from world import *
+        side = int(World().treeSide * view.CC)
+        radius = int(World().rockRadius * view.CC)
+        for landmark in self.landmarkList:
+            x = int(landmark.x * view.CC)
+            y = int(landmark.y * view.CC)
+            if landmark.landmarkType == "TREE":
+                rect = (x - side/2, y-side/2, side, side)
+                pygame.draw.rect(view.surface, self.color, rect)
+            if landmark.landmarkType == "ROCK":
+                pygame.draw.circle(view.surface, self.color,
+                        (x,y), radius)
 
 """====================TESTING GROUND==============================="""
 
@@ -94,13 +120,13 @@ if __name__ == "__main__":
 
     testView = GUI.View(pygame, screen, 0,0, H, W)
     logList = [(2,6,6,2)]
-    testView.takeWorld(logList,[])
+    landmarkList = [robotbasics.Landmark(2,2,"TREE"),robotbasics.Landmark(6,6,"ROCK")]
     
     state = robotbasics.State()
     state.pose = robotbasics.Pose(4,4,30)
     testView.takeState(state)
     
-    testView.drawList = [LogSet(logList),Robot()]
+    testView.drawList = [LogSet(logList),Robot(),LandmarkSet(landmarkList)]
     runNum = 0
     robot = Robot()
     

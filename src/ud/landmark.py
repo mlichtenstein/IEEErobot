@@ -1,3 +1,6 @@
+"""THIS WHOLE FILE IS UNNECCESARY AND SHOULD BE DELETED.  ITS FUNCTIONS
+ARE NOW BEING HANDLED BY robotbasics AND draw"""
+
 
 class landmark:
     x,y = 0,0 #in feet, of course

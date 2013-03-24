@@ -1,9 +1,7 @@
-#robotbasics.py
-
-class WorldConst:
-    robotWidth = .95
-    
-worldConst = WorldConst()
+"""
+this library is for the basic building blocks of the representations
+our robot uses.
+"""
 
 class Pose:
     x=0
@@ -40,6 +38,12 @@ class State:
     remainingPucks = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
     magnetOn = False
     lightsOn = False
+
+class Landmark:
+    def __init__(self, x, y, landmarkType):
+        if landmarkType != "TREE" and landmarkType!= "ROCK":
+            raise Exception("landmarkType must be TREE or ROCK")
+        self.x,self.y,self.landmarkType = (x,y,landmarkType)
 
 class Eye:
     def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
