@@ -107,6 +107,20 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
         for drawable in self.drawList:
             if drawable.active == True:
                 drawable.draw(self, self.state)
+    def processMiddleClick(self):
+        activeList = list()
+        nameList = list()
+        for drawable in self.drawList:
+            drawable.active = False
+            nameList.append(drawable.name)
+        import easygui
+        makeActiveList = easygui.multchoicebox(msg="Select which world objects you'd like to be visible",
+                title='View options:',
+                choices=(nameList))
+        for target in makeActiveList:
+            for drawable in self.drawList:
+                if target == drawable.name:
+                    drawable.active = True 
 
 class BoardView(View):
     """
@@ -149,9 +163,9 @@ class StatusBanner(Frame):
             self.surface.blit(tempSurface,tempUL)
     def modifyStrings(self, mode, pucksRemaining, time):
         if mode == None:
-			self.string[0] = "MODE: NONE"
+            self.string[0] = "MODE: NONE"
         else:
-			self.string[0] = "MODE: " + mode
+            self.string[0] = "MODE: " + mode
         tempstring1 = ""
         for puck in pucksRemaining:
             tempstring1 += str(puck) + ","
@@ -220,7 +234,10 @@ if __name__ == "__main__":
                         frame.feelClickUp(pygame.mouse.get_pos())
                 if event.button == 2:
                     for frame in gui.frameList:
-                        frame.feelMiddleClick()
+                        state.pause()
+                        print("processing middle click...")
+                        frame.processMiddleClick()
+                        state.unpause()
                         
         gui.takeState(state)
         gui.update(screen)

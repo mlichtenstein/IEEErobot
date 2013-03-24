@@ -24,6 +24,7 @@ class State:
     def __init__(self):
         import time
         self.startTime = time.time()
+        self.startPause = None
     mode = None
     moving = False
     pose = Pose(0,0,0)
@@ -39,6 +40,19 @@ class State:
     remainingPucks = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
     magnetOn = False
     lightsOn = False
+    def pause(self):
+        import time
+        self.startPause = time.time()
+    def unpause(self):
+        if self.startPause == None:
+            #this doesn't nec need to be an exception
+            raise Exception("Unpaused robot without pausing!  Oh noes!")
+        else:
+            import time
+            pauseDuration = time.time()-self.startPause
+            self.startTime += pauseDuration
+            self.startPause = None
+        
 
 class Landmark:
     def __init__(self, x, y, landmarkType):

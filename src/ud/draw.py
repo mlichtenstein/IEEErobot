@@ -15,6 +15,7 @@ class Drawable:
     """
     active = True;
     color=(255,255,255)
+    name = "Give me a name!"
     def __init__(self, color=None, default=None):
         self.color=(255,255,255)
         if color is None:
@@ -30,6 +31,7 @@ class Drawable:
         pass
 
 class Robot(Drawable):
+    name = "Robot"
     def draw(self, view, state):
         CC = view.CC
         #the center of the robot in view's pixel coords
@@ -52,6 +54,7 @@ class Robot(Drawable):
         #and draw the wheels?  MAYBE WHEN MAX IS FEELING UP FOR SOME SERIOUS LINEAR ALGEBRA :)
 
 class LogSet(Drawable):
+    name = "Logs"
     def __init__(self, logList, color=None, default=None):
         self.logList = logList
         self.color=(255,255,255)
@@ -75,6 +78,7 @@ class LogSet(Drawable):
             pygame.draw.aalines(view.surface, self.color, True, (pt0,pt1,pt2,pt3))
 
 class LandmarkSet(Drawable):
+    name = "Landmarks"
     def __init__(self, landmarkList, color=None, default=None):
         self.landmarkList = landmarkList
         self.color=(255,255,255)
