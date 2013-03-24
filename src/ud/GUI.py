@@ -10,15 +10,26 @@ import easygui as eg
 # a class to manage frames:
 
 class Frame:
-    def __init__(self, pygame, screen, x_origin, y_origin, width, height):        #the corners on the big canvas
+	"""
+	An object of this class is a rectangle on a pygame screen.
+	This rectangle can tell if it has been clicked, so children of this
+	class make good simple buttons.  Also, the click is translated (or
+	"felt") as coordinates with respect to the upper left corner of the
+	frame, so you can use it to hold a map and enter map coordinates.
+	    
+        Params:
+            same as a pygame rectangle.
+	"""
+	def __init__(self, pygame, screen, x_origin, y_origin, width, height):
         pygame=pygame
         screen=screen
         self.origin = (x_origin,y_origin)
         self.width = width
         self.height = height
-        self.rect = pygame.Rect(x_origin, y_origin, width, height) #the rectangle the frame occupies in the screen
+        self.rect = pygame.Rect(x_origin, y_origin, width, height)
+		#^the rectangle the frame occupies in the screen
         self.surface = pygame.Surface((width, height))
-        self.CC = width/8 #coordconversion switches from feet to pixels
+        self.CC = width/8 #coordconversion transforms feet to pixels
     def update(self):
         self.surface.fill(0x000000)
         self.draw()
@@ -40,10 +51,7 @@ class Frame:
     def processMiddleClick(self):
         pass
 
-class Drawable:
-    active = True;
-    def __init__(self,obj):
-        self.obj = obj
+
 
 class View(Frame): # a frame for representations of physical data (boardView, botView
     state = State()
@@ -69,27 +77,51 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
             if drawable.active == True:
                 drawable.obj.draw(self, self.state)
 
-class WorldObj:
-    def draw(view):
-        pass
+class Drawable:
+	"""
+	Drawables are things that frames can draw.  A frame owns one as an
+	attribute.  The "Active" variable is used to make it invisible.
 
-class Robot:
-    def __init__(self, color):
+	load them up with an obj that they draw.  As you change the object,
+	you'll also change the drawable.
+
+	The various objects that drawables are kept in the draw library. 
+	"""
+    active = True;
+    def __init__(self, obj):
+		import random
+		self.color = (255,255,255)
+		for i in range (0,2):
+			self.color[i] = (int(random.random()*256))
+    def __init__(self,obj, color):
+        self.obj = obj
         self.color = color
+    def __init__(self,obj, color, default):
+		self.obj = obj
+		self.color = color
+		self.active = default
+	def draw(self, view, state): #define in subclasses
+		pass
+
+class Robot(Drawable):
     def draw(self, view, state):
         CC = view.CC
+		#the center of the robot in view's pixel coords
+		x = state.pose.x * CC
+        y = state.pose.y * CC
+        # first draw the square frame of the robot
         s = CC*worldConst.robotWidth/2
         xa = s*math.sin(state.pose.theta)
         ya = s*math.cos(state.pose.theta)
         xb = s*math.cos(state.pose.theta)
         yb = s*math.sin(state.pose.theta)
-        x = state.pose.x * CC
-        y = state.pose.y * CC
         pygame.draw.polygon(view.surface, self.color,
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
                 (x+xa-xb,y-ya-yb),
                 (x+xa+xb,y-ya+yb)), 1)
+		#and draw a line for the heading:
+		
                 
 class Button(Frame): 
     down = False
