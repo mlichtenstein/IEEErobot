@@ -1,3 +1,12 @@
+# This file synchronizes the ld "Settings.h" with the upper deck "Setting.py"  
+# Note that the upper deck file gets overwritten, so make your changes in Settings.h and
+# then invoke this makefile.
+#
+# Invoke it like this: go to directory ud, then enter the commands:
+#
+# $rm settings.py
+# $make Settings
+
 PYSRC=$(wildcard *.py)
 
 TESTRESULTS=$(PYSRC:%.py=test%.out)

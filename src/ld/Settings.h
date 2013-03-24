@@ -15,8 +15,13 @@
 // BEGIN Message Settings
 #define ROBOT_SERIAL_MESSAGE_START ':'
 #define ROBOT_SERIAL_MESSAGE_STOP ';'
-
 // END Message Settings
+
+// BEGIN Scan Settings
+#define ROBOT_IR_SCAN_TIME 4
+#define ROBOT_SCAN_DATA_POINTS 90
+#define ROBOT_SCAN_ANGLE 135
+// END Scan Settings
 
 // BEGIN Services
 #define ROBOT_PING_TEST 'P'
