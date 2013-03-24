@@ -6,31 +6,33 @@ from pygame import *
 from robotbasics import *
 import math
 import easygui as eg
+from draw import *
 
 # a class to manage frames:
 
 class Frame:
-	"""
-	An object of this class is a rectangle on a pygame screen.
-	This rectangle can tell if it has been clicked, so children of this
-	class make good simple buttons.  Also, the click is translated (or
-	"felt") as coordinates with respect to the upper left corner of the
-	frame, so you can use it to hold a map and enter map coordinates.
-	    
+    """
+    An object of this class is a rectangle on a pygame screen.
+    This rectangle can tell if it has been clicked, so children of this
+    class make good simple buttons.  Also, the click is translated (or
+    "felt") as coordinates with respect to the upper left corner of the
+    frame, so you can use it to hold a map and enter map coordinates.
+        
         Params:
             same as a pygame rectangle.
-	"""
-	def __init__(self, pygame, screen, x_origin, y_origin, width, height):
+    """    
+    def __init__(self, pygame, screen, x_origin, y_origin, width, height):
         pygame=pygame
         screen=screen
         self.origin = (x_origin,y_origin)
         self.width = width
         self.height = height
         self.rect = pygame.Rect(x_origin, y_origin, width, height)
-		#^the rectangle the frame occupies in the screen
+        #^the rectangle the frame occupies in the screen
         self.surface = pygame.Surface((width, height))
         self.CC = width/8 #coordconversion transforms feet to pixels
-    def update(self):
+        self.setup() #used to add to init procedures if you want
+    def update(self,screen):
         self.surface.fill(0x000000)
         self.draw()
         screen.blit(self.surface, self.rect)
@@ -50,78 +52,8 @@ class Frame:
         pass
     def processMiddleClick(self):
         pass
-
-
-
-class View(Frame): # a frame for representations of physical data (boardView, botView
-    state = State()
-    selectedHypobot=0
-    drawList = list()
-    def optionsWindow(self):
-        """dialog = tk.Tk()
-        w=tk.label(dialog,text="Select Visibile World Objects:")
-        w.pack()
-        stop = tk.button(dialog, text ="Done", command = dialog.quit())
-        for drawable in drawList:
-            
-        
-        dialog.destroy"""
+    def setup(self):
         pass
-    def takeState(self, state):
-        self.state = state
-    def addObj(self,objList):
-        for obj in objList:
-            self.drawList.append(Drawable(obj))
-    def draw(self):
-        for drawable in self.drawList:
-            if drawable.active == True:
-                drawable.obj.draw(self, self.state)
-
-class Drawable:
-	"""
-	Drawables are things that frames can draw.  A frame owns one as an
-	attribute.  The "Active" variable is used to make it invisible.
-
-	load them up with an obj that they draw.  As you change the object,
-	you'll also change the drawable.
-
-	The various objects that drawables are kept in the draw library. 
-	"""
-    active = True;
-    def __init__(self, obj):
-		import random
-		self.color = (255,255,255)
-		for i in range (0,2):
-			self.color[i] = (int(random.random()*256))
-    def __init__(self,obj, color):
-        self.obj = obj
-        self.color = color
-    def __init__(self,obj, color, default):
-		self.obj = obj
-		self.color = color
-		self.active = default
-	def draw(self, view, state): #define in subclasses
-		pass
-
-class Robot(Drawable):
-    def draw(self, view, state):
-        CC = view.CC
-		#the center of the robot in view's pixel coords
-		x = state.pose.x * CC
-        y = state.pose.y * CC
-        # first draw the square frame of the robot
-        s = CC*worldConst.robotWidth/2
-        xa = s*math.sin(state.pose.theta)
-        ya = s*math.cos(state.pose.theta)
-        xb = s*math.cos(state.pose.theta)
-        yb = s*math.sin(state.pose.theta)
-        pygame.draw.polygon(view.surface, self.color,
-                ((x-xa+xb,y+ya+yb),
-                (x-xa-xb,y+ya-yb),
-                (x+xa-xb,y-ya-yb),
-                (x+xa+xb,y-ya+yb)), 1)
-		#and draw a line for the heading:
-		
                 
 class Button(Frame): 
     down = False
@@ -155,11 +87,33 @@ class Button(Frame):
         tempUL = ((self.width-tempSurface.get_width())/2,(self.height-tempSurface.get_height())/2)
         self.surface.blit(tempSurface,tempUL)
 
-class BoardView(View):
+class View(Frame): # a frame for representations of physical data (boardView, botView)
     state = State()
-    state.pose = Pose(4,4,45)
-    robot = Robot((255,255,255))
-    drawList = [Drawable(robot)]
+    selectedHypobot=0
+    drawList = list()
+    coordConversion = 540/8
+    def optionsWindow(self):
+        #put a dialog to change the active state of the drawables here
+        pass
+    def takeState(self, state):
+        self.state = state
+    def takeWorld(self, logList, landmarkList):
+        self.logList = logList
+        self.landmarkList = landmarkList
+    def addObj(self,objList):
+        for obj in objList:
+            self.drawList.append(Drawable(obj))
+    def draw(self):
+        for drawable in self.drawList:
+            if drawable.active == True:
+                drawable.draw(self, self.state)
+
+class BoardView(View):
+    def setup(self):
+        import world
+        self.robot = Robot()
+        self.logSet = LogSet(world.World().logList)
+        self.drawList = [self.robot, self.logSet]
 
 class GUI:
     frameList = list()
@@ -169,12 +123,12 @@ class GUI:
     def takeState(self, state):
         for frame in self.frameList:
             frame.takeState(state)
-    def update(self):
+    def update(self,screen):
         for frame in self.frameList:
-            frame.update()
-            
+            frame.update(screen)
         
 if __name__ == "__main__":
+    import time 
     print "Hello World"
     H = 700
     W = 1100
@@ -218,9 +172,10 @@ if __name__ == "__main__":
                         frame.feelMiddleClick()
                         
         gui.takeState(state)
-        gui.update()
+        gui.update(screen)
         pygame.display.update()
 
-        state.pose.randPose()
+        state.pose = Pose(state.pose.x+0.01,state.pose.y+0.01,state.pose.theta+0.1)
+        time.sleep(0.1)
         
         #runNum -= 1
