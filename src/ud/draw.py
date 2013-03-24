@@ -56,7 +56,7 @@ class Robot(Drawable):
 class Wheels(Drawable):
     name = "Wheels"
     def draw(self, view, state):
-        
+        pass #nah drawing wheels is a pain
 
 class LogSet(Drawable):
     name = "Logs"

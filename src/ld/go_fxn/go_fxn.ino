@@ -1,9 +1,13 @@
 #include <Servo.h>
 #include <math.h>
+
+//Coordinates of wheel stems in cartesian plane with origin at center of bot
 #define BODY_WIDTH 4.515625
 #define BODY_LENGTH 3.6875
 
+//Front-left servo, etc
 Servo FLSERVO, FRSERVO, BLSERVO, BRSERVO;
+//Pin numbers for wheel servos, motor pairs
 const int LEFT_DIR1 = 22, LEFT_DIR2 = 23, RIGHT_DIR1 = 24, RIGHT_DIR2 = 25;
 const int LEFT_SPEED = 2, RIGHT_SPEED = 3;
 
@@ -19,8 +23,6 @@ void setup()
   pinMode(RIGHT_DIR1, OUTPUT);
   pinMode(RIGHT_DIR2, OUTPUT);
 }
-
-//go should be passed current pose(x,y,theta) 
 
 void loop() 
 { 
@@ -91,6 +93,7 @@ void go(double x, double y, int theta)
 	
 }
 void turn(int angle){
+  //translate angle to live in [-180,180]
   while (angle > 180)
                   {angle -= 360;}
   while (angle < -180)
@@ -109,8 +112,8 @@ void turn(int angle){
 void right(int Angle)
 {//pass a degree, will use for delay
         motorSpeed(0);
-        digitalWrite(LEFT_DIR1, LOW);
-		digitalWrite(LEFT_DIR2, HIGH );
+    digitalWrite(LEFT_DIR1, LOW);
+		digitalWrite(LEFT_DIR2, HIGH);
 		digitalWrite(RIGHT_DIR1, LOW);
 		digitalWrite(RIGHT_DIR2, HIGH);
         FLSERVO.write(90-40);   //front right servo

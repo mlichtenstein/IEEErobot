@@ -11,7 +11,12 @@ import messenger
 """=================CREATE WORLD====================================="""
 
 state = State()
+try:
+	Mode.messenger = Messenger(SerialPort())
+except:
+	raise Exception("Couldn't connect to Arduino!")
 robotMode = Pathfind()
+
 
 landmarklist = list()
 landmarklist.append(landmarks)
@@ -54,6 +59,6 @@ while running == True:
                 for frame in gui.frameList:
                     frame.feelMiddleClick()
     # Tell the robot brain to take action.
-    mode.act(state)
+    robotMode.act(state)
     # Update the GUI with the current robot state
     gui.takeState(state)

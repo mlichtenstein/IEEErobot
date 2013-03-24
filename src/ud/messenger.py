@@ -2,7 +2,8 @@ import settings
 
 class Messenger:
     """
-    Facilitates communication accrossed the serial port to the Arduino.
+    Messenger objects are used to send and recieve messages to the
+    lower deck (ie the Arduino).
 
     Class Tests:
     """
@@ -51,6 +52,8 @@ class Messenger:
                 understand the message.
             fields -- a list of additional parameters passed. Each param
                 must be able to converted to a string.
+                Enter this argument as a list of comma separated values:
+                messenger.sendMessage(SERVICE_SCAN,1,3,MattsBalls)
         Throws:
             TypeError -- when charCategory is not a string.
             Exception -- when the length of charCategory is not 1.
