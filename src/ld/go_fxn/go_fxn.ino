@@ -9,6 +9,13 @@
 Servo FLSERVO, FRSERVO, BLSERVO, BRSERVO;
 //Pin numbers for wheel servos, motor pairs
 const int LEFT_DIR1 = 22, LEFT_DIR2 = 23, RIGHT_DIR1 = 24, RIGHT_DIR2 = 25;
+/*
+H-BRIDGE:    LEFT_DIR1       LEFT_DIR2      RIGHT_DIR1        RIGHT_DIR2
+forward          0               1               1                 0
+reverse          1               0               0                 1
+rotate right     0               1               0                 1
+rotate left      1               0               1                 0
+*/
 const int LEFT_SPEED = 2, RIGHT_SPEED = 3;
 
 void setup() 
@@ -27,15 +34,13 @@ void setup()
 void loop() 
 { 
         //go(0,1,0);go(2,0,0);
-        forward(3); delay(500);reverse(3);
+        forward(3); reverse(3);turn(90);turn(-90);
         while(1){int i = 0;}
 } 
 
 
 void ackSolve(float theta, double motorSpeed)
 { //Ackermann Function: Returns servo angles, and motor speeds
-
-
 
   double FL_Angle, FR_Angle, leftSpeed, rightSpeed, FL_SERVO, FR_SERVO, BL_SERVO, BR_SERVO;
   
@@ -95,9 +100,9 @@ void go(double x, double y, int theta)
 void turn(int angle){
   //translate angle to live in [-180,180]
   while (angle > 180)
-                  {angle -= 360;}
+    {angle -= 360;}
   while (angle < -180)
-                  {angle += 360;}
+    {angle += 360;}
 	if (angle<0)
 	{
 		left(abs(angle));
