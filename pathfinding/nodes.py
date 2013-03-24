@@ -254,4 +254,42 @@ def findPath( graph, startingNode ):
     Return:
     The path.
     """
-
+    pathInfo = explorePath( graph.links, startingNode, startingNode )
+    return pathInfo[0]
+def explorePath( links, previous, startingNode ):
+    result = []
+    while True:
+        links = findLinksWithNode( links, startingNode )
+        # No matches.
+        if len( links ) == 0:
+            raise Exception( "Cannot find starting node." )
+        # Explore one direction.
+        elif len( links ) == 1:
+            otherNode = findLinksWithNode( links[0], startingNode )
+            # Reached a dead-end.
+            if otherNode == previous:
+                break
+            result.append( startingNode )
+            previous = startingNode
+            startingNode = otherNode
+        # Explore multiple directions
+        else:
+            shortestTrip = 9999999
+            for link in links:
+                otherNode = findLinksWithNode( links[0], startingNode )
+                if otherNode != previous:
+                    pathInfo = explorePath( links, startingNode, otherNode )
+            break
+    return result
+def findLinksWithNode( links, node ):
+    result = []
+    for link in links:
+        if link.node1 == node or link.node2 == node:
+            result.append( link )
+    return result
+def getOtherNode( link, node ):
+    if links[0].node1 == node:
+        return links[0].node2
+    else:
+        return links[1].node1
+    
