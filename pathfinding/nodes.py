@@ -2,7 +2,8 @@ import pygame, sys, math, edit, random, pickle, easygui
 from pygame.locals import *
 import graph as g
 
-LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
+if __name__ == "__main__":
+    LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
 
 def loadFile( name ) :
     try:
@@ -258,6 +259,7 @@ def explorePath( allLinks, roots, startingNode ):
     currentNode = startingNode
     previous = roots[-1]
     result = []
+    distance = 0
     while True:
         relatedLinks = findLinksWithNode( allLinks, currentNode )
         forwardLinks = [] 
@@ -266,40 +268,48 @@ def explorePath( allLinks, roots, startingNode ):
             raise Exception( "Cannot find starting node." )
         else:
             for link in relatedLinks:
+                # Access the oposite node from currentNode.
                 otherNode = getOtherNode( link, currentNode )
-                goesForwards = True
+                needToExplore = True
+                # The link goes backwards.
                 if otherNode == previous:
-                    goesForwards = False
-                if goesForwards:
+                    needToExplore = False
+                # Ignore links to intersections previously explored.
+                if needToExplore:
                     for root in roots:
                         if otherNode == root:
-                            goesForwards = False
+                            needToExplore = False
                             break
-                if goesForwards:
+                # Include only forward going links.
+                if needToExplore:
                     forwardLinks.append( link )
         result.append( currentNode )
-        # All backward links.
+        # No forward links.
         if len( forwardLinks ) == 0:
             break
-        # One viable link.
-        elif len( relatedLinks ) - backwardLinks == 1:
+        # One forward link. Proceed forward.
+        elif len( forwardLinks ) == 1:
+            # Access the oposite node from currentNode.
+            distance = distance + forwardLinks[0].length
+            nextNode = getOtherNode( forwardLinks[0], currentNode )
             previous = currentNode
             currentNode = nextNode 
-        # Multiple viable links.
+        # Multiple forward links. Divide and conquer.
         else:
+            # For each possible branch, launch an explorer. The explorer will
+            #  return the path and the distance. Next, append the branch with
+            #  the shortest path.
             minBranch = ( [], 999999 )
-            for link in relatedLinks:
-                otherNode = getOtherNode( link, currentNode )
-                for root in roots:
-                    if root != otherNode and previous != otherNode:
-                        rootsCopy = roots[:]
-                        rootsCopy.append( currentNode )
-                        branch = explorePath( allLinks, rootsCopy, otherNode )
-                        # Select the shortest branch only.
-                        if branch[1] < minBranch[1]:
-                            minBranch = branch
+            for link in forwardLinks:
+                rootsCopy = roots[:]
+                rootsCopy.append( currentNode )
+                branch = explorePath( allLinks, rootsCopy, otherNode )
+                # Select the shortest branch only.
+                if branch[1] < minBranch[1]:
+                    minBranch = branch
+            result = result + minBranch[0]
             break
-    return result
+    return result, distance
 def findLinksWithNode( links, node ):
     result = []
     for link in links:
