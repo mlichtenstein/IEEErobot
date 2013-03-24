@@ -21,21 +21,22 @@ def writeFile( name ):
     pickle.dump( graph, f )
 
     #f.write( pickle.dumps( graph.links ) )
-try:
-    graph = loadFile( LOAD_FILE )
-except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
-    #import traceback
-    print e
-    #traceback.print_stack()
-    graph = g.Graph()
-pucks = random.sample(range(1,17),6)
+if __name__ == "__main__":
+    try:
+        graph = loadFile( LOAD_FILE )
+    except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
+        #import traceback
+        print e
+        #traceback.print_stack()
+        graph = g.Graph()
+    pucks = random.sample(range(1,17),6)
 
-dummy = graph.addNode(-1000,-1000)
-pygame.init()
-screen=pygame.display.set_mode((960,960),0,32)
-pose = (0,0,0)
-drawFlag = 1
-botPose = g.Pose()
+    dummy = graph.addNode(-1000,-1000)
+    pygame.init()
+    screen=pygame.display.set_mode((960,960),0,32)
+    pose = (0,0,0)
+    drawFlag = 1
+    botPose = g.Pose()
 
 #f = open('nodeFile', 'r+') #open file for reading and writing
 #graph.nodes = pickle.load( f )
@@ -177,7 +178,7 @@ def pathfind():
 
 # By default accept all mouse up events.
 ignoreNextMouseUpEvent = lambda: False
-while 1:
+while __name__ == "__main__":
     for event in pygame.event.get():
         if event.type == QUIT:
             writeFile( LOAD_FILE )
@@ -256,29 +257,63 @@ def findPath( graph, startingNode ):
     """
     pathInfo = explorePath( graph.links, startingNode, startingNode )
     return pathInfo[0]
-def explorePath( links, previous, startingNode ):
+def explorePath( allLinks, roots, startingNode ):
+    """
+    Description:
+    The method tries to find the shortest path to a node.
+
+    Parameters:
+    allLinks -- is a list of all links in the graph.
+    roots -- is a list of roots.
+    startingNode -- is the base of the path.
+
+    Return:
+    A tuple of the path and the distance.
+
+    Example:
+    >>> 
+    """
+    currentNode = startingNode
+    previous == root[-1]
     result = []
     while True:
-        links = findLinksWithNode( links, startingNode )
-        # No matches.
-        if len( links ) == 0:
+        relatedLinks = findLinksWithNode( allLinks, currentNode )
+        backwardLinks = 0
+        # No matches. There should be at least one link that matches.
+        if len( relatedLinks ) == 0:
             raise Exception( "Cannot find starting node." )
-        # Explore one direction.
-        elif len( links ) == 1:
-            otherNode = findLinksWithNode( links[0], startingNode )
-            # Reached a dead-end.
-            if otherNode == previous:
-                break
-            result.append( startingNode )
-            previous = startingNode
-            startingNode = otherNode
-        # Explore multiple directions
+        # Count backward pathes.
+        elif len( roots ) == 0 and roots[0] != startingNode:
+            for link in relatedLinks:
+                otherNode = getOtherNode( link, currentNode )
+                for root in roots
+                    if root == otherNode or previous == otherNode:
+                        backwardLinks = backwardLinks + 1
+        result.append( currentNode )
+        # All backward links.
+        if len( relatedLinks ) == backwardLinks:
+            break
+        # One viable link.
+        elif len( relatedLinks ) - backwardLinks == 1:
+            for link in relatedLinks:
+                otherNode = getOtherNode( link, currentNode )
+                for root in roots
+                    if root != otherNode and previous != otherNode:
+                        previous = currentNode
+                        currentNode = otherNode
+        # Multiple viable links.
         else:
-            shortestTrip = 9999999
-            for link in links:
-                otherNode = findLinksWithNode( links[0], startingNode )
-                if otherNode != previous:
-                    pathInfo = explorePath( links, startingNode, otherNode )
+            minBranch = ( [], 999999 )
+            for link in relatedLinks:
+                otherNode = getOtherNode( link, currentNode )
+                for root in roots
+                    if root != otherNode and previous != otherNode:
+                        rootsCopy = roots[:]
+                        rootsCopy.append( currentNode )
+                        branch = explorePath( allLinks, rootsCopy, otherNode )
+                        # Select the shortest branch only.
+                        if branch[1] < minBranch[1]:
+                            minBranch = branch
             break
     return result
 def findLinksWithNode( links, node ):
@@ -288,8 +323,8 @@ def findLinksWithNode( links, node ):
             result.append( link )
     return result
 def getOtherNode( link, node ):
-    if links[0].node1 == node:
-        return links[0].node2
+    if link.node1 == node:
+        return link.node2
     else:
-        return links[1].node1
+        return link.node1
     
