@@ -53,6 +53,11 @@ class Robot(Drawable):
         pygame.draw.line(view.surface, self.color, (x,y),(x-2*xa,y+2*ya)) #I THINK THIS IS WRONG
         #and draw the wheels?  MAYBE WHEN MAX IS FEELING UP FOR SOME SERIOUS LINEAR ALGEBRA :)
 
+class Wheels(Drawable):
+    name = "Wheels"
+    def draw(self, view, state):
+        
+
 class LogSet(Drawable):
     name = "Logs"
     def __init__(self, logList, color=None, default=None):

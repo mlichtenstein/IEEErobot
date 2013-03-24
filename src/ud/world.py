@@ -24,3 +24,5 @@ class World:
                     Landmark(3.91,4.98, "ROCK"),
                     Landmark(6.14,6.16, "TREE"),
                     Landmark(7.85,1.65, "TREE")]
+    wheelOffset=(.5,.5) #the x and y offsets of the wheels' stems from the center of the bot
+    wheelDims=(2/12, 3/12)
