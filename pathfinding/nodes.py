@@ -274,39 +274,41 @@ def explorePath( allLinks, roots, startingNode ):
     >>> 
     """
     currentNode = startingNode
-    previous == root[-1]
+    previous = roots[-1]
     result = []
     while True:
         relatedLinks = findLinksWithNode( allLinks, currentNode )
-        backwardLinks = 0
+        forwardLinks = [] 
         # No matches. There should be at least one link that matches.
         if len( relatedLinks ) == 0:
             raise Exception( "Cannot find starting node." )
-        # Count backward pathes.
-        elif len( roots ) == 0 and roots[0] != startingNode:
+        else:
             for link in relatedLinks:
                 otherNode = getOtherNode( link, currentNode )
-                for root in roots
-                    if root == otherNode or previous == otherNode:
-                        backwardLinks = backwardLinks + 1
+                goesForwards = True
+                if otherNode == previous:
+                    goesForwards = False
+                if goesForwards:
+                    for root in roots:
+                        if otherNode == root:
+                            goesForwards = False
+                            break
+                if goesForwards:
+                    forwardLinks.append( link )
         result.append( currentNode )
         # All backward links.
-        if len( relatedLinks ) == backwardLinks:
+        if len( forwardLinks ) == 0:
             break
         # One viable link.
         elif len( relatedLinks ) - backwardLinks == 1:
-            for link in relatedLinks:
-                otherNode = getOtherNode( link, currentNode )
-                for root in roots
-                    if root != otherNode and previous != otherNode:
-                        previous = currentNode
-                        currentNode = otherNode
+            previous = currentNode
+            currentNode = nextNode 
         # Multiple viable links.
         else:
             minBranch = ( [], 999999 )
             for link in relatedLinks:
                 otherNode = getOtherNode( link, currentNode )
-                for root in roots
+                for root in roots:
                     if root != otherNode and previous != otherNode:
                         rootsCopy = roots[:]
                         rootsCopy.append( currentNode )
