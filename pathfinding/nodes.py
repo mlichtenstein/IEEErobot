@@ -261,6 +261,10 @@ def explorePath( allLinks, roots, startingNode ):
     result = []
     distance = 0
     while True:
+        result.append( currentNode )
+        # Done once we have the puck.
+        if currentNode.puck != -1:
+            break
         relatedLinks = findLinksWithNode( allLinks, currentNode )
         forwardLinks = [] 
         # No matches. There should be at least one link that matches.
@@ -283,7 +287,6 @@ def explorePath( allLinks, roots, startingNode ):
                 # Include only forward going links.
                 if needToExplore:
                     forwardLinks.append( link )
-        result.append( currentNode )
         # No forward links.
         if len( forwardLinks ) == 0:
             break
@@ -300,6 +303,7 @@ def explorePath( allLinks, roots, startingNode ):
             #  return the path and the distance. Next, append the branch with
             #  the shortest path.
             minBranch = ( [], 999999 )
+            minLink = None
             for link in forwardLinks:
                 rootsCopy = roots[:]
                 rootsCopy.append( currentNode )
@@ -307,7 +311,10 @@ def explorePath( allLinks, roots, startingNode ):
                 # Select the shortest branch only.
                 if branch[1] < minBranch[1]:
                     minBranch = branch
-            result = result + minBranch[0]
+                    minLink = link
+            if minLink != None:
+                result = result + minBranch[0]
+                distance = distance + minLink.length + minBranch[1]
             break
     return result, distance
 def findLinksWithNode( links, node ):
