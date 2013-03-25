@@ -3,7 +3,7 @@ from pygame.locals import *
 import graph as g
 
 if __name__ == "__main__":
-    LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
+    LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default=None)
 
 def loadFile( name ) :
     try:
