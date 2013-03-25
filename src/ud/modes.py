@@ -1,3 +1,5 @@
+from robotbasics import *
+
 """
 Module Tests:
 """
@@ -9,7 +11,7 @@ class Mode:
     Class Tests:
     >>> instance = Mode()
     """
-    def __init__( self ):
+    def __init__( self, state ):
         """
         Get the robot setup to go."
         """
@@ -25,7 +27,7 @@ class Mode:
     def onIRReadingReceived( self, reading ):
         if __debug__ and not isinstance( message, utility.Reading ):
             raise TypeError, "Bad arguments: Should be a \"utility.Reading\" type."
-    def act( self, robotStatus ):
+    def act( self, state ):
         """
         The robot takes action based on the the state. Please override in any 
         inheriting classes that you need.
@@ -36,12 +38,13 @@ class Mode:
         raise Exception( "Please write your wonderful code here." )
         
 class ReadUSBDrive:
-    def __init__( self ):
-        raise Exception( "Please write your wonderful code here." )
+    def __init__( self , state):
+        print("Mode is now ReadUSB")
+        state.mode = "ReadUSB"
     def act(self, state):
-        raise Exception("Write code that reads from the USB here")
-        state.remainingPucks = puckList #get puckList 
-        self = Localize()
+        print("Write code that reads from the USB here")
+        #state.remainingPucks = puckList #get puckList 
+        return Localize(state)
         
 
 class Go( Mode ):
@@ -51,6 +54,11 @@ class Go( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
+    def __init__( self , state):
+        print("Mode is now Go")
+        state.mode = "Go"
+    def act(self, state):
+        return Go(state)
     pass
 
 class Localize( Mode ):
@@ -60,6 +68,12 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
+    def __init__( self , state):
+        print("Mode is now Localize")
+        state.mode = "Localize"
+    def act(self, state):
+        print("Paste Localize Code here")
+        return Go(state)
     pass
 
 
@@ -70,6 +84,9 @@ class Grab( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
+    def __init__( self , state):
+        print("Mode is now Grab")
+        state.mode = "Grab"
     pass
 
 # Only run when someone specifically runs this module.
@@ -86,7 +103,8 @@ if __name__ == "__main__":
     import utility
     import settings
     # Initialize the mode.
-    mode = Localize()
+    state = State()
+    mode = Localize(state)
     # Open the port and initialize contact.
     messenger = utility.Messenger( utility.SerialPort() )
     # Request the scan.

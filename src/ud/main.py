@@ -7,22 +7,19 @@ import GUI
 import landmark
 import modes
 import messenger
+import world
 
 """=================CREATE WORLD====================================="""
 
 state = State()
-try:
-	Mode.messenger = Messenger(SerialPort())
-except:
-	raise Exception("Couldn't connect to Arduino!")
-robotMode = Pathfind()
+modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
 
-landmarklist = list()
-landmarklist.append(landmarks)
+robotMode = modes.ReadUSBDrive(state)
 
-loglist = list()
-loglist.append(logs)
+
+landmarkList = world.World.landmarkList
+logList = world.World.logList
 
 #load nodelist however you do that
 
@@ -37,28 +34,35 @@ screen=pygame.display.set_mode((W,H),0,32)
 screen.fill((127,127,127))
 
 gui = GUI.GUI(pygame,screen)
-gui.takeTerrain(landmarkList)
 
 """===============MAIN LOOP=========================================="""
 running = True
 
 while running == True:
     for event in pygame.event.get():
-        if event.type==QUIT:
+        if event.type==pygame.QUIT:
             pygame.quit()
             sys.exit()    
-        if event.type == MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 for frame in gui.frameList:
                     frame.feelClickDown(pygame.mouse.get_pos())
-        if event.type == MOUSEBUTTONUP:
+        if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 for frame in gui.rameList:
                     frame.feelClickUp(pygame.mouse.get_pos())
             if event.button == 2:
                 for frame in gui.frameList:
-                    frame.feelMiddleClick()
+                    frame.processMiddleClick()
     # Tell the robot brain to take action.
-    robotMode.act(state)
+	#THIS LINE IS THE ONLY ESSENTIAL LINE IN THE MAIN LOOP, ALL ELSE IS GUI
+    robotMode = robotMode.act(state)
+
+
+    print(robotMode)
+    
     # Update the GUI with the current robot state
     gui.takeState(state)
+
+    gui.update(screen)
+    pygame.display.update()
