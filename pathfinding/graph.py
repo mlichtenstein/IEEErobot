@@ -15,7 +15,7 @@ class Graph:
         for link in self.links:
             if link.node1 == node or link.node2 == node:
                 self.links.remove(link)
-                removeNode(node)
+                self.removeNode(node)
                 linksRemoved+=1
                 break
         if linksRemoved==0:

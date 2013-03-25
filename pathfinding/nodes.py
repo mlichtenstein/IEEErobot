@@ -1,26 +1,24 @@
-import pygame, sys, math, edit, random, pickle
+import pygame, sys, math, edit, random, pickle, easygui
 from pygame.locals import *
 import graph as g
 
-
-
-LOAD_FILE = "test"
+LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
 
 def loadFile( name ) :
-    f = open( name, "rb" )
-    return pickle.load( f )
-    #graph.links = pickle.load( f )
+    try:
+        f = open( name, "rb" )
+        return pickle.load( f )
+    except:
+        print " no file selected "
 
-    #print graph.links[0].node1
-    
-
-     
 
 def writeFile( name ):
-    f = open( name, "wb" )
-    pickle.dump( graph, f )
+    try:
+        f = open( name, "wb" )
+        pickle.dump( graph, f )
+    except:
+        print " no file selected "
 
-    #f.write( pickle.dumps( graph.links ) )
 if __name__ == "__main__":
     try:
         graph = loadFile( LOAD_FILE )
@@ -30,22 +28,12 @@ if __name__ == "__main__":
         #traceback.print_stack()
         graph = g.Graph()
     pucks = random.sample(range(1,17),6)
-
     dummy = graph.addNode(-1000,-1000)
     pygame.init()
     screen=pygame.display.set_mode((960,960),0,32)
     pose = (0,0,0)
     drawFlag = 1
     botPose = g.Pose()
-
-#f = open('nodeFile', 'r+') #open file for reading and writing
-#graph.nodes = pickle.load( f )
-
-
-#load every node from graph.nodes and every link from graph.links from a file
-#use addNode
-
-
 
 def drawObjects():
     blocks = [(235-17,607-17,34,34),(258-17,250-17,34,34),(737-17,739-17,34,34),(942-17,198-17,34,34)]
@@ -140,11 +128,6 @@ def drawAll():
     pygame.display.update()
 
 def makeTimer( seconds ):
-    """
-    >>> timer = makeTimer( .1 )
-    >>> timer()
-    True
-    """
     import time
     startTime = time.time()
     return lambda : time.time() - startTime < seconds
@@ -166,7 +149,6 @@ def pathfind():
         #drawLine(botPose.X,botPose.Y,nearestNode.X,nearestNode.Y)
 
         #scoot(distance, angle)#                   <======================== out to arduino
-        #rotate(theta)                             <======================== out to arduino
         #don't localize here (but.. maybe?)
         #update bot pose once correction is done
         ''' this code  is for the simulation'''
@@ -181,8 +163,8 @@ ignoreNextMouseUpEvent = lambda: False
 while __name__ == "__main__":
     for event in pygame.event.get():
         if event.type == QUIT:
+            LOAD_FILE = easygui.filesavebox(msg="Save File", title=None, default=None)
             writeFile( LOAD_FILE )
-            #pickle.dump(graph.nodes, f)#----------------------------------save every nodes and link
             pygame.quit()
             sys.exit()
 
