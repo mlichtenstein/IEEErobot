@@ -1,50 +1,39 @@
-import pygame, sys, math, edit, random, pickle
+import pygame, sys, math, edit, random, pickle, easygui
 from pygame.locals import *
 import graph as g
 
-
-
-LOAD_FILE = "test"
+LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default="Default")
 
 def loadFile( name ) :
-    f = open( name, "rb" )
-    return pickle.load( f )
-    #graph.links = pickle.load( f )
+    try:
+        f = open( name, "rb" )
+        return pickle.load( f )
+    except:
+        print " no file selected "
 
-    #print graph.links[0].node1
-    
-
-     
 
 def writeFile( name ):
-    f = open( name, "wb" )
-    pickle.dump( graph, f )
+    try:
+        f = open( name, "wb" )
+        pickle.dump( graph, f )
+    except:
+        print " no file selected "
 
-    #f.write( pickle.dumps( graph.links ) )
-try:
-    graph = loadFile( LOAD_FILE )
-except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
-    #import traceback
-    print e
-    #traceback.print_stack()
-    graph = g.Graph()
-pucks = random.sample(range(1,17),6)
-
-dummy = graph.addNode(-1000,-1000)
-pygame.init()
-screen=pygame.display.set_mode((960,960),0,32)
-pose = (0,0,0)
-drawFlag = 1
-botPose = g.Pose()
-
-#f = open('nodeFile', 'r+') #open file for reading and writing
-#graph.nodes = pickle.load( f )
-
-
-#load every node from graph.nodes and every link from graph.links from a file
-#use addNode
-
-
+if __name__ == "__main__":
+    try:
+        graph = loadFile( LOAD_FILE )
+    except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
+        #import traceback
+        print e
+        #traceback.print_stack()
+        graph = g.Graph()
+    pucks = random.sample(range(1,17),6)
+    dummy = graph.addNode(-1000,-1000)
+    pygame.init()
+    screen=pygame.display.set_mode((960,960),0,32)
+    pose = (0,0,0)
+    drawFlag = 1
+    botPose = g.Pose()
 
 def drawObjects():
     blocks = [(235-17,607-17,34,34),(258-17,250-17,34,34),(737-17,739-17,34,34),(942-17,198-17,34,34)]
@@ -139,11 +128,6 @@ def drawAll():
     pygame.display.update()
 
 def makeTimer( seconds ):
-    """
-    >>> timer = makeTimer( .1 )
-    >>> timer()
-    True
-    """
     import time
     startTime = time.time()
     return lambda : time.time() - startTime < seconds
@@ -165,7 +149,6 @@ def pathfind():
         #drawLine(botPose.X,botPose.Y,nearestNode.X,nearestNode.Y)
 
         #scoot(distance, angle)#                   <======================== out to arduino
-        #rotate(theta)                             <======================== out to arduino
         #don't localize here (but.. maybe?)
         #update bot pose once correction is done
         ''' this code  is for the simulation'''
@@ -177,11 +160,11 @@ def pathfind():
 
 # By default accept all mouse up events.
 ignoreNextMouseUpEvent = lambda: False
-while 1:
+while __name__ == "__main__":
     for event in pygame.event.get():
         if event.type == QUIT:
+            LOAD_FILE = easygui.filesavebox(msg="Save File", title=None, default=None)
             writeFile( LOAD_FILE )
-            #pickle.dump(graph.nodes, f)#----------------------------------save every nodes and link
             pygame.quit()
             sys.exit()
 
@@ -249,4 +232,83 @@ while 1:
         drawAll()
         drawFlag=0
 
+def findPath( graph, startingNode ):
+    """
+    Return:
+    The path.
+    """
+    pathInfo = explorePath( graph.links, startingNode, startingNode )
+    return pathInfo[0]
+def explorePath( allLinks, roots, startingNode ):
+    """
+    Description:
+    The method tries to find the shortest path to a node.
 
+    Parameters:
+    allLinks -- is a list of all links in the graph.
+    roots -- is a list of roots.
+    startingNode -- is the base of the path.
+
+    Return:
+    A tuple of the path and the distance.
+
+    Example:
+    >>> 
+    """
+    currentNode = startingNode
+    previous = roots[-1]
+    result = []
+    while True:
+        relatedLinks = findLinksWithNode( allLinks, currentNode )
+        forwardLinks = [] 
+        # No matches. There should be at least one link that matches.
+        if len( relatedLinks ) == 0:
+            raise Exception( "Cannot find starting node." )
+        else:
+            for link in relatedLinks:
+                otherNode = getOtherNode( link, currentNode )
+                goesForwards = True
+                if otherNode == previous:
+                    goesForwards = False
+                if goesForwards:
+                    for root in roots:
+                        if otherNode == root:
+                            goesForwards = False
+                            break
+                if goesForwards:
+                    forwardLinks.append( link )
+        result.append( currentNode )
+        # All backward links.
+        if len( forwardLinks ) == 0:
+            break
+        # One viable link.
+        elif len( relatedLinks ) - backwardLinks == 1:
+            previous = currentNode
+            currentNode = nextNode 
+        # Multiple viable links.
+        else:
+            minBranch = ( [], 999999 )
+            for link in relatedLinks:
+                otherNode = getOtherNode( link, currentNode )
+                for root in roots:
+                    if root != otherNode and previous != otherNode:
+                        rootsCopy = roots[:]
+                        rootsCopy.append( currentNode )
+                        branch = explorePath( allLinks, rootsCopy, otherNode )
+                        # Select the shortest branch only.
+                        if branch[1] < minBranch[1]:
+                            minBranch = branch
+            break
+    return result
+def findLinksWithNode( links, node ):
+    result = []
+    for link in links:
+        if link.node1 == node or link.node2 == node:
+            result.append( link )
+    return result
+def getOtherNode( link, node ):
+    if link.node1 == node:
+        return link.node2
+    else:
+        return link.node1
+    
