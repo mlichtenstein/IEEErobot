@@ -11,7 +11,10 @@ import world
 
 """=================CREATE WORLD====================================="""
 
+#give the robot a state:
 state = State()
+
+#establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
 
@@ -54,6 +57,7 @@ while running == True:
             if event.button == 2:
                 for frame in gui.frameList:
                     frame.processMiddleClick()
+
     # Tell the robot brain to take action.
 	#THIS LINE IS THE ONLY ESSENTIAL LINE IN THE MAIN LOOP, ALL ELSE IS GUI
     robotMode = robotMode.act(state)

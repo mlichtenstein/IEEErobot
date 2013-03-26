@@ -1,3 +1,10 @@
+"""
+This library contains the actions that robot will want to perform as it
+moves through its' modes.  It basically defines a finite state machine where
+"state" is the input (I know that's weird language, sorry) and mode.act() is the
+output.
+"""
+
 from robotbasics import *
 
 """
@@ -36,8 +43,22 @@ class Mode:
         robotStatus -- contains information such as position, mode, ect.
         """
         raise Exception( "Please write your wonderful code here." )
+
+class Ready( Mode):
+    """
+    the state that the robot sits in while it waits for the judge to press
+    the start button.  It must poll the arduino, waiting for an indication
+    of such an event.
+    """
+    def __init__( self , state):
+        print("Mode is now Ready")
+        state.mode = "Ready"
+    def act(self, state):
+        #put a while loop here that polls arduino and breaks upon
+        #"Start" command
+        return ReadUSBDrive(state)
         
-class ReadUSBDrive:
+class ReadUSBDrive( Mode):
     def __init__( self , state):
         print("Mode is now ReadUSB")
         state.mode = "ReadUSB"

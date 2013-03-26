@@ -23,12 +23,12 @@ class State:
     #The robot's internal state variables go here:
     def __init__(self):
         import time
-        from localize import *
+        import localize
         self.startTime = time.time()
         self.startPause = None
         self.mode = None
         self.moving = False
-        self.pose = Pose(0,0,0)
+        self.pose = Pose(.6,.6,0)
         self.poseUncertainty = Pose(0,0,0)
         self.pitch = 0.0
         self.roll = 0.0
@@ -36,7 +36,7 @@ class State:
         self.motorConfig = [0,0,0,0] #the thetas of each wheel servo
         self.motorPWM = 0, 0 #the duty cycle of the PWM output to each motor
         self.armConfig = [0,0,0] #the thetas of each arm servo
-        self.hypobotCloud = HypobotCloud()
+        self.hypobotCloud = localize.HypobotCloud()
         self.remainingPucks = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
         self.magnetOn = False
         self.lightsOn = False
