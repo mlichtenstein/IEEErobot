@@ -16,6 +16,7 @@ class TestNodes( unittest.TestCase ):
         n2 = graph.Node( 10, 20 )
         n3 = graph.Node( 10, 30 )
         n7 = graph.Node( 10, 40 )
+        n7.puck = 10
         d = 0
         d = d + math.hypot( n1.X - n2.X, n1.Y - n2.Y )
         d = d + math.hypot( n2.X - n3.X, n2.Y - n3.Y )
@@ -44,6 +45,8 @@ class TestNodes( unittest.TestCase ):
         n5b = graph.Node( 15, 50 )
         n6a = graph.Node( 5, 60 )
         n6b = graph.Node( 15, 60 )
+        n4b.puck = 10
+        n5a.puck = 10
         d = 0
         d = d + math.hypot( n2.X - n3.X, n2.Y - n3.Y )
         d = d + math.hypot( n3.X - n4b.X, n3.Y - n4b.Y )
@@ -72,6 +75,8 @@ class TestNodes( unittest.TestCase ):
         n5b = graph.Node( 15, 50 )
         n6a = graph.Node( 5, 60 )
         n6b = graph.Node( 15, 60 )
+        n5b.puck = 10
+        n6a.puck = 10
         d = 0
         d = d + math.hypot( n1.X - n2.X, n1.Y - n2.Y )
         d = d + math.hypot( n2.X - n3.X, n2.Y - n3.Y )
@@ -140,8 +145,6 @@ class TestNodes( unittest.TestCase ):
         links.append( graph.Link( n2, n3 ) )
         actual = nodes.findLinksWithNode( links, n1 )
         self.assertEqual( 1, len( actual ) )
-        print "expected:", expected
-        print "actual:", actual
         self.assertIn( expected,  actual )
         
 
