@@ -289,7 +289,7 @@ def explorePath( allLinks, roots, startingNode ):
                     forwardLinks.append( link )
         # No forward links.
         if len( forwardLinks ) == 0:
-            break
+            return None
         # One forward link. Proceed forward.
         elif len( forwardLinks ) == 1:
             # Access the oposite node from currentNode.
@@ -302,21 +302,22 @@ def explorePath( allLinks, roots, startingNode ):
             # For each possible branch, launch an explorer. The explorer will
             #  return the path and the distance. Next, append the branch with
             #  the shortest path.
-            minBranch = ( [], 999999 )
+            minBranch = None
             minLink = None
             for link in forwardLinks:
                 rootsCopy = roots[:]
                 rootsCopy.append( currentNode )
                 branch = explorePath( allLinks, rootsCopy, otherNode )
                 # Select the shortest branch only.
-                if branch[1] < minBranch[1]:
+                if branch != None and ( minBranch == None or \
+                branch[1] < minBranch[1] ):
                     minBranch = branch
                     minLink = link
             if minLink != None:
                 result = result + minBranch[0]
                 distance = distance + minLink.length + minBranch[1]
             break
-    return result, distance
+    return ( result, distance )
 def findLinksWithNode( links, node ):
     result = []
     for link in links:
