@@ -72,7 +72,8 @@ class Localize( Mode ):
         print("Mode is now Localize")
         state.mode = "Localize"
     def act(self, state):
-        print("Paste Localize Code here")
+        print("Localizing...")
+        #        state.hypobotCloud
         return Go(state)
     pass
 

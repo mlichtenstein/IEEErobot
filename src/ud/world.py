@@ -8,6 +8,7 @@ of the reference to this file.
 from robotbasics import *
 
 class World:
+    import settings
     treeSide = 3.5 / 12 #a tree is 3.5 inches on each side
     rockRadius = 6.7/12/2 #a paint can has a 6.7 inch diameter
     logList = [(0.00,4.00,3.00,0.00),
@@ -26,3 +27,7 @@ class World:
                     Landmark(7.85,1.65, "TREE")]
     wheelOffset=(.5,.5) #the x and y offsets of the wheels' stems from the center of the bot
     wheelDims=(2/12, 3/12)
+    eyeList=(eye(0,  0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
+            eye(1,  -0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
+            eye(2,  -0.415,0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
+            eye(3,  0.415,0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE))
