@@ -132,7 +132,9 @@ class BoardView(View):
         self.robot = Robot()
         self.logSet = LogSet(world.World().logList)
         self.landmarkSet = LandmarkSet(world.World().landmarkList)
-        self.drawList = [self.robot, self.logSet, self.landmarkSet]
+        self.hypobotSet = HypobotSet()
+        self.drawList = [self.robot, self.logSet, self.landmarkSet,
+                        self.hypobotSet]
 
 class ModeView(View):
     """
@@ -200,6 +202,7 @@ if __name__ == "__main__":
     textHeight = 18
 
     state = State()
+    state.hypobotCloud.appendBlanket(4,45)
     
     pygame.init()
     pygame.font.init()

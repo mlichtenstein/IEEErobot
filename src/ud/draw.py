@@ -1,3 +1,7 @@
+"""
+A library that tells GUI how to draw things
+"""
+
 import math
 import pygame
 
@@ -33,30 +37,42 @@ class Drawable:
 class Robot(Drawable):
     name = "Robot"
     def draw(self, view, state):
+        self.drawPose(view, state.pose)
+    def drawPose(self,view, pose):
         CC = view.CC
         #the center of the robot in view's pixel coords
-        x = state.pose.x * CC
-        y = state.pose.y * CC
+        x = pose.x * CC
+        y = pose.y * CC
         # first draw the square frame of the robot
         robotWidth = 1
         s = view.CC*robotWidth/2
-        xa = s*math.sin(state.pose.theta)
-        ya = s*math.cos(state.pose.theta)
-        xb = s*math.cos(state.pose.theta)
-        yb = s*math.sin(state.pose.theta)
+        xa = s*math.cos(pose.theta)
+        ya = s*math.sin(pose.theta)
+        xb = s*math.sin(pose.theta)
+        yb = s*math.cos(pose.theta)
         pygame.draw.polygon(view.surface, self.color,
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
                 (x+xa-xb,y-ya-yb),
                 (x+xa+xb,y-ya+yb)), 1)
         #and draw a line for the heading:
-        pygame.draw.line(view.surface, self.color, (x,y),(x-2*xa,y+2*ya)) #I THINK THIS IS WRONG
-        #and draw the wheels?  MAYBE WHEN MAX IS FEELING UP FOR SOME SERIOUS LINEAR ALGEBRA :)
+        pygame.draw.line(view.surface, self.color, (x,y),(x+2*xa,y-2*ya)) 
 
 class Wheels(Drawable):
     name = "Wheels"
     def draw(self, view, state):
         pass #nah drawing wheels is a pain
+
+class HypobotSet(Drawable):
+    name = "Hypobots"
+    def draw(self, view, state):
+        for hypobot in state.hypobotCloud.hypobotList:
+            import robotbasics
+            grey = int(hypobot.weight*255)
+            color = (grey,grey,grey)
+            pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
+            Robot(color).drawPose(view,hypobot.pose)
+        
 
 class LogSet(Drawable):
     name = "Logs"
