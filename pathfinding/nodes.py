@@ -259,17 +259,10 @@ def explorePath( allLinks, roots, startingNode ):
                     minLink = link
                     if DEBUG:
                         print "minBranch set"
-            if minLink != None:
-<<<<<<< HEAD
+            if minLink == None:
                 return None
             result = result + minBranch[0]
             distance = distance + minLink.length + minBranch[1]
-=======
-                result = result + minBranch[0]
-                distance = distance + minLink.length + minBranch[1]
-            else:
-                return None
->>>>>>> c9364d1... nodes: fixed bug.
             break
     return ( result, distance )
 
