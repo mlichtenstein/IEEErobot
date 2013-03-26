@@ -138,108 +138,25 @@ def drawLine(x1,y1,x2,y2):
     pygame.display.update()
 
 
-def pathfind():
-    nearestNode = whatNode((botPose.X,botPose.Y))[0]
-    distance = whatNode((botPose.X,botPose.Y))[1]
-    nodeTheta = 180/math.pi* math.atan2(nearestNode.Y-botPose.Y,nearestNode.X-botPose.X)
+def scootToNearestNode((X,Y, theta)):
+    nearestNode = whatNode((X,Y))[0]
+    distance = whatNode((X,Y))[1]
+    nodeTheta = 180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
 
-    angle = botPose.theta - nodeTheta
+    angle = theta - nodeTheta
     if distance > nearestNode.radius: #start by fixing any corretions
         print angle
         print distance
-        #drawLine(botPose.X,botPose.Y,nearestNode.X,nearestNode.Y)
-
+        #distance = math.hypot(X,Y,nearestNode.X,nearestNode.Y)
+        #
         #scoot(distance, angle)#                   <======================== out to arduino
         #don't localize here (but.. maybe?)
         #update bot pose once correction is done
         ''' this code  is for the simulation'''
-        #botPose.theta = angle
-        drawLine(botPose.X,botPose.Y,nearestNode.X,nearestNode.Y)
+        drawLine(X,Y,nearestNode.X,nearestNode.Y)
         botPose.X, botPose.Y = nearestNode.X, nearestNode.Y
-        drawBot(botPose.X,botPose.Y,botPose.theta)
-
-
-# By default accept all mouse up events.
-ignoreNextMouseUpEvent = lambda: False
-while __name__ == "__main__":
-    for event in pygame.event.get():
-        if event.type == QUIT:
-            LOAD_FILE = easygui.filesavebox(msg="Save File", title=None, default=None)
-            writeFile( LOAD_FILE )
-            pygame.quit()
-            sys.exit()
-
-        # Ignore mouse up events.
-        if ignoreNextMouseUpEvent() and ( event.type == pygame.MOUSEBUTTONDOWN \
-         or event.type == pygame.MOUSEBUTTONUP ):
-            print "ignore mouse Up"
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            posDown=pygame.mouse.get_pos()
-            downNode=whatNode(posDown)[0]
-            #note which node it is in
-            drawFlag = 1
-
-        elif event.type == pygame.MOUSEBUTTONUP:
-            print "mouse Up"
-            posUp = pygame.mouse.get_pos()
-            upNode = whatNode(posUp)[0]
-            #if in the same node, then:
-            drawFlag = 1
-
-            clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
-
-            if posDown[0]>940 and posDown[1]<20: #clicked in drop bot box
-                drawFlag=0
-                while 1:
-                    if edit.editBot(botPose):
-                        drawAll()
-                    else:
-                        pathfind()
-                        break
-                # Ignore mouse clicks for the next 150 ms
-                ignoreNextMouseUpEvent = makeTimer(0.150)
-
-            elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
-                print "what node is returning " + str(whatNode(posDown)[0])
-                if whatNode(posUp)[1] <= upNode.radius:  #and  unclick was inside a node
-                    if downNode==upNode:  #and those were the same nodes
-                        right_mouse=pygame.mouse.get_pressed()
-
-                        print right_mouse
-                        if right_mouse[2] == 1:#and right mouse button was down
-                                drawFlag=0
-                                while 1:
-                                    if edit.editNode(upNode):
-                                            drawAll()
-                                    else:
-                                            break
-                                # Ignore mouse clicks for the next 150 ms
-                                ignoreNextMouseUpEvent = makeTimer(0.150)
-                        else:
-                                graph.removeNode(whatNode(posDown)[0])  #remove that node
-                    else: # but if they were two different nodes
-                        graph.addLink(downNode, upNode)#then make a link between
-                else:#clicked in a node, and dragged
-                        downNode.X = posUp[0]
-                        downNode.Y = posUp[1] #drag node
-
-            else: # clicked not on a node
-                if clickTravel <= downNode.radius: #clicked and didnt drag
-                        graph.addNode(posDown[0], posDown[1])#add a node
-                elif clickTravel > downNode.radius: #clicked and dragged
-                        pose = ( posDown[0], posDown[1], 180/math.pi*math.atan2((posDown[0]-posUp[0]),(posDown[1]-posUp[1])) ) #drop bot on this node
-
-    if drawFlag ==1:
-        drawAll()
-        drawFlag=0
-
-def findPath( graph, startingNode ):
-    """
-    Return:
-    The path.
-    """
-    pathInfo = explorePath( graph.links, startingNode, startingNode )
-    return pathInfo[0]
+        drawBot(X,Y,theta)
+    return nearestNode
 def explorePath( allLinks, roots, startingNode ):
     """
     Description:
@@ -317,15 +234,104 @@ def explorePath( allLinks, roots, startingNode ):
                 distance = distance + minLink.length + minBranch[1]
             break
     return result, distance
+
+def findPath( graph, startingNode ):
+    """
+    Return:
+    The path.
+    """
+    pathInfo = explorePath( graph.links, [startingNode], startingNode )
+    return pathInfo[0]
+
 def findLinksWithNode( links, node ):
     result = []
     for link in links:
         if link.node1 == node or link.node2 == node:
             result.append( link )
     return result
+
 def getOtherNode( link, node ):
     if link.node1 == node:
         return link.node2
     else:
         return link.node1
+    
+# By default accept all mouse up events.
+ignoreNextMouseUpEvent = lambda: False
+while __name__ == "__main__":
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            LOAD_FILE = easygui.filesavebox(msg="Save File", title=None, default=None)
+            writeFile( LOAD_FILE )
+            pygame.quit()
+            sys.exit()
+
+        # Ignore mouse up events.
+        if ignoreNextMouseUpEvent() and ( event.type == pygame.MOUSEBUTTONDOWN \
+         or event.type == pygame.MOUSEBUTTONUP ):
+            print "ignore mouse Up"
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            posDown=pygame.mouse.get_pos()
+            downNode=whatNode(posDown)[0]
+            #note which node it is in
+            drawFlag = 1
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            print "mouse Up"
+            posUp = pygame.mouse.get_pos()
+            upNode = whatNode(posUp)[0]
+            #if in the same node, then:
+            drawFlag = 1
+
+            clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
+
+            if posDown[0]>940 and posDown[1]<20: #clicked in drop bot box
+                drawFlag=0
+                while 1:
+                    if edit.editBot(botPose):
+                        drawAll()
+                    else:
+                        thenode = scootToNearestNode((botPose.X,botPose.Y, botPose.theta))
+                        path = findPath( graph, thenode )
+                        drawLine(botPose.X,botPose.Y,path[1].X,path[1].Y)
+                        print thenode
+                        print path[1]
+                        break
+                # Ignore mouse clicks for the next 150 ms
+                ignoreNextMouseUpEvent = makeTimer(0.150)
+
+            elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
+                print "what node is returning " + str(whatNode(posDown)[0])
+                if whatNode(posUp)[1] <= upNode.radius:  #and  unclick was inside a node
+                    if downNode==upNode:  #and those were the same nodes
+                        right_mouse=pygame.mouse.get_pressed()
+
+                        print right_mouse
+                        if right_mouse[2] == 1:#and right mouse button was down
+                                drawFlag=0
+                                while 1:
+                                    if edit.editNode(upNode):
+                                            drawAll()
+                                    else:
+                                            break
+                                # Ignore mouse clicks for the next 150 ms
+                                ignoreNextMouseUpEvent = makeTimer(0.150)
+                        else:
+                                graph.removeNode(whatNode(posDown)[0])  #remove that node
+                    else: # but if they were two different nodes
+                        graph.addLink(downNode, upNode)#then make a link between
+                else:#clicked in a node, and dragged
+                        downNode.X = posUp[0]
+                        downNode.Y = posUp[1] #drag node
+
+            else: # clicked not on a node
+                if clickTravel <= downNode.radius: #clicked and didnt drag
+                        graph.addNode(posDown[0], posDown[1])#add a node
+                elif clickTravel > downNode.radius: #clicked and dragged
+                        pose = ( posDown[0], posDown[1], 180/math.pi*math.atan2((posDown[0]-posUp[0]),(posDown[1]-posUp[1])) ) #drop bot on this node
+
+    if drawFlag ==1:
+        drawAll()
+        drawFlag=0
+
     
