@@ -27,6 +27,7 @@ if __name__ == "__main__":
         #import traceback
         print e
         #traceback.print_stack()
+    if graph == None:
         graph = g.Graph()
     pucks = random.sample(range(1,17),6)
     dummy = graph.addNode(-1000,-1000)
