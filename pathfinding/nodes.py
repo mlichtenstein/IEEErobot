@@ -110,8 +110,8 @@ def drawGraph():
             green = 150
         if 0 <= node.puck <= 15:
             blue = 150
-            pygame.draw.line(screen,(red, green, blue), (node.X,node.Y),(node.X-60*math.sin(node.theta*math.pi/180),node.Y-60*math.cos(node.theta*math.pi/180)),3)
-            pygame.draw.circle(screen, (red, green, blue), (int(node.X-100*math.sin(node.theta*math.pi/180)),int(node.Y-100*math.cos(node.theta*math.pi/180))), 40, 1)
+            pygame.draw.line(screen,(red, green, blue), (node.X,node.Y),(node.X+60*math.cos(node.theta*math.pi/180),node.Y-60*math.sin(node.theta*math.pi/180)),3)
+            pygame.draw.circle(screen, (red, green, blue), (int(node.X+100*math.cos(node.theta*math.pi/180)),int(node.Y-100*math.sin(node.theta*math.pi/180))), 40, 1)
 
         pygame.draw.circle(screen,(red,green,blue),(node.X,node.Y), node.radius)
         pygame.draw.circle(screen,(0,0,0),(node.X,node.Y), node.radius,1)
@@ -135,7 +135,7 @@ def makeTimer( seconds ):
     return lambda : time.time() - startTime < seconds
 
 def drawLine(x1,y1,x2,y2):
-    pygame.draw.line(screen, (random.randint(0,255),random.randint(0,255),random.randint(0,255)), (x1,y1),(x2,y2),1)
+    pygame.draw.line(screen, (255,0,0), (x1,y1),(x2,y2),3)
     pygame.display.update()
 
 
@@ -232,8 +232,9 @@ def explorePath( allLinks, roots, startingNode ):
                     minBranch = branch
                     minLink = link
             if minLink != None:
-                result = result + minBranch[0]
-                distance = distance + minLink.length + minBranch[1]
+                return None
+            result = result + minBranch[0]
+            distance = distance + minLink.length + minBranch[1]
             break
     return ( result, distance )
 
@@ -243,6 +244,8 @@ def findPath( graph, startingNode ):
     The path.
     """
     pathInfo = explorePath( graph.links, [startingNode], startingNode )
+    if pathInfo == None:
+        raise Exception( "Puck not found" )
     return pathInfo[0]
 def findLinksWithNode( links, node ):
     result = []
@@ -293,10 +296,16 @@ while __name__ == "__main__":
                         drawAll()
                     else:
                         thenode = scootToNearestNode((botPose.X,botPose.Y, botPose.theta))
-                        path = findPath( graph, thenode )
-                        drawLine(botPose.X,botPose.Y,path[1].X,path[1].Y)
-                        print thenode
-                        print path[1]
+                        try:
+                            path = findPath( graph, thenode )
+                            
+                            lastPath = path[0]
+                            for i in path:
+                                print i
+                                #drawLine(lastPath.X,lastPath.Y,i.X,i.Y)
+                                lastPath = i
+                        except Exception as e:
+                            print "Error: ", e
                         break
                 # Ignore mouse clicks for the next 150 ms
                 ignoreNextMouseUpEvent = makeTimer(0.150)

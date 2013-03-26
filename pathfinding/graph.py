@@ -50,7 +50,7 @@ class Link:
         self.log = 0
         self.directional = 0
         self.theta = 0
-        self.length = math.hypot(node1.X-node2.X,node1.Y-node2.Y)+self.log*logOffset
+        self.length = abs(math.hypot(node1.X-node2.X,node1.Y-node2.Y)+self.log*logOffset)
         
 #===================================bot====================================#
 #                 contains pose data (x, y, theta)
