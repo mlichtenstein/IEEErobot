@@ -310,20 +310,24 @@ while __name__ == "__main__":
             drawFlag = 1
 
             clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
-
+            
+            clickedLink = False
             for link in graph.links:
                 if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
-                    #clicked on link - so edit link
-                    while 1:
-                        if edit.editLink(link):
-                            drawAll()
-                        else:
-                            ignoreNextMouseUpEvent = makeTimer(0.250)
-                            break
-                    # Ignore mouse clicks for the next 250 ms
-                    ignoreNextMouseUpEvent = makeTimer(0.250)
-                                    
-            if posDown[0]>940 and posDown[1]<20: #clicked in execute box
+                    clickedLink = True
+                    
+
+            #clicked on link - so edit link
+            if clickedLink:                
+                while 1:
+                    if edit.editLink(link):
+                        drawAll()
+                    else:
+                        break
+                # Ignore mouse clicks for the next 250 ms
+                ignoreNextMouseUpEvent = makeTimer(0.250)
+            #clicked in execute box
+            elif posDown[0]>940 and posDown[1]<20:
                 drawFlag=0
                 while 1:
                     if edit.editBot(botPose):
