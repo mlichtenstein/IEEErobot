@@ -4,11 +4,12 @@ class Graph:
     def __init__( self ):
         self.nodes = list()
         self.links = list()
+        
     def addNode( self, x, y):
         self.nodes.append(Node(x,y))
 
-    def addLink( self, node1, node2):
-        self.links.append(Link(node1,node2))
+    def addLink( self, node1, node2, (r,g,b) ):
+        self.links.append( Link (node1,node2,(r,g,b)) )
 
     def removeNode( self, node):
         linksRemoved=0
@@ -44,15 +45,37 @@ class Node:
 # length              -----      length of the link is set automatically
 #===================================LINK===================================#
 class Link:
-    def __init__( self, node1, node2):
+    def __init__( self, node1, node2, (r,g,b) ):
+        self.red = r
+        self.green = g
+        self.blue = b
         self.logOffset = 0 # edit this to change percieved length of link due to a log
         self.node1 = node1
         self.node2 = node2
+        self.node1direction = -180/math.pi*math.atan2(self.node2.Y-self.node1.Y,self.node2.X-self.node1.X)
+        self.node2direction = -180/math.pi*math.atan2(self.node1.Y-self.node2.Y,self.node1.X-self.node2.X)
         self.log = 0
-        self.directional = 0
-        self.theta = 0
-        self.length = abs(math.hypot(node1.X-node2.X,node1.Y-node2.Y)+self.log*self.logOffset)
-        
+        self.update()
+    def update( self ):
+        print "called update"
+        self.length = math.hypot(self.node1.X-self.node2.X,self.node1.Y-self.node2.Y)+self.log*self.logOffset
+        if self.node1.X > self.node2.X:
+            #h is for horizontal
+            #v is for verticality
+            self.node1h="right"
+            self.node2h="left"
+        else:
+            self.node1h="left"
+            self.node2h="right"
+            
+        if self.node1.Y < self.node2.Y:
+            self.node1v="top"
+            self.node2v="bottom"
+            
+        else:
+            self.node1v="bottom"
+            self.node2v="top"
+
 #===================================bot====================================#
 #                 contains pose data (x, y, theta)
 #===================================LINK===================================#     
