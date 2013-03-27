@@ -106,14 +106,18 @@ class Localize( Mode ):
             cloud.appendBloom(2,Pose(.2,.5,2))
             return None
         if self.scanUpToDate == False:
+            print("No scan data for this location.  Scanning...")
             import time
+            import localize
             self.messenger.sendMessage(settings.SERVICE_SCAN)
             messageTime = time.time()
             cloud.generateEyeData(world.World().landmarkList)
-            while time.time()-messageTime < 4.5:
-                pass #avoid race condition -- RHS might want tweaking
-            tup = self.messenger.recieveMessageTuple()
-            self.real_eyeList = messageTupleToEyeList(tup)
+            if not self.messenger.checkInBox():
+                print("Waiting for scan to finish")
+                while not self.messenger.checkInBox():
+                    pass
+            tup = self.messenger.getMessageTuple()
+            self.real_eyeList = localize.messageTupleToEyeList(tup)
             self.scanUpToDate = True
             return None
         state.hypobotCloud.weight()

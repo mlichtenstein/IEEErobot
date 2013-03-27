@@ -81,10 +81,13 @@ class Messenger:
         self.__serialWrapper.write( ":" )
         self.__serialWrapper.write( charCategory )
         self.__serialWrapper.write( id )
+        printout = "Wrote to Arduino: :"+charCategory+str(id)
         for field in fields:
             self.__serialWrapper.write( ',' )
             self.__serialWrapper.write( str( field ) )
+            printout += ","+field
         self.__serialWrapper.write( ";" )
+        print(printout+';')
     def checkInBox( self ):
         """
         Reads the bytes coming into the serial port while the buffer
@@ -105,6 +108,7 @@ class Messenger:
                 elif byte == ';':
                     self.__inMessage = False
                     if len( self.__buffer ) > 0:
+                        import copy
                         self.__message = self.__buffer
                         self.__buffer = ""
                         return True
@@ -126,13 +130,15 @@ class Messenger:
             print("message of zero length")
             return False
         ret = self.__message
+        print("Arduino says: " + ret)
         self.__message = ""
         #import copy
         return ret
         #copy.copy( self.__message )
     def getMessageTuple(self):
         string = self.getMessage()
-        print("Arduino says: " + string)
+        if string == False:
+            return False
         tup = string.split(",", 2)
         return tup
 
@@ -339,12 +345,13 @@ if __name__=="__main__":
         #avoid race condition
         time.sleep(0.5)
         # Check for messages. Pass any messages to the mode.
-        if messenger.checkInBox():
-            print( messenger.getMessageTuple() )
-
+        while not messenger.checkInBox():
+            pass
+        print( messenger.getMessageTuple() )
+        
         messenger.sendMessage( settings.SERVICE_SCAN )
         #avoid race condition
-        time.sleep(1.5)
-        # Check for messages. Pass any messages to the mode.
-        if messenger.checkInBox():
-            print( messenger.getMessageTuple() )            
+        while not messenger.checkInBox():
+            pass
+        print( messenger.getMessageTuple()[2] )
+            

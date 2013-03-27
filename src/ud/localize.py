@@ -7,6 +7,7 @@ and a function for parsing the Arduino's scan report
 import math
 import settings
 
+
 class Eye:
     def __init__(self, x_offset, y_offset, theta_offset,
                     dataPointNum, subtendedAngle):
@@ -88,8 +89,8 @@ class Hypobot:
                 effective_theta = eye.thetaList[j]
                 #----------------------change generation speed here ---------------------
                 eye.IR[j] = calcIdealRange(x, y, effective_theta, landmarkList, "SLOW")
-        #print "generated a new eyeList for hypobot " + str(id(self)) + " at " + str((self.x, self.y, self.theta))
-        
+
+           
 class HypobotCloud:
     """
     This class is a wrapper for hypobotList.  It includes functions for
@@ -135,13 +136,14 @@ class HypobotCloud:
         import random 
         for i in range (0,cloudSize):
             while 1:
-                x = pose.x + random.gauss(pose.x, poseSigma.x)
-                y = pose.y + random.gauss(pose.y, poseSigma.y)
+                x = random.gauss(pose.x, poseSigma.x)
+                y = random.gauss(pose.y, poseSigma.y)
                 if x>.5 and x<7.5 and y>.5 and y<7.5:
                     break
-            theta = pose.theta + random.gauss(pose.theta, poseSigma.theta)
+            theta = random.gauss(pose.theta, poseSigma.theta)
             self.hypobotList.append(Hypobot(x,y,theta))
-            print("Added hypobot at x,y,theta")
+        print("Added "+str(cloudSize)+" in a gaussian about "+
+                str(pose.x)+','+str(pose.y)+','+str(pose.theta))
     def appendBlanket(self, cloudRootSize, theta):
         #blankets the field with cloudRootSize*CloudRootSize hypobots
         l = 7/(cloudRootSize - 1)
@@ -151,6 +153,7 @@ class HypobotCloud:
     def generateEyeData(self, landmarkList):
         for hypobot in self.hypobotList:
             hypobot.generateEyeData(landmarkList)
+        print("generated eye data for "+str(len(self.hypobotList))+" hbots.")
     def weight(self):
         for hypobot in self.hypobotList:
             hypobot.changeWeight()
@@ -196,7 +199,7 @@ class HypobotCloud:
 
 def messageTupleToEyeList(messageTuple):
     string = messageTuple[2]
-    dataPointStringList = string.split('|')
+    dataPointStringList = string.split('|')[1:]
     import world
     eyeList = world.World().eyeList
     for dataPointString in dataPointStringList:
@@ -229,6 +232,7 @@ def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board
         in the case of a very lost robot that is blanketing the field
         with thousands of hbots.  God help us if this happens.
     """
+    import world
     r = settings.SCAN_IR_RANGELIM #caps ideal ranges
     theta_board = theta_board * math.pi/180  #math like this prefers to be done in radians
     circles = list()
@@ -237,10 +241,11 @@ def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board
     side = 0
     for landmark in landmarkList:
         if landmark.landmarkType=="ROCK":
-            circles.append((landmark.x, landmark.y, landmark.rockRadius))
+            circles.append((landmark.x, landmark.y, world.World().rockRadius))
         else:
             #change to squares.append if you implement special handling for squares
-            circles.append((landmark.x, landmark.y, landmark.treeSide * math.sqrt(2)/2))
+            #0.7071 = sqrt(2)/2
+            circles.append((landmark.x, landmark.y, world.World().treeSide * 0.7071))
     for circle in circles:
         delta_x = circle[0] - x_eye
         delta_y = - (circle[1] - y_eye) # leading minus cuz y is down-positive

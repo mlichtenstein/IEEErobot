@@ -123,8 +123,9 @@ Your response message should take the form ":[char],[id],[payload];"
                 #endif
                 #ifdef ROBOT_SERVICE_SCAN
                 case ROBOT_SERVICE_SCAN: {
-                    Serial.write( ':' );
-                    Serial.write( ROBOT_SERVICE_SCAN );
+                    Serial.write( ":J," );
+                    Serial.print( id );
+                    Serial.write( ","); 
                     int pos;
                     #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
                     float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);

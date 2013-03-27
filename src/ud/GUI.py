@@ -133,8 +133,11 @@ class BoardView(View):
         self.logSet = LogSet(world.World().logList)
         self.landmarkSet = LandmarkSet(world.World().landmarkList)
         self.hypobotSet = HypobotSet()
-        self.drawList = [self.robot, self.logSet, self.landmarkSet,
-                        self.hypobotSet]
+        #the bottom of the list appears on top
+        self.drawList = [   self.hypobotSet,
+                            self.logSet,
+                            self.landmarkSet,
+                            self.robot  ]
 
 class ModeView(View):
     """

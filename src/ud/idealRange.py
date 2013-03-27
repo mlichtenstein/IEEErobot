@@ -1,3 +1,6 @@
+# THis file is deprecated & its functionality has been added to localize.py.
+# feel free to trash it.  --MAX
+
 import math
 import landmark
 

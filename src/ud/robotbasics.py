@@ -29,7 +29,7 @@ class State:
         self.mode = None
         self.moving = False
         self.pose = Pose(.6,.6,0)
-        self.poseUncertainty = Pose(0,0,0)
+        self.poseUncertainty = Pose(.5,.5,20)
         self.pitch = 0.0
         self.roll = 0.0
         self.distanceSinceScan = Pose(0,0,0) #distance, in feet, since last scan
