@@ -21,15 +21,18 @@ def editNode(node):
 def editLink(link):
     msg = "Link " + str(link)
     title = "Edit link " + str(link) +"'s data"
-    fieldNames = ["log (0/1)", "directional (0/1)", "direction (degrees)", "length"]
-    fieldValues = [link.log, link.directional, link.theta, link.length]
+    fieldNames = ["crossed log (0/1)", link.node1h+" "+link.node1v+" nodes direction", link.node2h+" "+link.node2v+" nodes direction", "length", "Red", "Green", "Blue"]
+    fieldValues = [link.log, link.node1direction, link.node2direction, link.length, link.red, link.green, link.blue]
     fieldValues = multenterbox(msg,title, fieldNames, fieldValues)
     if fieldValues == None:
         return False
     link.log = int(fieldValues[0])
-    link.directional = int(fieldValues[1])
-    link.theta = int(fieldValues[2])
-    link.length = int(fieldValues[3])
+    link.node1direction = fieldValues[1]
+    link.node2direction = fieldValues[2]
+    link.length = fieldValues[3]
+    link.red = int(fieldValues[4])
+    link.green = int(fieldValues[5])
+    link.blue = int(fieldValues[6])
     return True
 
 def editBot(bot):

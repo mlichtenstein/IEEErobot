@@ -12,7 +12,6 @@ def loadFile( name ) :
     except:
         print " no file selected "
 
-
 def writeFile( name ):
     try:
         f = open( name, "wb" )
@@ -39,9 +38,7 @@ if __name__ == "__main__":
 
 def drawObjects():
     blocks = [(235-17,607-17,34,34),(258-17,250-17,34,34),(737-17,739-17,34,34),(942-17,198-17,34,34)]
-
     circles = [(180,875),(498,118),(469,598)]
-
     logList =((0,480,360,0),\
             (368.4,19.2,480,484.8),\
             (904.8,0,600,178.8),\
@@ -110,18 +107,17 @@ def drawGraph():
             green = 150
         if 0 <= node.puck <= 15:
             blue = 150
-            pygame.draw.line(screen,(red, green, blue), (node.X,node.Y),(node.X+60*math.cos(node.theta*math.pi/180),node.Y-60*math.sin(node.theta*math.pi/180)),3)
-            pygame.draw.circle(screen, (red, green, blue), (int(node.X+100*math.cos(node.theta*math.pi/180)),int(node.Y-100*math.sin(node.theta*math.pi/180))), 40, 1)
+            pygame.draw.line(screen,(0,0,200), (node.X,node.Y),(node.X+60*math.cos(node.theta*math.pi/180),node.Y-60*math.sin(node.theta*math.pi/180)),4)
+            pygame.draw.circle(screen, (0,0,200), (int(node.X+100*math.cos(node.theta*math.pi/180)),int(node.Y-100*math.sin(node.theta*math.pi/180))), 40, 4)
 
         pygame.draw.circle(screen,(red,green,blue),(node.X,node.Y), node.radius)
         pygame.draw.circle(screen,(0,0,0),(node.X,node.Y), node.radius,1)
 
     for link in graph.links:
 		#draw links
-        pygame.draw.line(screen, (0,100,155), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
+        pygame.draw.line(screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
 		#draw link click location as a small circle
         pygame.draw.circle ( screen, (90,175,70), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 1)
-
 
 def drawAll():
     screen.lock()
@@ -323,7 +319,14 @@ while __name__ == "__main__":
             for link in graph.links:
                 if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
                     #clicked on link - so edit link
-                    edit.editLink(link)
+                    while 1:
+                        if edit.editLink(link):
+                            drawAll()
+                        else:
+                            ignoreNextMouseUpEvent = makeTimer(0.250)
+                            break
+                    # Ignore mouse clicks for the next 250 ms
+                    ignoreNextMouseUpEvent = makeTimer(0.250)
                                     
             if posDown[0]>940 and posDown[1]<20: #clicked in execute box
                 drawFlag=0
@@ -346,8 +349,8 @@ while __name__ == "__main__":
                         except Exception as e:
                             print "Error: ", e
                         break
-                # Ignore mouse clicks for the next 150 ms
-                ignoreNextMouseUpEvent = makeTimer(0.150)
+                # Ignore mouse clicks for the next 250 ms
+                ignoreNextMouseUpEvent = makeTimer(0.250)
             
             elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
                 print "what node is returning " + str(whatNode(posDown)[0])
@@ -363,19 +366,22 @@ while __name__ == "__main__":
                                             drawAll()
                                     else:
                                             break
-                                # Ignore mouse clicks for the next 150 ms
-                                ignoreNextMouseUpEvent = makeTimer(0.150)
+                                # Ignore mouse clicks for the next 250 ms
+                                ignoreNextMouseUpEvent = makeTimer(0.250)
                         else:
                                 graph.removeNode(whatNode(posDown)[0])  #remove that node
                     else: # but if they were two different nodes
-                        graph.addLink(downNode, upNode)#then make a link between
+                        red=random.randint(0,255)
+                        green=random.randint(0,255)
+                        blue=random.randint(0,255)
+                        graph.addLink( downNode, upNode, (red,green,blue) )#then make a link between
+
                 else:#clicked in a node, and dragged into space
                         downNode.X = posUp[0]
                         downNode.Y = posUp[1] #drag node
-                        for link in graph.links:#reclaculate the length of nodes after a drag
+                        for link in graph.links:#reclaculate the length of links after a drag
                             if downNode == (link.node1 or link.node2):
-                                link.length=math.hypot(link.node1.X-link.node2.X,link.node1.Y-link.node2.Y)+link.log*link.logOffset
-                                
+                                link.update()
 #add a distance calculation
 
             else: # clicked not on a node
