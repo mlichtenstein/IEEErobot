@@ -34,6 +34,15 @@ class Drawable:
     def draw(self, view, state): #define in subclasses
         pass
 
+def drawRange(surface, color, origin_x, origin_y, theta, startDist, endDist):
+	#takes theta in units of degrees
+    #all units in pixels
+	start_x = origin_x + startDist*math.cos(theta*math.pi/180)
+	start_y = origin_y - startDist*math.sin(theta*math.pi/180)
+	end_x   = origin_x + endDist*math.cos(theta*math.pi/180)
+	end_y   = origin_y - endDIst*math.sin(theta*math.pi/180)
+	pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
+
 class Robot(Drawable):
     name = "Robot"
     def draw(self, view, state):
@@ -46,10 +55,10 @@ class Robot(Drawable):
         # first draw the square frame of the robot
         robotWidth = 1
         s = view.CC*robotWidth/2
-        xa = s*math.cos(pose.theta)
-        ya = s*math.sin(pose.theta)
-        xb = s*math.sin(pose.theta)
-        yb = s*math.cos(pose.theta)
+        xa = s*math.cos(pose.theta*math.pi/180)
+        ya = s*math.sin(pose.theta*math.pi/180)
+        xb = s*math.sin(pose.theta*math.pi/180)
+        yb = s*math.cos(pose.theta*math.pi/180)
         pygame.draw.polygon(view.surface, self.color,
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
@@ -68,13 +77,28 @@ class HypobotSet(Drawable):
     def draw(self, view, state):
         for hypobot in state.hypobotCloud.hypobotList:
             import robotbasics
-            grey = int(hypobot.weight*255)
-            color = (grey,grey,grey)
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
-            Robot(color).drawPose(view,hypobot.pose)
+            Robot(self.color).drawPose(view,hypobot.pose)
 
-class IRreadings
-        
+class IRreadings(Drawable):
+    """
+    the IR readings are drawn as radial lines
+    """
+    name = "IRreadings"
+    def draw(self, view, state):
+        import settings
+        for hypobot in state.hypobotList:
+            for eye in hypobot.eyeList:
+                for i in range(0,settings.SCAN_DATA_POINTS):
+                    if eye.IR[i] != 0:
+                        D = eye.IR[i] * view.CC
+                        theta = hypobot.theta * (math.pi/180)
+                        x = int((hypobot.x + eye.x_offset*math.cos(theta) +
+                                eye.y_offset*math.sin(theta))*view.CC)
+                        y = int((hypobot.y - eye.x_offset*math.sin(theta) +
+                                eye.y_offset*math.cos(theta))*view.CC)
+                        drawRange(self.surface,color, x, y,
+                                hypobot.theta + eye.thetaList[i],D/2, D)
 
 class LogSet(Drawable):
     name = "Logs"

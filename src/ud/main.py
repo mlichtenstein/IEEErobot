@@ -59,8 +59,13 @@ while running == True:
                     frame.processMiddleClick()
 
     # Tell the robot brain to take action.
-	#THIS LINE IS THE ONLY ESSENTIAL LINE IN THE MAIN LOOP, ALL ELSE IS GUI
-    robotMode = robotMode.act(state)
+    # NOTE--I modified this to make it possible to escape the .act()s
+    # and return to this loop, so we can update the GUI between .act()s.
+    # See my Localize class to see how that works.  --Max
+    nextMode = robotMode.act(state)
+    if nextMode != None:
+        robotMode = nextMode
+        
 
 
     print(robotMode)
