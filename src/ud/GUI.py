@@ -43,7 +43,12 @@ class Frame:
     def feelClickUp(self, screen_pos):
         if self.rect.collidepoint(screen_pos):
             pos = (screen_pos[0] - self.origin[0], screen_pos[1] - self.origin[1])
-            self.processClickUp(pos)     
+            self.processClickUp(pos)
+    def feelMiddleClick(self, screen_pos):
+        if self.rect.collidepoint(screen_pos):
+            print self
+            pos = (screen_pos[0] - self.origin[0], screen_pos[1] - self.origin[1])
+            self.processMiddleClick()
     def draw(self):  #this is meant to be overwritten by child classes
         pass
     def processClickDown(self, pos):  #this is meant to be overwritten by child classes
@@ -53,6 +58,8 @@ class Frame:
     def processMiddleClick(self):
         pass
     def setup(self):
+        pass
+    def takeState(self, state):
         pass
                 
 class Button(Frame): 
@@ -90,7 +97,7 @@ class Button(Frame):
 class View(Frame): # a frame for representations of physical data (boardView, botView)
     state = State()
     selectedHypobot=0
-    drawList = list()
+    drawList = [EmptyDrawable()]
     coordConversion = 540/8
     def optionsWindow(self):
         #put a dialog to change the active state of the drawables here
@@ -111,21 +118,22 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
         activeList = list()
         nameList = list()
         for drawable in self.drawList:
-            drawable.active = False
             nameList.append(drawable.name)
         import easygui
         makeActiveList = easygui.multchoicebox(msg="Select which world objects you'd like to be visible",
                 title='View options:',
                 choices=(nameList))
-        for target in makeActiveList:
+        if makeActiveList != None:
             for drawable in self.drawList:
-                if target == drawable.name:
-                    drawable.active = True 
+                drawable.active = False
+                for target in makeActiveList:
+                    if target == drawable.name:
+                        drawable.active = True 
 
 class BoardView(View):
     """
-    BoardView will be constant as the GUI runs.  It shows a
-    birds-eye map of the board.
+    BoardView shows a
+    birds-eye map of the board in the board's frame of reference.
     """
     def setup(self):
         import world
@@ -138,11 +146,15 @@ class BoardView(View):
                             self.logSet,
                             self.landmarkSet , self.robot  ]
 
-class ModeView(View):
+class RangeView(View):
     """
-    ModeView
+    RangeView shows the results of a scan in the bot's frame of
+    reference.
     """
-    pass
+    def setup(self):
+        import world
+        self.robot = RangeRobot()
+        self.drawList = [self.robot]
 
 class StatusBanner(Frame):
     """
@@ -181,16 +193,24 @@ class GUI:
     frameList = list()
     prevMode = None
     def __init__( self, pygame, screen):
+        self.pygame = pygame
+        self.screen = screen
         self.boardView = BoardView(pygame, screen, 10, 60, 540, 540)
-        self.frameList.append(self.boardView)
         self.statusBanner = StatusBanner(pygame, screen, 10, 10, 1080, 40)
-        self.frameList.append(self.statusBanner)
-        
+        self.modeView = View(pygame,screen,560, 60, 300,300) #emptyFrame for now
+        self.frameList = [  self.boardView,
+                            self.statusBanner,
+                            self.modeView ]
     def takeState(self, state):
-        for frame in self.frameList:
-            if self.prevMode != state.mode:
-                #insert mode-specific reactions here
+        if self.prevMode != state.mode:
+            if state.mode == "Localize":
+                self.modeView = RangeView(self.pygame, self.screen,
+                        560, 60, 540,540)
                 self.prevMode = state.mode
+            if state.mode == "Pathfind":
+                #self.modeFrame = pathFindView# if we want this
+                pass
+        for frame in self.frameList:
             frame.takeState(state)
     def update(self,screen):
         for frame in self.frameList:

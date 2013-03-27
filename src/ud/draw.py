@@ -1,5 +1,8 @@
 """
-A library that tells GUI how to draw things
+A library that tells GUI how to draw things.  Each drawable is a thing
+you might want to draw on a view.  Note that drawables are meant for
+specific views, so using a rangeView drawable on boardView will draw, but
+it won't draw what you want.
 """
 
 import math
@@ -38,13 +41,22 @@ class Drawable:
         pass
 
 def drawRange(surface, color, origin_x, origin_y, theta, startDist, endDist):
-	#takes theta in units of degrees
+    #takes theta in units of degrees
     #all units in pixels
-	start_x = origin_x + startDist*math.cos(theta*math.pi/180)
-	start_y = origin_y - startDist*math.sin(theta*math.pi/180)
-	end_x   = origin_x + endDist*math.cos(theta*math.pi/180)
-	end_y   = origin_y - endDIst*math.sin(theta*math.pi/180)
-	pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
+    start_x = origin_x + startDist*math.cos(theta*math.pi/180)
+    start_y = origin_y - startDist*math.sin(theta*math.pi/180)
+    end_x   = origin_x + endDist*math.cos(theta*math.pi/180)
+    end_y   = origin_y - endDIst*math.sin(theta*math.pi/180)
+    pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
+
+class EmptyDrawable(Drawable):  #useful for empty views
+    name = "Nothing to draw..."
+    def draw(self, view, state):
+        pass
+
+"""=======================DRAWABLES FOR BOARDVIEW==================="""
+"""since boardview is the most important, boardView drawables
+don't get names referring them to boardView"""
 
 class Robot(Drawable):
     name = "Robot"
@@ -160,6 +172,26 @@ class LandmarkSet(Drawable):
             if landmark.landmarkType == "ROCK":
                 pygame.draw.circle(view.surface, self.color,
                         (x,y), radius)
+
+"""====================DRAWABLES FOR RANGEVIEW======================"""
+"""Drawables for the RangeView class"""
+
+class RangeRobot(Drawable):
+    name = "Robot"
+    def draw(self, view, state):
+        import world
+        eyeList = world.World().eyeList
+        #create center:
+        x0 = 4*view.CC
+        y0 = 4*view.CC
+        #draw robot body:
+        side = world.World().robotSide * view.CC
+        body = pygame.rect(0,0, side, side)
+        body.center = (x0,y0)
+        pygame.draw.rect(view.surface, self.color, body, 1)
+        #and draw a line for the heading:
+        pygame.draw.line(view.surface, self.color, (x0,y0),(x0+side, y0)) 
+    
 
 """====================TESTING GROUND==============================="""
 

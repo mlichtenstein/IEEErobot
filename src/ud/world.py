@@ -34,3 +34,4 @@ class World:
             localize.Eye(-0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
             localize.Eye(-0.415,0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
             localize.Eye(0.415,0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE))
+    robotSide = 1

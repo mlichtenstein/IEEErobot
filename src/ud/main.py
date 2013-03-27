@@ -62,7 +62,7 @@ while running == True:
                     frame.feelClickUp(pygame.mouse.get_pos())
             if event.button == 2:
                 for frame in gui.frameList:
-                    frame.processMiddleClick()
+                    frame.feelMiddleClick(pygame.mouse.get_pos())
 
     # Tell the robot brain to take action.
     # NOTE--I modified this to make it possible to escape the .act()s
