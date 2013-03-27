@@ -46,7 +46,7 @@ def drawRange(surface, color, origin_x, origin_y, theta, startDist, endDist):
     start_x = origin_x + startDist*math.cos(theta*math.pi/180)
     start_y = origin_y - startDist*math.sin(theta*math.pi/180)
     end_x   = origin_x + endDist*math.cos(theta*math.pi/180)
-    end_y   = origin_y - endDIst*math.sin(theta*math.pi/180)
+    end_y   = origin_y - endDist*math.sin(theta*math.pi/180)
     pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
 
 class EmptyDrawable(Drawable):  #useful for empty views
@@ -194,12 +194,31 @@ class RangeRobot(Drawable):
         y0 = 4*view.CC
         #draw robot body:
         side = world.World().robotSide * view.CC
-        body = pygame.rect(0,0, side, side)
+        body = pygame.Rect(0,0, side, side)
         body.center = (x0,y0)
         pygame.draw.rect(view.surface, self.color, body, 1)
+        #draw eyes:
+        for eye in eyeList:
+            x_eye=int(x0 + eye.x_offset*view.CC)
+            y_eye=int(y0 + eye.y_offset*view.CC)
+            pygame.draw.circle(view.surface, self.color,(x_eye,y_eye),10,1)
+
         #and draw a line for the heading:
-        pygame.draw.line(view.surface, self.color, (x0,y0),(x0+side, y0)) 
-    
+        pygame.draw.line(view.surface, self.color, (x0,y0),(x0+side, y0))
+
+class IRranges(Drawable): 
+    name = "IR ranges"
+    def draw(self, view, state):
+        x0 = 4*view.CC
+        y0 = 4*view.CC
+        for eye in state.eyeList:
+            import settings
+            x_eye=int(x0 + eye.x_offset*view.CC)
+            y_eye=int(y0 + eye.y_offset*view.CC)
+            for i in range(0,settings.SCAN_DATA_POINTS):
+                theta = eye.thetaList[i]
+                IR = eye.IR[i]*view.CC
+                drawRange(view.surface, self.color, x_eye,y_eye,theta,10,IR)
 
 """====================TESTING GROUND==============================="""
 

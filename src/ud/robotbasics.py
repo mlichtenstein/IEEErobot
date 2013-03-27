@@ -24,6 +24,8 @@ class State:
     def __init__(self):
         import time
         import localize
+        import copy
+        import world
         self.startTime = time.time()
         self.startPause = None
         self.mode = None
@@ -37,6 +39,7 @@ class State:
         self.motorPWM = 0, 0 #the duty cycle of the PWM output to each motor
         self.armConfig = [0,0,0] #the thetas of each arm servo
         self.hypobotCloud = localize.HypobotCloud()
+        self.eyeList = copy.deepcopy(world.World().eyeList)
         self.remainingPucks = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
         self.magnetOn = False
         self.lightsOn = False

@@ -8,24 +8,68 @@ import math
 import settings
 
 
+
+def rawIRtoFeet(rawIR):
+    if rawIR != 0:
+        feet = (2525.0*pow(rawIR, - 0.85) - 4)/12
+    else:
+        feet = 0
+    return feet
+
+def rawUStoFeet(rawUS):
+    speedOfSound=0
+    print("Please define speed of sound in localize.py")
+    feet = speedOfSound * rawUS
+    return feet
+
 class Eye:
-    def __init__(self, x_offset, y_offset, theta_offset,
+    def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
                     dataPointNum, subtendedAngle):
+        self.eyeNum = eyeNum
         self.x_offset=x_offset
         self.y_offset=y_offset
         self.theta_offset=theta_offset
         self.dataPointNum = dataPointNum
-        self.IR = [0.0]*dataPointNum
-        self.US = [0.0]*dataPointNum
+        self.IR = [0.0]*(dataPointNum+1)
+        self.US = [0.0]*(dataPointNum+1)
         self.thetaList = list() #a list of the theta at which each measurement occurs
         for i in range(self.dataPointNum):
-            self.thetaList.append(float(self.theta_offset) - float(i)/(dataPointNum-1) * subtendedAngle)    
+            self.thetaList.append(float(self.theta_offset) + float(i)/(dataPointNum-1) * subtendedAngle)    
     def clear(self):
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
     def takeReading(self, dataPoint, IR, US):
+        print((dataPoint,IR,US))
+        print(self.IR)
         self.IR[dataPoint] = IR
         self.US[dataPoint] = US
+    def printReading(self):
+        for range in self.IR:
+            print ("Eye "+str(self.eyeNum)+" sees  an IR range of " + str(range))
+
+def messageTupleToEyeList(messageTuple):
+    string = messageTuple[2]
+    dataPointStringList = string.split('|')[1:]
+    import world
+    import copy
+    eyeList = copy.deepcopy(world.World().eyeList)
+    for dataPointString in dataPointStringList:
+        dataPoint = dataPointString.split(',')
+        eyeNum = int(dataPoint[0])                                  
+        dataPointNum = int(dataPoint[1])
+        IRlsb = int(dataPoint[2])
+        IRmsb = int(dataPoint[3])           
+        USlsb = int(dataPoint[4])
+        USmsb = int(dataPoint[5])
+        rawIR = IRmsb*256 + IRlsb
+        rawUS = USmsb*256 + USlsb
+        IR = rawIRtoFeet(rawIR)
+        US = rawUStoFeet(rawUS)
+        print("Mt2el: Eye "+str(eyeNum)+" reports IR="+
+                str(IR)+" feet at data point "+str(dataPointNum))
+        eyeList[eyeNum].takeReading(dataPointNum,IR,US)
+    return eyeList
+
 
 class Hypobot:
     def __init__(self, x, y, theta):
@@ -204,23 +248,6 @@ class HypobotCloud:
         print("Pruned "+str(deleted)+" hypobots. "+
                 str(len(self.hypobotList))+" remain.")
 
-def messageTupleToEyeList(messageTuple):
-    string = messageTuple[2]
-    dataPointStringList = string.split('|')[1:]
-    import world
-    eyeList = world.World().eyeList
-    for dataPointString in dataPointStringList:
-        dataPoint = dataPointString.split(',')
-        dataPointNum = int(dataPoint[0])
-        IRlsb = int(dataPoint[1])
-        IRmsb = int(dataPoint[2])
-        USlsb = int(dataPoint[3])
-        USmsb = int(dataPoint[4])
-        eyeNum = int(dataPoint[5])
-        IR = IRmsb*256 + IRlsb
-        US = USmsb*256 + USlsb
-        eyeList[eyeNum].takeReading(dataPointNum,IR,US)
-    return eyeList
 
 
 def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
@@ -283,4 +310,3 @@ def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board
             if speed == "FAST":
                 r = min(r, d - radius + radius*(theta/lim)**2)
     return r
-

@@ -156,8 +156,8 @@ class RangeView(View):
     def setup(self):
         import world
         self.robot = RangeRobot()
-        self.landmarkSet = LandmarkSet(world.World().landmarkList)
-        self.drawList = [self.landmarkSet]
+        self.IRs = IRranges()
+        self.drawList = [self.robot,self.IRs]
 
 class StatusBanner(Frame):
     """

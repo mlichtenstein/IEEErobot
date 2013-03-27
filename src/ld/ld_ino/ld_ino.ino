@@ -133,7 +133,7 @@ Your response message should take the form ":[char],[id],[payload];"
                         unsigned int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
                         unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
-                        for (int i = 0; i<2; i++) {
+                        for (int i = 0; i<4; i++) {
                             EyeServo[i].write(pos);
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[i] = analogRead(IRpin[i]);
@@ -142,20 +142,20 @@ Your response message should take the form ":[char],[id],[payload];"
                         while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
                         for (int i=0; i<4; i++) {
                             Serial.print( char('|'));
-                            Serial.print( (pos));
+                            Serial.print( (i)); //EyeNum
                             Serial.write( ',' );
-                            Serial.print( (IRreading[i] & 255));
+                            Serial.print( (pos)); //DataPointNum
                             Serial.write( ',' );
-                            Serial.print( (IRreading[i] >> 8));
+                            Serial.print( (IRreading[i] & 255)); //IRlsb
                             Serial.write( ',' );
-                            Serial.print( (USreading[i] & 255));
+                            Serial.print( (IRreading[i] >> 8));  //IRmsb
                             Serial.write( ',' );
-                            Serial.print( (USreading[i] >> 8));
+                            Serial.print( (USreading[i] & 255)); //USlsb
                             Serial.write( ',' );
-                            Serial.print( (i)); //ServoNum
+                            Serial.print( (USreading[i] >> 8));  //USlsb
                         }
-                        Serial.write( ';' );
                     }
+                    Serial.write( ';' );
                     for (int i = 0; i<2; i++) {
                         EyeServo[i].write(0);
                     }

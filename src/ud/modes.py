@@ -107,6 +107,7 @@ class Localize( Mode ):
         if cloud.count() <50:
             cloud.appendBloom(2,Pose(.2,.2,2))
             return None
+        #-----------Scan block:-----------------
         if self.scanUpToDate == False:
             print("No scan data for this location.  Scanning...")
             import time
@@ -120,10 +121,15 @@ class Localize( Mode ):
                     pass
             tup = self.messenger.getMessageTuple()
             self.real_eyeList = localize.messageTupleToEyeList(tup)
+            state.eyeList=self.real_eyeList
+
+            for eye in state.eyeList:
+                eye.printReading()
+
             self.scanUpToDate = True
             return None
         if self.weighted == False:
-            state.hypobotCloud.weight(world.World().eyeList, world.World().landmarkList)
+            state.hypobotCloud.weight(self.real_eyeList, world.World().landmarkList)
             state.hypobotCloud.normalizeWeights()
             self.weighted = True
             return None
