@@ -136,8 +136,7 @@ class BoardView(View):
         #the bottom of the list appears on top
         self.drawList = [   self.hypobotSet,
                             self.logSet,
-                            self.landmarkSet,
-                            self.robot  ]
+                            self.landmarkSet , self.robot  ]
 
 class ModeView(View):
     """
