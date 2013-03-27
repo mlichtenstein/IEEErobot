@@ -96,13 +96,15 @@ class Localize( Mode ):
         print("Mode is now Localize")
         state.mode = "Localize"
         self.scanUpToDate = False
+        self.weighted = False
+        self.pruned = False
     def act(self, state):
         print("Localizing...")
         cloud = state.hypobotCloud
         if cloud.count() == 0:
             cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
             return None
-        if cloud.count <50:
+        if cloud.count() <50:
             cloud.appendBloom(2,Pose(.2,.5,2))
             return None
         if self.scanUpToDate == False:
@@ -120,11 +122,16 @@ class Localize( Mode ):
             self.real_eyeList = localize.messageTupleToEyeList(tup)
             self.scanUpToDate = True
             return None
-        state.hypobotCloud.weight()
-        state.hypobotCloud.normalizeWeights()
-        state.hypobotCloud.prune()
-        state.pose = state.hypobotCloud.collapse()
-        return Pathfind(state)
+        if self.weighted == False:
+            state.hypobotCloud.weight(world.World().eyeList, world.World().landmarkList)
+            state.hypobotCloud.normalizeWeights()
+            self.weighted = True
+        if self.pruned ==False:
+            state.hypobotCloud.prune(0.5)
+            state.hypobotCloud.normalizeWeights()
+            self.pruned = True
+        state.pose = state.hypobotCloud.collapse(0.1)
+        return Localize(state)
     pass
 
 

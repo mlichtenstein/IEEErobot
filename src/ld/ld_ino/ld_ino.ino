@@ -130,8 +130,8 @@ Your response message should take the form ":[char],[id],[payload];"
                     #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
                     float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
                     for (pos = 0; pos <= ROBOT_SCAN_DATA_POINTS; pos += 1) {
-                        int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
-                        int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
+                        unsigned int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
+                        unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<2; i++) {
                             EyeServo[i].write(pos);

@@ -57,30 +57,29 @@ class Hypobot:
         if len(real_eyeList)!= len(self.localEyeList):
             print("eyeList mismatch!")
             return -1
-        print id(self.localEyeList)
         self.weight = 1
-        for eye in real_eyeList:
+        for eye in self.localEyeList:
             distSum = 0
-            for i in range(dataPointNum):
+            for i in range(settings.SCAN_DATA_POINTS):
                 distance = 10
                 correctionWindow = 2
-                for j in range(max(0,i-correctionWindow),min(dataPointNum,i+correctionWindow+1)):
+                for j in range(max(0,i-correctionWindow),min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
                     a = eye.IR[i]
-                    b =  self.localEyeList[eye.eyeNum].IR[j]
+                    b =  eye.IR[j]
                     #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
                     distance = min(distance, abs(a-b))  #FAST
                 self.weight *= math.exp((-(distance)**2)*.008)
-        self.color = (  int(hypobot.weight*self.red),
-                        int(hypobot.weight*self.green),
-                        int(hypobot.weight*self.blue))
+        self.color = (  int(self.weight*self.red),
+                        int(self.weight*self.green),
+                        int(self.weight*self.blue))
     def generateEyeData(self, landmarkList):
         #tricky, we need to use the hardware info from real_eyeList
         #plus the pose info from hypobot to transform our heading
         import copy
         import world
-        real_eyeList = copy.deepcopy(world.World().eyeList) #gets the x, y, theta data
+        self.localEyeList = copy.deepcopy(world.World().eyeList) #gets the x, y, theta data
         #important that it be a deep copy, since each hbot really should have its own version of the data
-        for eye in real_eyeList:
+        for eye in self.localEyeList:
             #apply rotational matrix
             x = self.x + math.cos(self.theta)*eye.x_offset + math.sin(self.theta)*eye.y_offset
             y = self.y - math.sin(self.theta)*eye.x_offset + math.cos(self.theta)*eye.y_offset
@@ -154,9 +153,10 @@ class HypobotCloud:
         for hypobot in self.hypobotList:
             hypobot.generateEyeData(landmarkList)
         print("generated eye data for "+str(len(self.hypobotList))+" hbots.")
-    def weight(self):
+    def weight(self, real_eyeList, landmarkList):
         for hypobot in self.hypobotList:
-            hypobot.changeWeight()
+            hypobot.changeWeight(real_eyeList, landmarkList)
+        print ("reweighted "+str(len(self.hypobotList))+" hbots.")
     def normalizeWeights(self):
         #this method scales the weights so the lowest is 0 and the highest is 1
         #go through the hypbobots
@@ -166,15 +166,19 @@ class HypobotCloud:
             minWeight = min(minWeight, hypobot.weight)
             maxWeight = max(maxWeight, hypobot.weight)
         #adjust the weights to span from 0 to 1
+        if minWeight == maxWeight:
+            print("All your hbots have the same weight!  Something is wrong.")
+            return
         for i in range(len(self.hypobotList)):
             hypobot = self.hypobotList[i]
             hypobot.weight = (hypobot.weight - minWeight)/(maxWeight-minWeight)
     def collapse(self, threshold):
-        #this method "collapses" the wavefunction, averaging over all weights above threshold
+        import robotbasics
+        #this method collapses the "wavefunction", averaging over all weights above threshold
         #threshold of .5 seems to work well
         self.normalizeWeights()
         #do a weighted average:
-        avg = Pose(0,0,0)
+        avg = robotbasics.Pose(0,0,0)
         totWeight = 0
         for hypobot in self.hypobotList:
             if hypobot.weight > threshold:
@@ -204,15 +208,15 @@ def messageTupleToEyeList(messageTuple):
     eyeList = world.World().eyeList
     for dataPointString in dataPointStringList:
         dataPoint = dataPointString.split(',')
-        index = dataPoint[0]
-        IRlsb = dataPoint[1]
-        IRmsb = dataPoint[2]
-        USlsb = dataPoint[3]
-        USmsb = dataPoint[4]    
-        eyeNum = dataPoint[5]
+        dataPointNum = int(dataPoint[0])
+        IRlsb = int(dataPoint[1])
+        IRmsb = int(dataPoint[2])
+        USlsb = int(dataPoint[3])
+        USmsb = int(dataPoint[4])
+        eyeNum = int(dataPoint[5])
         IR = IRmsb*256 + IRlsb
         US = USmsb*256 + USlsb
-        eyeList[eyeNum].takeReading(dataPoint,IR,US)
+        eyeList[eyeNum].takeReading(dataPointNum,IR,US)
     return eyeList
 
 
