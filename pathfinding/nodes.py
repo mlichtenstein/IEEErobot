@@ -158,6 +158,8 @@ def scootToNearestNode((X,Y, theta)):
         botPose.X, botPose.Y = nearestNode.X, nearestNode.Y
         drawBot(X,Y,theta)
     return nearestNode
+DEBUG = False
+
 def explorePath( allLinks, roots, startingNode ):
     """
     Description:
@@ -179,9 +181,14 @@ def explorePath( allLinks, roots, startingNode ):
     result = []
     distance = 0
     while True:
+        if DEBUG:
+            print "previous: ", previous
+            print "currentNode: ", currentNode
         result.append( currentNode )
         # Done once we have the puck.
         if currentNode.puck != -1:
+            if DEBUG:
+                print "Puck"
             break
         relatedLinks = findLinksWithNode( allLinks, currentNode )
         forwardLinks = [] 
@@ -207,9 +214,13 @@ def explorePath( allLinks, roots, startingNode ):
                     forwardLinks.append( link )
         # No forward links.
         if len( forwardLinks ) == 0:
+            if DEBUG:
+                print "Deadend"
             return None
         # One forward link. Proceed forward.
         elif len( forwardLinks ) == 1:
+            if DEBUG:
+                print "One forward link"
             # Access the oposite node from currentNode.
             distance = distance + forwardLinks[0].length
             nextNode = getOtherNode( forwardLinks[0], currentNode )
@@ -220,21 +231,32 @@ def explorePath( allLinks, roots, startingNode ):
             # For each possible branch, launch an explorer. The explorer will
             #  return the path and the distance. Next, append the branch with
             #  the shortest path.
+            if DEBUG:
+                print "Multiple forward links"
             minBranch = None
             minLink = None
             for link in forwardLinks:
+                if DEBUG:
+                    print "link: ", link
+                otherNode = getOtherNode( link, currentNode )
                 rootsCopy = roots[:]
                 rootsCopy.append( currentNode )
                 branch = explorePath( allLinks, rootsCopy, otherNode )
+                if DEBUG:
+                    print "minBranch: ", minBranch
+                    print "Branch: ", branch
                 # Select the shortest branch only.
                 if branch != None and ( minBranch == None or \
                 branch[1] < minBranch[1] ):
                     minBranch = branch
                     minLink = link
+                    if DEBUG:
+                        print "minBranch set"
             if minLink != None:
+                result = result + minBranch[0]
+                distance = distance + minLink.length + minBranch[1]
+            else:
                 return None
-            result = result + minBranch[0]
-            distance = distance + minLink.length + minBranch[1]
             break
     return ( result, distance )
 
