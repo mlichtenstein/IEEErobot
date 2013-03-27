@@ -24,6 +24,7 @@ class Messenger:
         self.__inMessage = False
         self.__serialWrapper = serialWrapper
         self.__message = ""
+        self.__id = 0 #Hi josh -- I added a message counter. --max
         if not self.__serialWrapper.makeContact():
             raise Exception( "Could not make contact." )
     def setResponseHandler( self, stateObject ):
@@ -77,7 +78,7 @@ class Messenger:
                 raise Exception, "Cannot be longer than one character."
             for field in fields:
                 str( field )
-        id = 1
+        id = self.__id
         self.__serialWrapper.write( ":" )
         self.__serialWrapper.write( charCategory )
         self.__serialWrapper.write( id )
@@ -88,6 +89,7 @@ class Messenger:
             printout += ","+field
         self.__serialWrapper.write( ";" )
         print(printout+';')
+        self.__id += 1
     def checkInBox( self ):
         """
         Reads the bytes coming into the serial port while the buffer

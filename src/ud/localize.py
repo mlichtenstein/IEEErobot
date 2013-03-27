@@ -58,14 +58,14 @@ class Hypobot:
             print("eyeList mismatch!")
             return -1
         self.weight = 1
-        for eye in self.localEyeList:
+        for eyeNum in range(0,len(self.localEyeList)):
             distSum = 0
             for i in range(settings.SCAN_DATA_POINTS):
                 distance = 10
                 correctionWindow = 2
                 for j in range(max(0,i-correctionWindow),min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
-                    a = eye.IR[i]
-                    b =  eye.IR[j]
+                    a = self.localEyeList[eyeNum].IR[i]
+                    b =  real_eyeList[eyeNum].IR[j]
                     #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
                     distance = min(distance, abs(a-b))  #FAST
                 self.weight *= math.exp((-(distance)**2)*.008)
@@ -121,16 +121,19 @@ class HypobotCloud:
         return len(self.hypobotList)
     def appendBloom(self, multiplier, poseSigma):
         import random
-        for hypobot in self.hypobotList:
-            for i in range(0,mulitplier):
-                pose = hypobot.pose
-                while 1:
-                    x = pose.x + random.gauss(pose.x, poseSigma.x)
-                    y = pose.y + random.gauss(pose.y, poseSigma.y)
-                    if x>.5 and x<7.5 and y>.5 and y<7.5:
-                        break
+        import copy
+        appended = 0
+        bloomEnd = len(self.hypobotList)
+        for index in range(0,bloomEnd):
+            for i in range(0,multiplier):
+                pose = self.hypobotList[index].pose
+                x = random.gauss(pose.x, poseSigma.x)
+                y = random.gauss(pose.y, poseSigma.y)                    
                 theta = pose.theta + random.gauss(pose.theta, poseSigma.theta)
-                self.hypobotList.append(Hypobot(x,y,theta))
+                if x>.5 and x<7.5 and y>.5 and y<7.5:
+                    self.hypobotList.append(Hypobot(x,y,theta))
+                    appended +=1
+        print("Bloomed "+str(appended)+" hbots.")
     def appendGaussianCloud(self, cloudSize, pose, poseSigma):
         import random 
         for i in range (0,cloudSize):
@@ -197,7 +200,7 @@ class HypobotCloud:
         for hypobot in self.hypobotList:
             if hypobot.weight < threshold:
                 deleted += 1
-                hypobotList.remove(hypobot)
+                self.hypobotList.remove(hypobot)
         print("Pruned "+str(deleted)+" hypobots. "+
                 str(len(self.hypobotList))+" remain.")
 

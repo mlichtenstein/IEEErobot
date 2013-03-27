@@ -105,7 +105,7 @@ class Localize( Mode ):
             cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
             return None
         if cloud.count() <50:
-            cloud.appendBloom(2,Pose(.2,.5,2))
+            cloud.appendBloom(2,Pose(.2,.2,2))
             return None
         if self.scanUpToDate == False:
             print("No scan data for this location.  Scanning...")
@@ -126,10 +126,12 @@ class Localize( Mode ):
             state.hypobotCloud.weight(world.World().eyeList, world.World().landmarkList)
             state.hypobotCloud.normalizeWeights()
             self.weighted = True
+            return None
         if self.pruned ==False:
             state.hypobotCloud.prune(0.5)
             state.hypobotCloud.normalizeWeights()
             self.pruned = True
+            return None
         state.pose = state.hypobotCloud.collapse(0.1)
         return Localize(state)
     pass
@@ -166,7 +168,7 @@ if __name__ == "__main__":
     # Open the port and initialize contact.
     messenger = utility.Messenger( utility.SerialPort() )
     # Request the scan.
-    messenger.sendMessage( settings.SERVICE_IRSENSOR_POLL )
+    messenger.sendMessage( settings.SERVICE_SCAN )
     # Check for messages. Pass any messages to the mode.
     while True:
         if messenger.checkInBox():
