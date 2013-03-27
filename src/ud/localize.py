@@ -1,3 +1,12 @@
+"""
+A library containing things critical to localization.  This defines
+Eye, Hypobot, and HypobotCloud, and also contains idealRange functions
+and a function for parsing the Arduino's scan report
+"""
+
+import math
+import settings
+
 class Eye:
     def __init__(self, x_offset, y_offset, theta_offset,
                     dataPointNum, subtendedAngle):
@@ -63,23 +72,22 @@ class Hypobot:
         self.color = (  int(hypobot.weight*self.red),
                         int(hypobot.weight*self.green),
                         int(hypobot.weight*self.blue))
-    def generateEyeData(self, real_eyeList, landmarkList):
+    def generateEyeData(self, landmarkList):
         #tricky, we need to use the hardware info from real_eyeList
         #plus the pose info from hypobot to transform our heading
         import copy
-        self.localEyeList = copy.deepcopy(real_eyeList) #gets the x, y, theta data
+        import world
+        real_eyeList = copy.deepcopy(world.World().eyeList) #gets the x, y, theta data
         #important that it be a deep copy, since each hbot really should have its own version of the data
         for eye in real_eyeList:
             #apply rotational matrix
             x = self.x + math.cos(self.theta)*eye.x_offset + math.sin(self.theta)*eye.y_offset
             y = self.y - math.sin(self.theta)*eye.x_offset + math.cos(self.theta)*eye.y_offset
             theta = self.theta + eye.theta_offset 
-            array=range(dataPointNum)
-            for j in range(dataPointNum):
+            for j in range(settings.SCAN_DATA_POINTS):
                 effective_theta = eye.thetaList[j]
-                #----------------------change speed here ---------------------
-                array[j] = calcIdealRange(x, y, effective_theta, landmarkList, "SLOW")
-            self.localEyeList[i].IR = array
+                #----------------------change generation speed here ---------------------
+                eye.IR[j] = calcIdealRange(x, y, effective_theta, landmarkList, "SLOW")
         #print "generated a new eyeList for hypobot " + str(id(self)) + " at " + str((self.x, self.y, self.theta))
         
 class HypobotCloud:
@@ -110,7 +118,7 @@ class HypobotCloud:
         self.hypobotList = list()
         print("deleted " + str(l) + " hypobots.  No hypobots left.")
     def count(self):
-        return len(self.hypobotList())
+        return len(self.hypobotList)
     def appendBloom(self, multiplier, poseSigma):
         import random
         for hypobot in self.hypobotList:
@@ -203,4 +211,64 @@ def messageTupleToEyeList(messageTuple):
         US = USmsb*256 + USlsb
         eyeList[eyeNum].takeReading(dataPoint,IR,US)
     return eyeList
-    
+
+
+def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
+    """
+    This function will calculate the range detected by an ideal IR
+    sensor    at x_eye, y_eye and pointing in the theta_board direction.
+    Speed refers to the speed of the calculations.  It demands a string,
+    which can be one of 3 options:
+
+    "SLOW":  Dead-on ideal (for rocks, but not for trees...eh)
+        this is not recommended, it takes 10-100 times longer than the others
+    "FAST":  Recommended--it calculates the ranges as parabolas, which
+        is a decent approximation in good time
+    "ULTRAFAST": It calculates the ranges as flat fans, which is a dirty
+        approx but is about half again as fast as FAST.  recommended only
+        in the case of a very lost robot that is blanketing the field
+        with thousands of hbots.  God help us if this happens.
+    """
+    r = settings.SCAN_IR_RANGELIM #caps ideal ranges
+    theta_board = theta_board * math.pi/180  #math like this prefers to be done in radians
+    circles = list()
+    squares = list()
+    radius = 0
+    side = 0
+    for landmark in landmarkList:
+        if landmark.landmarkType=="ROCK":
+            circles.append((landmark.x, landmark.y, landmark.rockRadius))
+        else:
+            #change to squares.append if you implement special handling for squares
+            circles.append((landmark.x, landmark.y, landmark.treeSide * math.sqrt(2)/2))
+    for circle in circles:
+        delta_x = circle[0] - x_eye
+        delta_y = - (circle[1] - y_eye) # leading minus cuz y is down-positive
+        radius = circle[2]
+        theta_BL = math.atan2(delta_y, delta_x)
+        while theta_board > math.pi:
+            theta_board -= 2* math.pi
+        theta = theta_board - theta_BL
+
+        #print("x:",circle.x, x_eye, delta_x)
+        #print("y:",circle.y, y_eye, delta_y)
+        #print("theta:", theta_BL*180/math.pi, theta_eye*180/math.pi, theta*180/math.pi)
+        
+        d = math.sqrt(delta_x**2 + delta_y**2)
+        if d < radius:
+            return 0
+        lim = math.asin(radius/d)
+        #print("Lim:", lim*180/math.pi)
+        if abs(theta) < lim :
+            if speed == "SLOW":
+                try:
+                    r = min(r,d*(math.cos(theta) - math.sqrt((radius/d)**2 - math.sin(theta)**2)))
+                except:
+                    print("GAAAH! Imaginary range!  Something is wrong\
+                            in calcIdealRange",x_eye, y_eye, theta, d)
+            if speed == "ULTRAFAST":
+                r = min(r,d - radius/2)
+            if speed == "FAST":
+                r = min(r, d - radius + radius*(theta/lim)**2)
+    return r
+

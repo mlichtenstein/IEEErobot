@@ -7,6 +7,7 @@ output.
 
 from robotbasics import *
 import settings
+import world
 
 """
 Module Tests:
@@ -97,31 +98,29 @@ class Localize( Mode ):
         self.scanUpToDate = False
     def act(self, state):
         print("Localizing...")
-        with state.hypobotCloud as cloud:
-            if cloud.count() == 0:
-                cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
-                return None
-            if cloud.count <50:
-                cloud.appendBloom(2,Pose(.5,.5,2))
-                return None
-            if self.scanUpToDate = False:
-                import time
-                self.messenger.sendMessage(settings.SERVICE_SCAN)
-                messageTime = time.time()
-                cloud.generateEyeData()
-                while time.time()-messageTime < 4.5:
-                    pass #avoid race condition -- RHS might want tweaking
-                tup = self.messenger.recieveMessageTuple()
-                self.real_eyeList = messageTupleToEyeList(tup)
-                self.scanUpToDate = True
-                return None
-            state.hypobotCloud.weight()
-            state.hypobotCloud.normalizeWeights()
-            state.hypobotCloud.prune()
-            state.pose = state.hypobotCloud.collapse()
-            return Pathfind(state)
-            
-        return Go(state)
+        cloud = state.hypobotCloud
+        if cloud.count() == 0:
+            cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
+            return None
+        if cloud.count <50:
+            cloud.appendBloom(2,Pose(.2,.5,2))
+            return None
+        if self.scanUpToDate == False:
+            import time
+            self.messenger.sendMessage(settings.SERVICE_SCAN)
+            messageTime = time.time()
+            cloud.generateEyeData(world.World().landmarkList)
+            while time.time()-messageTime < 4.5:
+                pass #avoid race condition -- RHS might want tweaking
+            tup = self.messenger.recieveMessageTuple()
+            self.real_eyeList = messageTupleToEyeList(tup)
+            self.scanUpToDate = True
+            return None
+        state.hypobotCloud.weight()
+        state.hypobotCloud.normalizeWeights()
+        state.hypobotCloud.prune()
+        state.pose = state.hypobotCloud.collapse()
+        return Pathfind(state)
     pass
 
 

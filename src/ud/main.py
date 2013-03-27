@@ -8,8 +8,10 @@ import landmark
 import modes
 import messenger
 import world
+import time
+import random
 
-"""=================CREATE WORLD====================================="""
+"""=================SETUP============================================"""
 
 #give the robot a state:
 state = State()
@@ -17,15 +19,16 @@ state = State()
 #establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
-
+#pick a start mode (should be wait, eventually)
 robotMode = modes.ReadUSBDrive(state)
 
-
+#create world
 landmarkList = world.World.landmarkList
 logList = world.World.logList
 
 #load nodelist however you do that
 
+#setup Gui
 H = 700
 W = 1100
 textHeight = 18
@@ -37,6 +40,9 @@ screen=pygame.display.set_mode((W,H),0,32)
 screen.fill((127,127,127))
 
 gui = GUI.GUI(pygame,screen)
+
+#seed random:
+random.seed(time.time())
 
 """===============MAIN LOOP=========================================="""
 running = True
@@ -75,3 +81,4 @@ while running == True:
 
     gui.update(screen)
     pygame.display.update()
+    time.sleep(1)
