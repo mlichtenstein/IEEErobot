@@ -58,7 +58,7 @@ while running == True:
                     frame.feelClickDown(pygame.mouse.get_pos())
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                for frame in gui.rameList:
+                for frame in gui.frameList:
                     frame.feelClickUp(pygame.mouse.get_pos())
             if event.button == 2:
                 for frame in gui.frameList:

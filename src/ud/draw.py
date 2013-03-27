@@ -20,8 +20,9 @@ class Drawable:
     active = True;
     color=(255,255,255)
     name = "Give me a name!"
-    def __init__(self, color=None, default=None):
+    def __init__(self, color=None, alpha = 255, default=None):
         self.color=(255,255,255)
+        self.alpha = alpha
         if color is None:
             import random
             self.color = (int(random.random()*256),
@@ -31,6 +32,8 @@ class Drawable:
             self.color = color
         if default!=None:
             self.active = default
+        else:
+            self.active = True
     def draw(self, view, state): #define in subclasses
         pass
 
@@ -49,6 +52,7 @@ class Robot(Drawable):
         self.drawPose(view, state.pose)
     def drawPose(self,view, pose):
         CC = view.CC
+        tempSurface = pygame.Surface((view.width, view.height))
         #the center of the robot in view's pixel coords
         x = pose.x * CC
         y = pose.y * CC
@@ -59,13 +63,16 @@ class Robot(Drawable):
         ya = s*math.sin(pose.theta*math.pi/180)
         xb = s*math.sin(pose.theta*math.pi/180)
         yb = s*math.cos(pose.theta*math.pi/180)
-        pygame.draw.polygon(view.surface, self.color,
+        pygame.draw.polygon(tempSurface, self.color,
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
                 (x+xa-xb,y-ya-yb),
                 (x+xa+xb,y-ya+yb)), 1)
         #and draw a line for the heading:
-        pygame.draw.line(view.surface, self.color, (x,y),(x+2*xa,y-2*ya)) 
+        pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya))
+        #finally blit it:
+        tempSurface.set_alpha(self.alpha)
+        view.surface.blit(tempSurface, (0,0))
 
 class Wheels(Drawable):
     name = "Wheels"
@@ -77,8 +84,9 @@ class HypobotSet(Drawable):
     def draw(self, view, state):
         for hypobot in state.hypobotCloud.hypobotList:
             import robotbasics
+            alpha = int(256*hypobot.weight)
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
-            Robot(self.color).drawPose(view,hypobot.pose)
+            Robot(self.color,alpha).drawPose(view,hypobot.pose)
 
 class IRreadings(Drawable):
     """
