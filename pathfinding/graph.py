@@ -21,6 +21,7 @@ class Graph:
         if linksRemoved==0:
             self.nodes.remove(node)
 
+
 #===================================NODE===================================#
 # XPos                -----      X position of the node
 # Ypos                -----      Y position of the node
@@ -44,13 +45,13 @@ class Node:
 #===================================LINK===================================#
 class Link:
     def __init__( self, node1, node2):
-        logOffset = 0 # edit this to change percieved length of link due to a log
+        self.logOffset = 0 # edit this to change percieved length of link due to a log
         self.node1 = node1
         self.node2 = node2
         self.log = 0
         self.directional = 0
         self.theta = 0
-        self.length = abs(math.hypot(node1.X-node2.X,node1.Y-node2.Y)+self.log*logOffset)
+        self.length = abs(math.hypot(node1.X-node2.X,node1.Y-node2.Y)+self.log*self.logOffset)
         
 #===================================bot====================================#
 #                 contains pose data (x, y, theta)

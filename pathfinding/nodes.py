@@ -85,9 +85,9 @@ def drawBot(x, y, theta):
 
 def drawPucks():
     for p in pucks:
-        x=(p-1)%4*240+120
-        y=(p-1)/4*240+120
-        pygame.draw.circle(screen, (90,175,70), (x,y), 15)
+        x = (p-1)%4*240+120
+        y = (p-1)/4*240+120
+        pygame.draw.circle ( screen, (90,175,70), (x,y), 15)
 
 def whatNode((x,y)):
     nearestNode=graph.nodes[0]
@@ -116,9 +116,11 @@ def drawGraph():
         pygame.draw.circle(screen,(red,green,blue),(node.X,node.Y), node.radius)
         pygame.draw.circle(screen,(0,0,0),(node.X,node.Y), node.radius,1)
 
-    for link in graph.links:#draw links
-        print "node1 = " + str(link.node1.X+link.node1.Y) + "    node2 = " + str(link.node2.X+link.node2.Y)
+    for link in graph.links:
+		#draw links
         pygame.draw.line(screen, (0,100,155), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
+		#draw link click location as a small circle
+        pygame.draw.circle ( screen, (90,175,70), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 1)
 
 
 def drawAll():
@@ -134,12 +136,12 @@ def makeTimer( seconds ):
     startTime = time.time()
     return lambda : time.time() - startTime < seconds
 
-def drawLine(x1,y1,x2,y2):
+def drawLine(x1,y1,x2,y2): #draws a thick red line
     pygame.draw.line(screen, (255,0,0), (x1,y1),(x2,y2),3)
     pygame.display.update()
 
 
-def scootToNearestNode((X,Y, theta)):
+def scootToNearestNode((X,Y, theta)): #returns the node
     nearestNode = whatNode((X,Y))[0]
     distance = whatNode((X,Y))[1]
     nodeTheta = 180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
@@ -268,6 +270,7 @@ def findPath( graph, startingNode ):
     pathInfo = explorePath( graph.links, [startingNode], startingNode )
     if pathInfo == None:
         raise Exception( "Puck not found" )
+    print "Distance: ", pathInfo[1]
     return pathInfo[0]
 def findLinksWithNode( links, node ):
     result = []
@@ -299,6 +302,7 @@ while __name__ == "__main__":
         elif event.type == pygame.MOUSEBUTTONDOWN:
             posDown=pygame.mouse.get_pos()
             downNode=whatNode(posDown)[0]
+			
             #note which node it is in
             drawFlag = 1
 
@@ -311,7 +315,12 @@ while __name__ == "__main__":
 
             clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
 
-            if posDown[0]>940 and posDown[1]<20: #clicked in drop bot box
+            for link in graph.links:
+                if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
+                    #clicked on link - so edit link
+                    edit.editLink(link)
+                                    
+            if posDown[0]>940 and posDown[1]<20: #clicked in execute box
                 drawFlag=0
                 while 1:
                     if edit.editBot(botPose):
@@ -319,19 +328,22 @@ while __name__ == "__main__":
                     else:
                         thenode = scootToNearestNode((botPose.X,botPose.Y, botPose.theta))
                         try:
+                            print "Before findpath"
                             path = findPath( graph, thenode )
+                            print "After findpath"
+                            print path
                             
                             lastPath = path[0]
                             for i in path:
                                 print i
-                                #drawLine(lastPath.X,lastPath.Y,i.X,i.Y)
+                                drawLine(lastPath.X,lastPath.Y,i.X,i.Y)
                                 lastPath = i
                         except Exception as e:
                             print "Error: ", e
                         break
                 # Ignore mouse clicks for the next 150 ms
                 ignoreNextMouseUpEvent = makeTimer(0.150)
-
+            
             elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
                 print "what node is returning " + str(whatNode(posDown)[0])
                 if whatNode(posUp)[1] <= upNode.radius:  #and  unclick was inside a node
@@ -352,9 +364,14 @@ while __name__ == "__main__":
                                 graph.removeNode(whatNode(posDown)[0])  #remove that node
                     else: # but if they were two different nodes
                         graph.addLink(downNode, upNode)#then make a link between
-                else:#clicked in a node, and dragged
+                else:#clicked in a node, and dragged into space
                         downNode.X = posUp[0]
                         downNode.Y = posUp[1] #drag node
+                        for link in graph.links:#reclaculate the length of nodes after a drag
+                            if downNode == (link.node1 or link.node2):
+                                link.length=math.hypot(link.node1.X-link.node2.X,link.node1.Y-link.node2.Y)+link.log*link.logOffset
+                                
+#add a distance calculation
 
             else: # clicked not on a node
                 if clickTravel <= downNode.radius: #clicked and didnt drag
