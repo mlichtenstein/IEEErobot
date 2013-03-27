@@ -6,6 +6,7 @@ output.
 """
 
 from robotbasics import *
+import settings
 
 """
 Module Tests:
@@ -64,7 +65,8 @@ class ReadUSBDrive( Mode):
         state.mode = "ReadUSB"
     def act(self, state):
         print("Write code that reads from the USB here")
-        #state.remainingPucks = puckList #get puckList 
+        if state.hypobotCloud.count() == 0:
+            state
         return Localize(state)
         
 
@@ -92,9 +94,26 @@ class Localize( Mode ):
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
+        self.scanUpToDate = False
     def act(self, state):
         print("Localizing...")
-        #        state.hypobotCloud
+        with state.hypobotCloud as cloud:
+            if cloud.count() == 0:
+                cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
+                return Localize(state)
+            if cloud.count <50:
+                cloud.appendBloom(2,Pose(.5,.5,2))
+            if self.scanUpToDate = False:
+                import time
+                self.messenger.sendMessage(settings.SERVICE_SCAN)
+                messageTime = time.time()
+                cloud.weight()
+                while time.time()-messageTime < 4.5:
+                    pass #avoid race condition -- RHS might want tweaking
+                tup = self.messenger.recieveMessageTuple()
+                self.scanUpToDate = True
+            
+            
         return Go(state)
     pass
 

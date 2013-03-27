@@ -1,7 +1,6 @@
 class Eye:
-    def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
+    def __init__(self, x_offset, y_offset, theta_offset,
                     dataPointNum, subtendedAngle):
-        self.eyeNum = eyeNum
         self.x_offset=x_offset
         self.y_offset=y_offset
         self.theta_offset=theta_offset
@@ -15,10 +14,8 @@ class Eye:
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
     def takeReading(self, dataPoint, IR, US):
-        pass
-    def takeRange(self, IR_array, US_array):
-        self.IR = IR_array
-        self.US = US_array
+        self.IR[dataPoint] = IR
+        self.US[dataPoint] = US
 
 class Hypobot:
     def __init__(self, x, y, theta):
@@ -89,11 +86,28 @@ class HypobotCloud:
         l = len(self.hypobotList)
         self.hypobotList = list()
         print("deleted " + str(l) + " hypobots.  No hypobots left.")
+    def count(self):
+        return len(self.hypobotList())
+    def appendBloom(self, multiplier, poseSigma):
+        import random
+        for hypobot in self.hypobotList:
+            for i in range(0,mulitplier):
+                pose = hypobot.pose
+                while 1:
+                    x = pose.x + random.gauss(pose.x, poseSigma.x)
+                    y = pose.y + random.gauss(pose.y, poseSigma.y)
+                    if x>.5 and x<7.5 and y>.5 and y<7.5:
+                        break
+                theta = pose.theta + random.gauss(pose.theta, poseSigma.theta)
+                self.hypobotList.append(Hypobot(x,y,theta))
     def appendGaussianCloud(self, cloudSize, pose, poseSigma):
         import random 
         for i in range (0,cloudSize):
-            x = pose.x + random.gauss(pose.x, poseSigma.x)
-            y = pose.y + random.gauss(pose.y, poseSigma.y)
+            while 1:
+                x = pose.x + random.gauss(pose.x, poseSigma.x)
+                y = pose.y + random.gauss(pose.y, poseSigma.y)
+                if x>.5 and x<7.5 and y>.5 and y<7.5:
+                    break
             theta = pose.theta + random.gauss(pose.theta, poseSigma.theta)
             self.hypobotList.append(Hypobot(x,y,theta))
             print("Added hypobot at x,y,theta")
@@ -148,3 +162,22 @@ class HypobotCloud:
                 hypobotList.remove(hypobot)
         print("Pruned "+str(deleted)+" hypobots. "+
                 str(len(self.hypobotList))+" remain.")
+
+def messageTupleToEyeList(messageTuple):
+    string = messageTuple[2]
+    dataPointStringList = string.split('|')
+    import world
+    eyeList = world.World().eyeList
+    for dataPointString in dataPointStringList:
+        dataPoint = dataPointString.split(',')
+        index = dataPoint[0]
+        IRlsb = dataPoint[1]
+        IRmsb = dataPoint[2]
+        USlsb = dataPoint[3]
+		USmsb = dataPoint[4]	
+		eyeNum = dataPoint[5]
+		IR = IRmsb*256 + IRlsb
+		US = USmsb*256 + USlsb
+        eyeList[eyeNum].takeReading(dataPoint,IR,US)
+    return eyeList
+    

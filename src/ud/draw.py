@@ -72,6 +72,8 @@ class HypobotSet(Drawable):
             color = (grey,grey,grey)
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
             Robot(color).drawPose(view,hypobot.pose)
+
+class IRreadings
         
 
 class LogSet(Drawable):

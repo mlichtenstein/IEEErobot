@@ -133,7 +133,7 @@ class Messenger:
     def getMessageTuple(self):
         string = self.getMessage()
         print("Arduino says: " + string)
-        tup = string.split(",", 3)
+        tup = string.split(",", 2)
         return tup
 
 class SerialPort:
@@ -341,3 +341,10 @@ if __name__=="__main__":
         # Check for messages. Pass any messages to the mode.
         if messenger.checkInBox():
             print( messenger.getMessageTuple() )
+
+        messenger.sendMessage( settings.SERVICE_SCAN )
+        #avoid race condition
+        time.sleep(1.5)
+        # Check for messages. Pass any messages to the mode.
+        if messenger.checkInBox():
+            print( messenger.getMessageTuple() )            

@@ -133,7 +133,7 @@ Your response message should take the form ":[char],[id],[payload];"
                         int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<2; i++) {
-                            IRServo[i].write(pos);
+                            EyeServo[i].write(pos);
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[i] = analogRead(IRpin[i]);
                             //delay(DELAY);
@@ -156,7 +156,7 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.write( ';' );
                     }
                     for (int i = 0; i<2; i++) {
-                        IRServo[i].write(0);
+                        EyeServo[i].write(0);
                     }
                 }
                 break;
