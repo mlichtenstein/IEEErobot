@@ -72,6 +72,7 @@ class Robot(Drawable):
         pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya))
         #finally blit it:
         tempSurface.set_alpha(self.alpha)
+        tempSurface.set_colorkey((0,0,0))
         view.surface.blit(tempSurface, (0,0))
 
 class Wheels(Drawable):
