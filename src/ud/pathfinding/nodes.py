@@ -179,6 +179,7 @@ def makeAMove((X,Y, theta)): #returns the node
             botPose.theta = nearestNode.theta #update botPose.theta with imu data
             botPose.X = nearestNode.X #update botPose.theta with imu data
             botPose.Y = nearestNode.Y #update botPose.theta with imu data
+            drawLine(pendingLink.node1.X,pendingLink.node1.Y,pendingLink.node2.X,pendingLink.node2.Y)
         except Exception as e:
             print "Error: ", e
     #max localize
@@ -374,6 +375,7 @@ while __name__ == "__main__":
                         drawAll()
                     else:
                         thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
+                        break
 
                 # Ignore mouse clicks for the next 250 ms
                 ignoreNextMouseUpEvent = makeTimer(0.250)
