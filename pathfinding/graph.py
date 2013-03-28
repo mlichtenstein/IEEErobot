@@ -22,12 +22,6 @@ class Graph:
         if linksRemoved==0:
             self.nodes.remove(node)
 
-
-#===================================NODE===================================#
-# XPos                -----      X position of the node
-# Ypos                -----      Y position of the node
-# theta(optional)     -----      angle to grab puck(optional)
-# puck(optional)      -----      1-16 representing which puck it can reach (optional)
 #===================================NODE===================================#
 class Node:
     def __init__(self, XPos, YPos):
@@ -37,12 +31,8 @@ class Node:
         self.puck = -1
         self.radius = 10
         self.localize = 0
-#===================================LINK===================================#
-# node1               -----      node from
-# node2               -----      node to
-# log (optional)      -----      binary 1/0 if there is/is not a log (optional)
-# theta (optional)    -----      the direction a bot must face while moving (optional)
-# length              -----      length of the link is set automatically
+
+
 #===================================LINK===================================#
 class Link:
     def __init__( self, node1, node2, (r,g,b) ):
@@ -55,10 +45,14 @@ class Link:
         self.node1direction = -180/math.pi*math.atan2(self.node2.Y-self.node1.Y,self.node2.X-self.node1.X)
         self.node2direction = -180/math.pi*math.atan2(self.node1.Y-self.node2.Y,self.node1.X-self.node2.X)
         self.log = 0
-        self.update()
+        self.update( )
+        
     def update( self ):
+        
         print "called update"
+        
         self.length = math.hypot(self.node1.X-self.node2.X,self.node1.Y-self.node2.Y)+self.log*self.logOffset
+        
         if self.node1.X > self.node2.X:
             #h is for horizontal
             #v is for verticality

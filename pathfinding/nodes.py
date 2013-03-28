@@ -115,9 +115,19 @@ def drawGraph():
 
     for link in graph.links:
 		#draw links
-        pygame.draw.line(screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
+        pygame.draw.line( screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
 		#draw link click location as a small circle
-        pygame.draw.circle ( screen, (90,175,70), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 1)
+        pygame.draw.circle ( screen, (link.red/2,link.green/2,link.blue/2), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 2)
+                            #draw link directionality vectors (two of them)
+
+        temp1=int(link.node1.X+12*math.cos(math.pi/180*float(link.node1direction)))
+        temp2=int(link.node1.Y-12*math.sin(math.pi/180*float(link.node1direction)))
+        temp3=int(link.node2.X+12*math.cos(math.pi/180*float(link.node2direction)))
+        temp4=int(link.node2.Y-12*math.sin(math.pi/180*float(link.node2direction)))
+        
+        pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node1.X,link.node1.Y), (temp1, temp2), 4)
+        pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node2.X,link.node2.Y), (temp3, temp4), 4)
+            
 
 def drawAll():
     screen.lock()
@@ -318,11 +328,15 @@ while __name__ == "__main__":
                     
 
             #clicked on link - so edit link
-            if clickedLink:                
+            if clickedLink:
+                clickedLink=False
+                link.update()
                 while 1:
                     if edit.editLink(link):
                         drawAll()
+                        link.update()
                     else:
+                        link.update()
                         break
                 # Ignore mouse clicks for the next 250 ms
                 ignoreNextMouseUpEvent = makeTimer(0.250)
@@ -360,11 +374,16 @@ while __name__ == "__main__":
                         print right_mouse
                         if right_mouse[2] == 1:#and right mouse button was down
                                 drawFlag=0
+                                for link in graph.links:
+                                    link.update()
                                 while 1:
                                     if edit.editNode(upNode):
-                                            drawAll()
+                                        drawAll()
+                                        for link in graph.links:
+                                            link.update()
                                     else:
-                                            break
+                                        link.update()
+                                        break
                                 # Ignore mouse clicks for the next 250 ms
                                 ignoreNextMouseUpEvent = makeTimer(0.250)
                         else:
