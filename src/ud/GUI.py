@@ -130,6 +130,8 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
                     if target == drawable.name:
                         drawable.active = True 
 
+"""==================================SPECIFIC VIEWS================================"""
+
 class BoardView(View):
     """
     BoardView shows a
@@ -144,7 +146,7 @@ class BoardView(View):
         #the bottom of the list appears on top
         self.drawList = [   self.hypobotSet,
                             self.logSet,
-                            self.landmarkSet , self.robot  ]
+                            self.landmarkSet , self.robot]
 
 class RangeView(View):
     """
@@ -154,7 +156,8 @@ class RangeView(View):
     def setup(self):
         import world
         self.robot = RangeRobot()
-        self.drawList = [self.robot]
+        self.landmarkSet = LandmarkSet(world.World().landmarkList)
+        self.drawList = [self.landmarkSet]
 
 class StatusBanner(Frame):
     """
@@ -188,7 +191,8 @@ class StatusBanner(Frame):
         self.string[1] = "PUCKS REMAINING: " + tempstring1[:-1]
         self.string[2] = "TIME: " + str(time)
 
-        
+"""==========================GUI CLASS==========================================="""
+
 class GUI:
     frameList = list()
     prevMode = None
@@ -198,23 +202,32 @@ class GUI:
         self.boardView = BoardView(pygame, screen, 10, 60, 540, 540)
         self.statusBanner = StatusBanner(pygame, screen, 10, 10, 1080, 40)
         self.modeView = View(pygame,screen,560, 60, 300,300) #emptyFrame for now
+        #self.modeView = RangeView(self.pygame, self.screen, 560, 60, 540,540)
         self.frameList = [  self.boardView,
                             self.statusBanner,
                             self.modeView ]
+        print self.frameList
     def takeState(self, state):
+        #this block shifts the modeView (or it should)
         if self.prevMode != state.mode:
             if state.mode == "Localize":
-                self.modeView = RangeView(self.pygame, self.screen,
-                        560, 60, 540,540)
-                self.prevMode = state.mode
+                self.frameList.remove(self.modeView)
+                self.modeView = RangeView(self.pygame, self.screen,560, 60, 540,540)
+                self.frameList.append(self.modeView)
+                print("z",self.modeView)
+                print(self.frameList)
             if state.mode == "Pathfind":
                 #self.modeFrame = pathFindView# if we want this
                 pass
+            self.prevMode = state.mode                
         for frame in self.frameList:
             frame.takeState(state)
     def update(self,screen):
         for frame in self.frameList:
             frame.update(screen)
+
+
+"""============================TEST ZONE======================================="""
         
 if __name__ == "__main__":
     import time 

@@ -54,7 +54,15 @@ class EmptyDrawable(Drawable):  #useful for empty views
     def draw(self, view, state):
         pass
 
+class TestDrawable(Drawable): #Just draws a random color
+    name = "Test Color"
+    def draw(self,view,state):
+        import random
+        view.surface.fill((int(random.random()*256),
+                          int(random.random()*256),int(random.random()*256)))
+
 """=======================DRAWABLES FOR BOARDVIEW==================="""
+#dsd
 """since boardview is the most important, boardView drawables
 don't get names referring them to boardView"""
 
@@ -85,7 +93,7 @@ class Robot(Drawable):
         #finally blit it:
         tempSurface.set_alpha(self.alpha)
         tempSurface.set_colorkey((0,0,0))
-        view.surface.blit(tempSurface, (0,0))
+        view.surface.blit(tempSurface, (0,0)) #THIS CAN BE SPED UP BY BLITTING A RECTANGLE
 
 class Wheels(Drawable):
     name = "Wheels"
