@@ -91,7 +91,7 @@ Your response message should take the form ":[char],[id],[payload];"
                     case ROBOT_PING_TEST: {
                     Serial.write( ":P," );
                     Serial.print( id );
-                    Serial.print(",PONG");
+                    Serial.write(",PONG");
                     Serial.write( ';' );
                 }
                 break;
