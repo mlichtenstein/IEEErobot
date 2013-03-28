@@ -1,3 +1,7 @@
+# Include the robot directory in the search path when importing modules.
+import sys
+sys.path.append( "robot" )
+sys.path.append( "lib" )
 
 #This is the skeletal structure of the main loop
 
