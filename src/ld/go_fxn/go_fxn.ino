@@ -34,57 +34,32 @@ void setup()
 void loop() 
 { 
         //go(0,1,0);go(2,0,0);
-        forward(3); reverse(3);turn(90);turn(-90);
+        forward(3); reverse(3);turn(90);turn(-90);scoot(10,45);
         while(1){int i = 0;}
 } 
 
-
-void ackSolve(float theta, double motorSpeed)
-{ //Ackermann Function: Returns servo angles, and motor speeds
-
-  double FL_Angle, FR_Angle, leftSpeed, rightSpeed, FL_SERVO, FR_SERVO, BL_SERVO, BR_SERVO;
-  
-  // turn theta into radians
-  theta = theta * PI / 180;  
-  
-  
-  // find ackerman center of rotation
-  float xPos = BODY_LENGTH / tan(theta);
-  
-  
-  // set wheel angles
-  FL_Angle = atan2( BODY_LENGTH, ( xPos + BODY_WIDTH ) ); 
-  FR_Angle = atan2( BODY_LENGTH, ( xPos - BODY_WIDTH ) );
-  
-  
-  //set motor speeds
-  leftSpeed  = motorSpeed * hypot( xPos + BODY_WIDTH, BODY_LENGTH ) / hypot( xPos - BODY_WIDTH, BODY_LENGTH ); 
-  rightSpeed = motorSpeed * hypot( xPos - BODY_WIDTH, BODY_LENGTH ) / hypot( xPos + BODY_WIDTH, BODY_LENGTH );
-  
-  
-  //fix servo angles that are outside of their ranges, and reverse motors accordingly
-      if (FL_Angle < -PI / 2)           //Front Left wheel went too far left
-      {FL_Angle += PI;                  //rotate front left wheel 180 to the right
-       // reverse motor here
-      }
-      if (FL_Angle > PI / 2)            //Front right wheel went too far right
-      {FL_Angle -= PI;                  //rotate front left wheel 180 to the left
-        // reverse motor here
-      }
-      if (FR_Angle < -PI / 2)           //Front right wheel went too far left
-      {FR_Angle += PI;                  //rotate front right wheel 180 to the right
-        //reverse motor here
-      }
-      if (FR_Angle > PI / 2)            //Front right wheel went too far right
-      {FR_Angle -= PI;                  //rotate front right wheel 180 to the left
-        //reverse motor here
-      } 
-            
-      //exit radians and convert to servo angles
-      FL_SERVO=FL_Angle*180/PI+90;
-      FR_SERVO=FR_Angle*180/PI+90;
-      
-	  wheelAngle(FL_SERVO,FR_SERVO);
+void scoot(double distance, int angle)
+{
+  forwardFlag = 1;
+  while (angle > 180)
+    {
+      forwardFlag *=-1;
+      angle -= 360;
+    }
+  while (angle < -180)
+    {
+      forwardFlag *=-1;
+      angle += 360;
+    }
+  faceWheels(angle);
+  if (forwardFlag == 1)
+  {
+    forward(distance);
+  }
+  else if (forwardFlag == -1)
+  {
+    reverse(distance);
+  }
 }
 
 void go(double x, double y, int theta)
@@ -147,6 +122,7 @@ void left(int Angle)
         delay(int(Angle/33.75*1000));
         motorSpeed(0);
 }
+
 void forward(int feet)
 {
 		motorSpeed(0);
@@ -194,6 +170,62 @@ void wheelAngle(int FL_SERVO, int FR_SERVO)
   FRSERVO.write(FR_SERVO);
   BLSERVO.write(90-FL_SERVO);
   BRSERVO.write(90-FR_SERVO); 
+}
+
+void faceWheels(int angle)
+{ //this function writes out the servo values
+  FLSERVO.write(angle);   //set servos
+  FRSERVO.write(angle);
+  BLSERVO.write(angle);
+  BRSERVO.write(angle); 
+}
+
+void ackSolve(float theta, double motorSpeed)
+{ //Ackermann Function: Returns servo angles, and motor speeds
+
+  double FL_Angle, FR_Angle, leftSpeed, rightSpeed, FL_SERVO, FR_SERVO, BL_SERVO, BR_SERVO;
+  
+  // turn theta into radians
+  theta = theta * PI / 180;  
+  
+  
+  // find ackerman center of rotation
+  float xPos = BODY_LENGTH / tan(theta);
+  
+  
+  // set wheel angles
+  FL_Angle = atan2( BODY_LENGTH, ( xPos + BODY_WIDTH ) ); 
+  FR_Angle = atan2( BODY_LENGTH, ( xPos - BODY_WIDTH ) );
+  
+  
+  //set motor speeds
+  leftSpeed  = motorSpeed * hypot( xPos + BODY_WIDTH, BODY_LENGTH ) / hypot( xPos - BODY_WIDTH, BODY_LENGTH ); 
+  rightSpeed = motorSpeed * hypot( xPos - BODY_WIDTH, BODY_LENGTH ) / hypot( xPos + BODY_WIDTH, BODY_LENGTH );
+  
+  
+  //fix servo angles that are outside of their ranges, and reverse motors accordingly
+      if (FL_Angle < -PI / 2)           //Front Left wheel went too far left
+      {FL_Angle += PI;                  //rotate front left wheel 180 to the right
+       // reverse motor here
+      }
+      if (FL_Angle > PI / 2)            //Front right wheel went too far right
+      {FL_Angle -= PI;                  //rotate front left wheel 180 to the left
+        // reverse motor here
+      }
+      if (FR_Angle < -PI / 2)           //Front right wheel went too far left
+      {FR_Angle += PI;                  //rotate front right wheel 180 to the right
+        //reverse motor here
+      }
+      if (FR_Angle > PI / 2)            //Front right wheel went too far right
+      {FR_Angle -= PI;                  //rotate front right wheel 180 to the left
+        //reverse motor here
+      } 
+            
+      //exit radians and convert to servo angles
+      FL_SERVO=FL_Angle*180/PI+90;
+      FR_SERVO=FR_Angle*180/PI+90;
+      
+	  wheelAngle(FL_SERVO,FR_SERVO);
 }
 
 void ackTest()

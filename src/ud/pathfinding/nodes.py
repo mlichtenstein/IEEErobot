@@ -118,16 +118,16 @@ def drawGraph():
         pygame.draw.line( screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
 		#draw link click location as a small circle
         pygame.draw.circle ( screen, (link.red/2,link.green/2,link.blue/2), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 2)
-                            #draw link directionality vectors (two of them)
+                #draw link directionality vectors (two of them)
 
         temp1=int(link.node1.X+12*math.cos(math.pi/180*float(link.node1direction)))
         temp2=int(link.node1.Y-12*math.sin(math.pi/180*float(link.node1direction)))
         temp3=int(link.node2.X+12*math.cos(math.pi/180*float(link.node2direction)))
         temp4=int(link.node2.Y-12*math.sin(math.pi/180*float(link.node2direction)))
-        
+
         pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node1.X,link.node1.Y), (temp1, temp2), 4)
         pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node2.X,link.node2.Y), (temp3, temp4), 4)
-            
+
 
 def drawAll():
     screen.lock()
@@ -147,25 +147,44 @@ def drawLine(x1,y1,x2,y2): #draws a thick red line
     pygame.display.update()
 
 
-def scootToNearestNode((X,Y, theta)): #returns the node
+def makeAMove((X,Y, theta)): #returns the node
     nearestNode = whatNode((X,Y))[0]
     distance = whatNode((X,Y))[1]
-    nodeTheta = 180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+    nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+    angle =  nodeTheta - theta
 
-    angle = theta - nodeTheta
-    if distance > nearestNode.radius: #start by fixing any corretions
-        print angle
-        print distance
-        #distance = math.hypot(X,Y,nearestNode.X,nearestNode.Y)
-        #
+    if distance > nearestNode.radius: #SCOOT IF YOU ARE NOT ON A NODE
+
         #scoot(distance, angle)#                   <======================== out to arduino
-        #don't localize here (but.. maybe?)
-        #update bot pose once correction is done
-        ''' this code  is for the simulation'''
+        #update botPose.theta with imu data
         drawLine(X,Y,nearestNode.X,nearestNode.Y)
         botPose.X, botPose.Y = nearestNode.X, nearestNode.Y
         drawBot(X,Y,theta)
+
+
+    elif 1 <= nearestNode.puck <= 16: #IF YOU ARE ON A NODE AND ITS A PUCK NODE, FACE THE PUCK AND RETRIEVE IT
+
+        #rotate(nearestNode.theta - theta)
+        botPose.theta = nearestNode.theta #update botPose.theta with imu data
+        #pickupPuck()             <============out to wicke
+
+    else:#on a node, and its not a puck node
+        try:
+            pendingLink = findPath( graph, nearestNode )
+            #node i am on is nearestNode
+            #link i am about to cross is pendingLink
+
+            #rotate to the pending links departure angle for the node we are on
+            #scoot the distance of the link by calling the arduinos scoot fxn
+            botPose.theta = nearestNode.theta #update botPose.theta with imu data
+            botPose.X = nearestNode.X #update botPose.theta with imu data
+            botPose.Y = nearestNode.Y #update botPose.theta with imu data
+        except Exception as e:
+            print "Error: ", e
+    #max localize
+
     return nearestNode
+
 DEBUG = False
 def explorePath( allLinks, roots, startingNode ):
     """
@@ -181,7 +200,7 @@ def explorePath( allLinks, roots, startingNode ):
     A tuple of the path and the distance.
 
     Example:
-    >>> 
+    >>>
     """
     currentNode = startingNode
     previous = roots[-1]
@@ -198,7 +217,7 @@ def explorePath( allLinks, roots, startingNode ):
                 print "Puck"
             break
         relatedLinks = findLinksWithNode( allLinks, currentNode )
-        forwardLinks = [] 
+        forwardLinks = []
         # No matches. There should be at least one link that matches.
         if len( relatedLinks ) == 0:
             raise Exception( "Cannot find starting node." )
@@ -232,7 +251,7 @@ def explorePath( allLinks, roots, startingNode ):
             distance = distance + forwardLinks[0].length
             nextNode = getOtherNode( forwardLinks[0], currentNode )
             previous = currentNode
-            currentNode = nextNode 
+            currentNode = nextNode
         # Multiple forward links. Divide and conquer.
         else:
             # For each possible branch, launch an explorer. The explorer will
@@ -275,7 +294,16 @@ def findPath( graph, startingNode ):
     if pathInfo == None:
         raise Exception( "Puck not found" )
     print "Distance: ", pathInfo[1]
-    return pathInfo[0]
+    path = pathInfo[0]
+    firstNode = path[0]
+    secondNode = path[1]
+    links = findLinksWithNode( graph.links, firstNode )
+    for link in links:
+        otherNode = getOtherNode( link, firstNode )
+        if ( otherNode == secondNode ):
+            return link
+    raise Exception( "Internal error." )
+
 def findLinksWithNode( links, node ):
     result = []
     for link in links:
@@ -288,7 +316,7 @@ def getOtherNode( link, node ):
         return link.node2
     else:
         return link.node1
-    
+
 # By default accept all mouse up events.
 ignoreNextMouseUpEvent = lambda: False
 while __name__ == "__main__":
@@ -306,7 +334,7 @@ while __name__ == "__main__":
         elif event.type == pygame.MOUSEBUTTONDOWN:
             posDown=pygame.mouse.get_pos()
             downNode=whatNode(posDown)[0]
-			
+
             #note which node it is in
             drawFlag = 1
 
@@ -318,12 +346,12 @@ while __name__ == "__main__":
             drawFlag = 1
 
             clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
-            
+
             clickedLink = False
             for link in graph.links:
                 if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
                     clickedLink = True
-                    
+
 
             #clicked on link - so edit link
             if clickedLink:
@@ -345,24 +373,11 @@ while __name__ == "__main__":
                     if edit.editBot(botPose):
                         drawAll()
                     else:
-                        thenode = scootToNearestNode((botPose.X,botPose.Y, botPose.theta))
-                        try:
-                            print "Before findpath"
-                            path = findPath( graph, thenode )
-                            print "After findpath"
-                            print path
-                            
-                            lastPath = path[0]
-                            for i in path:
-                                print i
-                                drawLine(lastPath.X,lastPath.Y,i.X,i.Y)
-                                lastPath = i
-                        except Exception as e:
-                            print "Error: ", e
-                        break
+                        thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
+
                 # Ignore mouse clicks for the next 250 ms
                 ignoreNextMouseUpEvent = makeTimer(0.250)
-            
+
             elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
                 print "what node is returning " + str(whatNode(posDown)[0])
                 if whatNode(posUp)[1] <= upNode.radius:  #and  unclick was inside a node
@@ -410,4 +425,4 @@ while __name__ == "__main__":
         drawAll()
         drawFlag=0
 
-    
+
