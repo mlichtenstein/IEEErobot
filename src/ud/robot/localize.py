@@ -214,15 +214,16 @@ class HypobotCloud:
         peakHypobotNum = 0
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
+        peakBot = self.getPeakBot()
+        print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
+                +", "+str(peakBot.y)+", "+str(peakBot.theta)
+                +" with weight " + str(peakBot.weight))
+    def getPeakBot(self):
         for hbot in self.hypobotList:
             hbot.weight /= totWeight
             if hbot.weight > peakWeight:
                 peakWeight = hbot.weight
                 retBot = hbot
-        print ("Normalized cloud.  Peak hbot is at " + str(retBot.x)
-                +", "+str(retBot.y)+", "+str(retBot.theta)
-                +" with weight " + str(retBot.weight))
-        print (msg)
         return retBot
     def average(self, threshold =0):
         import robotbasics
