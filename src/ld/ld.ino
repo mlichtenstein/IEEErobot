@@ -175,24 +175,8 @@ Your response message should take the form ":[char],[id],[payload];"
                     
                 }
                 break;
-                    #ifdef ROBOT_SERVICE_WHEEL_SPEED
-                case ROBOT_SERVICE_WHEEL_SPEED: {
-                    Serial.write( ":C" );
-                    Serial.print( id );
-                    Serial.write( ';' );
-                }
-                break;
-                #endif
-                #ifdef ROBOT_SERVICE_WHEEL_ANGLE
-                case ROBOT_SERVICE_WHEEL_ANGLE: {
-                    Serial.write( ":C" );
-                    Serial.print( id );
-                    Serial.write( ';' );
-                }
-                break;
-                #endif
-                #ifdef ROBOT_SERVICE_WHEEL_ENCODER
-                case ROBOT_SERVICE_WHEEL_ENCODER: {
+                #ifdef ROBOT_SERVICE_GO
+                case ROBOT_SERVICE_GO: {
                     Serial.write( ":C" );
                     Serial.print( id );
                     Serial.write( ';' );
