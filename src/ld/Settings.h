@@ -2,7 +2,7 @@
 #define SETTINGS_INCLUDED
 
 // BEGIN Port Setttings
-#define ROBOT_SERIAL_PORT_SPEED 115200
+#define ROBOT_SERIAL_PORT_SPEED 9600
 //9600
 #define ROBOT_SERIAL_PORT_ADDRESS "/dev/ttyACM0"
 #define ROBOT_SERIAL_PORT_HELLO_BYTE '+'
@@ -19,8 +19,8 @@
 
 // BEGIN Scan Settings
 #define ROBOT_IR_SCAN_TIME 4
-#define ROBOT_SCAN_DATA_POINTS 90
-#define ROBOT_SCAN_ANGLE 135
+#define ROBOT_SCAN_DATA_POINTS 100
+#define ROBOT_SCAN_ANGLE 150
 // END Scan Settings
 
 // BEGIN Services

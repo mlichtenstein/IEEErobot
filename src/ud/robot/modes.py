@@ -102,9 +102,9 @@ class Localize( Mode ):
         print("Localizing...")
         cloud = state.hypobotCloud
         if cloud.count() == 0:
-            cloud.appendGaussianCloud(50,state.pose,state.poseUncertainty)
+            cloud.appendGaussianCloud(150,state.pose,state.poseUncertainty)
             return None
-        if cloud.count() <50:
+        if cloud.count() <150:
             cloud.appendBloom(2,Pose(.2,.2,2))
             return None
         #-----------Scan block:-----------------

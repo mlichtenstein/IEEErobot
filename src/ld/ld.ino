@@ -36,12 +36,12 @@ void EyeServoWrite(int servoNum, float theta) {
     int rmin; int rmax;
     switch (servoNum) {
       //rmin and rmax are the minimum and maximum unwrapped thetas the servos accept
+      //find them with the M control char case below
       case 0: case 1: rmin = 15; rmax = 170; break;
       case 2: rmin = 25; rmax = 160; break;
-      case 3: rmin = 0; rmax = 180; break;
+      case 3: rmin = 20; rmax = 170; break;
     }
       float wrappedTheta = float(rmin) + float(rmax - rmin)*theta/ROBOT_SCAN_ANGLE;
-      Serial.print(wrappedTheta);
     EyeServo[servoNum].write(int(wrappedTheta));
     
 }
@@ -118,13 +118,19 @@ Your response message should take the form ":[char],[id],[payload];"
                     Serial.write( ":M" );
                     Serial.print( id );
                     Serial.write( ';' );
-                    EyeServo[1].write(id);
+                    for (int i=0; i<4; i++){
+                      EyeServo[i].write(id);
+                    }
                 }
+                break;
                 case 'L': {  //this block is used for testing the calibration of savox servos
                     Serial.write( ":L" );
                     Serial.print( id );
                     Serial.write( ';' );
-                    EyeServoWrite(1, id);
+                    for (int i=0; i<4; i++){
+                      EyeServoWrite(i, id);
+                    }
+                    
                 }
                 break;
                     #ifdef ROBOT_SERVICE_WHEEL_SPEED
@@ -336,4 +342,4 @@ double convertR3(int inDegree)
   return 650 + ((double)inDegree/360 * 1800);
 }
 
-#endif
+#endif'

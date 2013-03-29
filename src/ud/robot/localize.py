@@ -37,7 +37,7 @@ class Eye:
         self.US = [0.0]*(dataPointNum+1)
         self.thetaList = list() #a list of the theta at which each measurement occurs
         for i in range(self.dataPointNum):
-            self.thetaList.append(float(self.theta_offset) + float(i)/(dataPointNum-1) * subtendedAngle)    
+            self.thetaList.append(float(self.theta_offset) - float(i)/(dataPointNum-1) * subtendedAngle)    
     def clear(self):
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
@@ -173,7 +173,7 @@ class HypobotCloud:
                 pose = self.hypobotList[index].pose
                 x = random.gauss(pose.x, poseSigma.x)
                 y = random.gauss(pose.y, poseSigma.y)                    
-                theta = pose.theta + random.gauss(pose.theta, poseSigma.theta)
+                theta = random.gauss(pose.theta, poseSigma.theta)
                 if x>.5 and x<7.5 and y>.5 and y<7.5:
                     self.hypobotList.append(Hypobot(x,y,theta))
                     appended +=1
