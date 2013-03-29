@@ -1,6 +1,7 @@
 
 #   A class for objects useful to making a nice GUI
-
+import sys
+sys.path.append("..")
 import pygame
 from pygame import *
 from robotbasics import *

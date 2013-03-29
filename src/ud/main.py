@@ -19,7 +19,7 @@ import random
 
 #give the robot a state:
 state = State()
-
+print dir(state)
 #establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
