@@ -122,10 +122,6 @@ class Localize( Mode ):
             tup = self.messenger.getMessageTuple()
             self.real_eyeList = localize.messageTupleToEyeList(tup)
             state.eyeList=self.real_eyeList
-
-            for eye in state.eyeList:
-                eye.printReading()
-
             self.scanUpToDate = True
             return None
         if self.weighted == False:

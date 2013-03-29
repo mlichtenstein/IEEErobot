@@ -139,7 +139,7 @@ class BoardView(View):
     """
     def setup(self):
         import world
-        self.robot = Robot()
+        self.robot = Robot((255,255,255))
         self.logSet = LogSet(world.World().logList)
         self.landmarkSet = LandmarkSet(world.World().landmarkList)
         self.hypobotSet = HypobotSet()
@@ -155,9 +155,12 @@ class RangeView(View):
     """
     def setup(self):
         import world
-        self.robot = RangeRobot()
-        self.IRs = IRranges()
-        self.drawList = [self.robot,self.IRs]
+        self.robot = RangeRobot((255,255,255))
+        self.IRs = IRranges((255,0,0))
+        self.USs = USranges((122,0,255))
+        self.drawList = [self.robot,self.USs, self.IRs]
+
+"""=============================ACCOUTREMENTS====================================="""
 
 class StatusBanner(Frame):
     """

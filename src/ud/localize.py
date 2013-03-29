@@ -17,10 +17,13 @@ def rawIRtoFeet(rawIR):
     return feet
 
 def rawUStoFeet(rawUS):
-    speedOfSound=0
-    print("Please define speed of sound in localize.py")
-    feet = speedOfSound * rawUS
-    return feet
+    if rawUS != 0:
+        #temperature = settings.TEMPERATURE
+        temperature = 20 # in celsius
+        speedOfSound = (331.3+0.606 * temperature) * .0000032808399
+        feet = speedOfSound * rawUS / 2
+        return feet
+    return 0
 
 class Eye:
     def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
@@ -39,8 +42,6 @@ class Eye:
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
     def takeReading(self, dataPoint, IR, US):
-        print((dataPoint,IR,US))
-        print(self.IR)
         self.IR[dataPoint] = IR
         self.US[dataPoint] = US
     def printReading(self):
@@ -65,8 +66,7 @@ def messageTupleToEyeList(messageTuple):
         rawUS = USmsb*256 + USlsb
         IR = rawIRtoFeet(rawIR)
         US = rawUStoFeet(rawUS)
-        print("Mt2el: Eye "+str(eyeNum)+" reports IR="+
-                str(IR)+" feet at data point "+str(dataPointNum))
+        #print("Mt2el: Eye "+str(eyeNum)+" reports IR="+str(IR)+" feet at data point "+str(dataPointNum))
         eyeList[eyeNum].takeReading(dataPointNum,IR,US)
     return eyeList
 

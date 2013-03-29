@@ -17,7 +17,7 @@ int pos;
 int deltaPos = 1;
 int IRpin[] = {A0,A1,A2,A3};
 int pingPin[] = {30,31,32,33};
-int servoPin[] = {3,4,5,6};
+int servoPin[] = {10,11,12,13};
 
 //here is a function for the Eye modules
 int PingFire(int servoNum) {
@@ -30,6 +30,20 @@ int PingFire(int servoNum) {
     digitalWrite(pin, LOW);
     pinMode(pin, INPUT);
     return pulseIn(pin,HIGH,20000);
+}
+//here is a function that wraps the Savox servos
+void EyeServoWrite(int servoNum, float theta) {
+    int rmin; int rmax;
+    switch (servoNum) {
+      //rmin and rmax are the minimum and maximum unwrapped thetas the servos accept
+      case 0: case 1: rmin = 15; rmax = 170; break;
+      case 2: rmin = 25; rmax = 160; break;
+      case 3: rmin = 0; rmax = 180; break;
+    }
+      float wrappedTheta = float(rmin) + float(rmax - rmin)*theta/ROBOT_SCAN_ANGLE;
+      Serial.print(wrappedTheta);
+    EyeServo[servoNum].write(wrappedTheta);
+    
 }
 #endif
 
@@ -64,10 +78,11 @@ void setup() {
         R[ i ].write( initArmThetas[ i ] );
     }
     #endif
-    #ifdef ROBOT_SERVICE_IRSENSOR_POLL
-    for (int i = 0; i<2; i++) {
-        myservo[i].attach(servoPin[i]); //servos attach
-        myservo[i].write(0);
+    #ifdef ROBOT_SERVICE_SCAN
+    for (int i = 0; i<4; i++) {
+        EyeServo[i].attach(servoPin[i]);
+        EyeServo[i].write(0);
+        pinMode(IRpin[i], INPUT);
     }
     #endif
     Serial.begin( ROBOT_SERIAL_PORT_SPEED );
@@ -97,6 +112,19 @@ Your response message should take the form ":[char],[id],[payload];"
                 }
                 break;
                 #endif
+                case 'M': {  //this block is used for calibrating savox servos
+                    Serial.write( ":M" );
+                    Serial.print( id );
+                    Serial.write( ';' );
+                    EyeServo[1].write(id);
+                }
+                case 'L': {  //this block is used for testing the calibration of savox servos
+                    Serial.write( ":L" );
+                    Serial.print( id );
+                    Serial.write( ';' );
+                    EyeServoWrite(1, id);
+                }
+                break;
                     #ifdef ROBOT_SERVICE_WHEEL_SPEED
                 case ROBOT_SERVICE_WHEEL_SPEED: {
                     Serial.write( ":C" );
@@ -134,7 +162,7 @@ Your response message should take the form ":[char],[id],[payload];"
                         unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<4; i++) {
-                            EyeServo[i].write(pos);
+                            EyeServoWrite(i,pos);
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[i] = analogRead(IRpin[i]);
                             //delay(DELAY);
@@ -156,8 +184,9 @@ Your response message should take the form ":[char],[id],[payload];"
                         }
                     }
                     Serial.write( ';' );
-                    for (int i = 0; i<2; i++) {
-                        EyeServo[i].write(0);
+                    for (int i = 0; i<4; i++) {
+                      EyeServoWrite(i,0);
+                      //                      EyeServo[i].write(0);
                     }
                 }
                 break;

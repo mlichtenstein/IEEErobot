@@ -49,6 +49,19 @@ def drawRange(surface, color, origin_x, origin_y, theta, startDist, endDist):
     end_y   = origin_y - endDist*math.sin(theta*math.pi/180)
     pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
 
+def drawRangeTangent(surface, color, origin_x, origin_y, theta, rDist, tanDist):
+    #takes theta in units of degrees
+    #all units in pixels
+    mid_x   = origin_x + rDist*math.cos(theta*math.pi/180)
+    mid_y   = origin_y - rDist*math.sin(theta*math.pi/180)
+    start_x = mid_x - tanDist*math.sin(theta*math.pi/180)
+    start_y = mid_y - tanDist*math.cos(theta*math.pi/180)
+    end_x = mid_x + tanDist/2*math.sin(theta*math.pi/180)
+    end_y = mid_y + tanDist/2*math.cos(theta*math.pi/180)
+    pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
+
+"""=====================MISC DRAWABLES=============================="""
+
 class EmptyDrawable(Drawable):  #useful for empty views
     name = "Nothing to draw..."
     def draw(self, view, state):
@@ -202,7 +215,13 @@ class RangeRobot(Drawable):
             x_eye=int(x0 + eye.x_offset*view.CC)
             y_eye=int(y0 + eye.y_offset*view.CC)
             pygame.draw.circle(view.surface, self.color,(x_eye,y_eye),10,1)
-
+        #number the eyes:
+        font = pygame.font.Font(None, 18)
+        for eye in eyeList:
+            x_numeral=int(x0 + eye.x_offset*view.CC/2-7)
+            y_numeral=int(y0 + eye.y_offset*view.CC/2-7)
+            tempSurface = font.render(str(eye.eyeNum), True, (255,255,255))
+            view.surface.blit(tempSurface,(x_numeral,y_numeral))
         #and draw a line for the heading:
         pygame.draw.line(view.surface, self.color, (x0,y0),(x0+side, y0))
 
@@ -219,6 +238,22 @@ class IRranges(Drawable):
                 theta = eye.thetaList[i]
                 IR = eye.IR[i]*view.CC
                 drawRange(view.surface, self.color, x_eye,y_eye,theta,10,IR)
+
+class USranges(Drawable):
+    name = "US ranges"
+    def draw(self,view,state):
+        x0 = 4*view.CC
+        y0 = 4*view.CC
+        for eye in state.eyeList:
+            import settings
+            x_eye=int(x0 + eye.x_offset*view.CC)
+            y_eye=int(y0 + eye.y_offset*view.CC)
+            for i in range(0,settings.SCAN_DATA_POINTS):
+                if eye.US[i]!= 0:
+                    theta = eye.thetaList[i]
+                    US = eye.US[i]*view.CC
+                    drawRangeTangent(view.surface, self.color,
+                            x_eye,y_eye,theta,US,1*view.CC)
 
 """====================TESTING GROUND==============================="""
 
