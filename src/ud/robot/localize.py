@@ -5,6 +5,8 @@ and a function for parsing the Arduino's scan report
 """
 
 import math
+import sys
+sys.path.append( ".." )
 import settings
 
 
@@ -72,14 +74,14 @@ def messageTupleToEyeList(messageTuple):
 
 
 class Hypobot:
-    def __init__(self, x, y, theta):
+    def __init__(self, x, y, theta, weight = 1):
         import robotbasics
         self.x = x
         self.y = y
         self.theta = theta
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
-        self.weight = 1
+        self.weight = weight
         import random
         self.red = random.random() * 256
         self.blue = random.random() *256
@@ -204,26 +206,28 @@ class HypobotCloud:
         for hypobot in self.hypobotList:
             hypobot.changeWeight(real_eyeList, landmarkList)
         print ("reweighted "+str(len(self.hypobotList))+" hbots.")
-    def normalizeWeights(self):
-        #this method scales the weights so the lowest is 0 and the highest is 1
+    def normalize(self):
+        #this method adjusts the weights so their total is 1.  Returns peak hbot
         #go through the hypbobots
-        minWeight = 1
-        maxWeight = 0
+        totWeight = 0
+        peakWeight = 0
+        peakHypobotNum = 0
         for hypobot in self.hypobotList:
-            minWeight = min(minWeight, hypobot.weight)
-            maxWeight = max(maxWeight, hypobot.weight)
-        #adjust the weights to span from 0 to 1
-        if minWeight == maxWeight:
-            print("All your hbots have the same weight!  Something is wrong.")
-            return
-        for i in range(len(self.hypobotList)):
-            hypobot = self.hypobotList[i]
-            hypobot.weight = (hypobot.weight - minWeight)/(maxWeight-minWeight)
-    def collapse(self, threshold):
+            totWeight += hypobot.weight
+        for hbot in self.hypobotList:
+            hbot.weight /= totWeight
+            if hbot.weight > peakWeight:
+                peakWeight = hbot.weight
+                retBot = hbot
+        print ("Normalized cloud.  Peak hbot is at " + str(retBot.x)
+                +", "+str(retBot.y)+", "+str(retBot.theta)
+                +" with weight " + str(retBot.weight))
+        print (msg)
+        return retBot
+    def average(self, threshold =0):
         import robotbasics
         #this method collapses the "wavefunction", averaging over all weights above threshold
         #threshold of .5 seems to work well
-        self.normalizeWeights()
         #do a weighted average:
         avg = robotbasics.Pose(0,0,0)
         totWeight = 0
@@ -237,7 +241,7 @@ class HypobotCloud:
         avg.y /= totWeight
         avg.theta /= totWeight
         return avg
-    def prune(self, threshold):
+    def pruneByWeight(self, threshold):
         #this method cuts all weights that are below threshold
         deleted = 0
         self.normalizeWeights()
@@ -245,9 +249,9 @@ class HypobotCloud:
             if hypobot.weight < threshold:
                 deleted += 1
                 self.hypobotList.remove(hypobot)
-        print("Pruned "+str(deleted)+" hypobots. "+
-                str(len(self.hypobotList))+" remain.")
-
+        print("Pruned "+str(deleted)+" hypobots with weights less than "
+            +str(threshold)+".")
+        print(str(len(self.hypobotList))+" hbots remain.")
 
 
 def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
@@ -310,3 +314,16 @@ def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board
             if speed == "FAST":
                 r = min(r, d - radius + radius*(theta/lim)**2)
     return r
+
+
+if __name__ == "__main__":
+
+    #test averaging:
+    testCloud = HypobotCloud()
+    h1 =Hypobot(10,0,0,.5)
+    h2 =Hypobot(0,0,0)
+    print h1.weight
+    testCloud.hypobotList.append(h1)
+    testCloud.hypobotList.append(h2)
+    print testCloud.average(0).x
+    print testCloud.normalize()

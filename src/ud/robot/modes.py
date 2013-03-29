@@ -134,7 +134,7 @@ class Localize( Mode ):
             state.hypobotCloud.normalizeWeights()
             self.pruned = True
             return None
-        state.pose = state.hypobotCloud.collapse(0.1)
+        state.pose = state.hypobotCloud.average(1)
         return Localize(state)
     pass
 
