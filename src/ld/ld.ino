@@ -369,6 +369,8 @@ double convertR3(int inDegree)
 }
 
 #endif
+// BEGIN Go functions
+#ifdef ROBOT_SERVICE_GO
 void scoot(double distance, int angle)
 {
   forwardFlag = 1;
@@ -581,3 +583,5 @@ void ackTest()
   delay(100);                // waits 100ms
   } 
 }
+#endif
+// END Go functions
