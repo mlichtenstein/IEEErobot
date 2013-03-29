@@ -128,7 +128,6 @@ def drawGraph():
         pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node1.X,link.node1.Y), (temp1, temp2), 4)
         pygame.draw.line( screen, (link.red/2,link.green/2,link.blue/2), (link.node2.X,link.node2.Y), (temp3, temp4), 4)
 
-
 def drawAll():
     screen.lock()
     drawObjects()
@@ -148,15 +147,15 @@ def drawLine(x1,y1,x2,y2): #draws a thick red line
 
 
 def makeAMove((X,Y, theta)): #returns the node
+    #pull IMU and average into or replace theta
     nearestNode = whatNode((X,Y))[0]
     distance = whatNode((X,Y))[1]
     nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-    angle =  nodeTheta - theta
 
     if distance > nearestNode.radius: #SCOOT IF YOU ARE NOT ON A NODE
-
+        angle =  nodeTheta - theta
         #scoot(distance, angle)#                   <======================== out to arduino
-        #update botPose.theta with imu data
+
         drawLine(X,Y,nearestNode.X,nearestNode.Y)
         botPose.X, botPose.Y = nearestNode.X, nearestNode.Y
         drawBot(X,Y,theta)
@@ -164,25 +163,32 @@ def makeAMove((X,Y, theta)): #returns the node
 
     elif 1 <= nearestNode.puck <= 16: #IF YOU ARE ON A NODE AND ITS A PUCK NODE, FACE THE PUCK AND RETRIEVE IT
 
-        #rotate(nearestNode.theta - theta)
-        botPose.theta = nearestNode.theta #update botPose.theta with imu data
-        #pickupPuck()             <============out to wicke
+        #rotate(nearestNode.theta - theta)<==================================================
+        botPose.theta = nearestNode.theta
+        #grab()             <============================out to wicke
+        nearestNode.puck=-1
 
     else:#on a node, and its not a puck node
         try:
             pendingLink = findPath( graph, nearestNode )
             #node i am on is nearestNode
             #link i am about to cross is pendingLink
-
-            #rotate to the pending links departure angle for the node we are on
-            #scoot the distance of the link by calling the arduinos scoot fxn
+            if pendingLink == nearestNode.node1:
+                departureAngle = pendingLink.node1direction
+            elif pendingLink == nearestNode.node2:
+                departureAngle = pendingLink.node2direction
+            angle = departureAngle - theta
+            
+            #rotate(angle) <=============================================
+            
+            #scoot(pendingLink.length) <=============================================
             botPose.theta = nearestNode.theta #update botPose.theta with imu data
             botPose.X = nearestNode.X #update botPose.theta with imu data
             botPose.Y = nearestNode.Y #update botPose.theta with imu data
             drawLine(pendingLink.node1.X,pendingLink.node1.Y,pendingLink.node2.X,pendingLink.node2.Y)
         except Exception as e:
             print "Error: ", e
-    #max localize
+    #<============================================max localize
 
     return nearestNode
 
