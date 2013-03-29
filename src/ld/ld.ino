@@ -48,16 +48,9 @@ void EyeServoWrite(int servoNum, float theta) {
 #endif
 
 #ifdef ROBOT_SERVICE_ARM_SERVO
-#define ARM_SERVOS 3
-#define ARM_SERVO_ID1 5
-#define ARM_SERVO_ID2 6
-#define ARM_SERVO_ID3 10
-/// The arm servos.
-Servo R[ARM_SERVOS];
-/// Initial angles for the arm.
-Number initArmThetas[ ARM_SERVOS ] = { 0, 0, 0 };
-/// Tracks the arm and helps control it.
-Arm armManager( initArmThetas );
+Servo R1,R2_1,R2_2,R3;
+int newArmTheta[] = {0,0,0};
+int oldArmTheta[] = {0,0,0};
 #endif
 
 /// A counter for out going IDs.
@@ -69,15 +62,14 @@ int inBoxBuffer_newChar = 0;
 void establishContact( );
 bool readMessage( );
 
+// arm function prototypes
+void armControl();
+double convertR1(int inDegree);
+double convertR2_1(int inDegree);
+double convertR2_2(int inDegree);
+double convertR3(int inDegree);
+
 void setup() {
-    #ifdef ROBOT_SERVICE_ARM_SERVO
-    R[0].attach(ARM_SERVO_ID1);
-    R[1].attach(ARM_SERVO_ID2);
-    R[2].attach(ARM_SERVO_ID3);
-    for ( int i = 0; i < ARM_SERVOS; ++i ) {
-        R[ i ].write( initArmThetas[ i ] );
-    }
-    #endif
     #ifdef ROBOT_SERVICE_SCAN
     for (int i = 0; i<4; i++) {
         EyeServo[i].attach(servoPin[i]);
@@ -89,6 +81,15 @@ void setup() {
     establishContact( );
     Serial.flush();
     delay( 100 );
+    
+    //le arm setup
+    #ifdef ROBOT_SERVICE_ARM_SERVO
+    R1.attach(3);
+    R2_1.attach(5);
+    R2_2.attach(6);
+    R3.attach(10);
+    pinMode(8, OUTPUT);
+    #endif
 }
 
 void loop() {
@@ -193,15 +194,14 @@ Your response message should take the form ":[char],[id],[payload];"
                 #endif
                 #ifdef ROBOT_SERVICE_ARM_SERVO
                 case ROBOT_SERVICE_ARM_SERVO: {
-                    int thetas[3];
-                    numOfVars = sscanf( inBoxBuffer, "%*c%*d",
-                                        &( thetas[0] ), &( thetas[1] ), &( thetas[2] ) );
+                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
+                                        &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
                     if ( numOfVars == 3 ) {
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_COMFIRM );
                         Serial.print( id );
                         Serial.write( ';' );
-                        armManager.setNewTheta( millis(), result->list );
+                        armControl();
                     } else {
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_ERROR );
@@ -294,7 +294,43 @@ void establishContact( ) {
     // Write back one char.
     Serial.write( Serial.read() );
 }
+void armControl()
+{
+  newArmTheta[2] = 280 - newArmTheta[2];
+  for(int i = 1; i <= 200; i++)
+  {
+     R1.writeMicroseconds((int)(convertR1(oldArmTheta[0]) + (convertR1(newArmTheta[0]) - convertR1(oldArmTheta[0]))*i/200));
+     R2_1.writeMicroseconds((int)(convertR2_1(oldArmTheta[1]) + (convertR2_1(newArmTheta[1]) - convertR2_1(oldArmTheta[1]))*i/200));
+     R2_2.writeMicroseconds((int)(convertR2_2(oldArmTheta[1]) + (convertR2_2(newArmTheta[1]) - convertR2_2(oldArmTheta[1]))*i/200));
+     R3.writeMicroseconds((int)(convertR3(oldArmTheta[2]) + (convertR3(newArmTheta[2]) - convertR3(oldArmTheta[2]))*i/200));
+     delay(10);
+  }
+  for(int i = 0; i < 3; i++)
+  {
+    oldArmTheta[i] = newArmTheta[i];
+  }
+  
+}
 
-
+// Servo angle conversion and callibration functions
+// retrun [offset] + (inputDegrees/360 * [scale]
+// scale = the difference between the offset and the value
+// that gives a full360 of rotation
+double convertR1(int inDegree)
+{
+  return 950 + ((double)inDegree/360 * 2440);
+}
+double convertR2_1(int inDegree)
+{
+  return 1040 + ((double)inDegree/360 * 2010);
+}
+double convertR2_2(int inDegree)
+{
+  return 1030 + ((double)(inDegree)/360 * 2300);
+}
+double convertR3(int inDegree)
+{
+  return 650 + ((double)inDegree/360 * 1800);
+}
 
 
