@@ -155,7 +155,8 @@ Your response message should take the form ":[char],[id],[payload];"
                 }
                 break;
                 #endif
-                case 'M': {  //this block is used for calibrating savox servos
+                //this block is used for calibrating savox servos
+                case ROBOT_SERVICE_CALIBRATE_SERVO: {
                     Serial.write( ":M" );
                     Serial.print( id );
                     Serial.write( ';' );
@@ -163,8 +164,8 @@ Your response message should take the form ":[char],[id],[payload];"
                       EyeServo[i].write(id);
                     }
                 }
-                break;
-                case 'L': {  //this block is used for testing the calibration of savox servos
+                //this block is used for testing the calibration of savox servos
+                case ROBOT_SERVICE_TEST_SERVO: {
                     Serial.write( ":L" );
                     Serial.print( id );
                     Serial.write( ';' );
