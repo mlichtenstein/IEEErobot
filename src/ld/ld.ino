@@ -375,7 +375,7 @@ double convertR3(int inDegree)
 #ifdef ROBOT_SERVICE_GO
 void scoot(double distance, int angle)
 {
-  forwardFlag = 1;
+  int forwardFlag = 1;
   while (angle > 180)
     {
       forwardFlag *=-1;
