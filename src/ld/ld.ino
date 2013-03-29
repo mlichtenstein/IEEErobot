@@ -72,6 +72,13 @@ void EyeServoWrite(int servoNum, float theta) {
 Servo R1,R2_1,R2_2,R3;
 int newArmTheta[] = {0,0,0};
 int oldArmTheta[] = {0,0,0};
+
+// arm function prototypes
+void armControl();
+double convertR1(int inDegree);
+double convertR2_1(int inDegree);
+double convertR2_2(int inDegree);
+double convertR3(int inDegree);
 #endif
 
 /// A counter for out going IDs.
@@ -82,14 +89,6 @@ int inBoxBuffer_newChar = 0;
 
 void establishContact( );
 bool readMessage( );
-#ifdef ROBOT_SERVICE_ARM_SERVO
-// arm function prototypes
-void armControl();
-double convertR1(int inDegree);
-double convertR2_1(int inDegree);
-double convertR2_2(int inDegree);
-double convertR3(int inDegree);
-#endif
 
 void setup() {
     #ifdef ROBOT_SERVICE_SCAN
@@ -328,6 +327,7 @@ void establishContact( ) {
     Serial.write( Serial.read() );
 }
 
+// END Arm functions
 #ifdef ROBOT_SERVICE_ARM_SERVO
 void armControl()
 {
@@ -367,8 +367,9 @@ double convertR3(int inDegree)
 {
   return 650 + ((double)inDegree/360 * 1800);
 }
-
 #endif
+// END Arm functions
+
 // BEGIN Go functions
 #ifdef ROBOT_SERVICE_GO
 void scoot(double distance, int angle)
