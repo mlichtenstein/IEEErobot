@@ -42,7 +42,7 @@ void EyeServoWrite(int servoNum, float theta) {
     }
       float wrappedTheta = float(rmin) + float(rmax - rmin)*theta/ROBOT_SCAN_ANGLE;
       Serial.print(wrappedTheta);
-    EyeServo[servoNum].write(wrappedTheta);
+    EyeServo[servoNum].write(int(wrappedTheta));
     
 }
 #endif
@@ -61,13 +61,14 @@ int inBoxBuffer_newChar = 0;
 
 void establishContact( );
 bool readMessage( );
-
+#ifdef ROBOT_SERVICE_ARM_SERVO
 // arm function prototypes
 void armControl();
 double convertR1(int inDegree);
 double convertR2_1(int inDegree);
 double convertR2_2(int inDegree);
 double convertR3(int inDegree);
+#endif
 
 void setup() {
     #ifdef ROBOT_SERVICE_SCAN
@@ -294,6 +295,8 @@ void establishContact( ) {
     // Write back one char.
     Serial.write( Serial.read() );
 }
+
+#ifdef ROBOT_SERVICE_ARM_SERVO
 void armControl()
 {
   newArmTheta[2] = 280 - newArmTheta[2];
@@ -333,4 +336,4 @@ double convertR3(int inDegree)
   return 650 + ((double)inDegree/360 * 1800);
 }
 
-
+#endif
