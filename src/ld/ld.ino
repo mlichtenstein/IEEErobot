@@ -115,7 +115,6 @@ void setup() {
     #endif
     #ifdef ROBOT_SERVICE_GO
     //Attach Servos
-    Serial.begin(9600);
     FLSERVO.attach(50); //front left servo
     FRSERVO.attach(51); //front right servo
     BLSERVO.attach(52); //back left servo
@@ -158,6 +157,7 @@ Your response message should take the form ":[char],[id],[payload];"
                 break;
                 #endif
                 //this block is used for calibrating savox servos
+                #ifdef ROBOT_SERVICE_CALIBRATE_SERVO
                 case ROBOT_SERVICE_CALIBRATE_SERVO: {
                     Serial.write( ":M" );
                     Serial.print( id );
@@ -166,7 +166,9 @@ Your response message should take the form ":[char],[id],[payload];"
                       EyeServo[i].write(id);
                     }
                 }
+                #endif
                 //this block is used for testing the calibration of savox servos
+                #ifdef ROBOT_SERVICE_TEST_SERVO
                 case ROBOT_SERVICE_TEST_SERVO: {
                     Serial.write( ":L" );
                     Serial.print( id );
@@ -177,6 +179,7 @@ Your response message should take the form ":[char],[id],[payload];"
                     
                 }
                 break;
+                #endif
                 #ifdef ROBOT_SERVICE_GO
                 case ROBOT_SERVICE_GO: {
                     // Forward declarations.
@@ -194,17 +197,19 @@ Your response message should take the form ":[char],[id],[payload];"
                           messageGood = true;
                         }
                         // Bad angle.
+                        #ifndef NODEBUG
                         else {
                           Serial.write( ':' );
                           Serial.write( ROBOT_RESPONSE_ERROR );
                           Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
                           Serial.write( "Error: Bad angle of\"" );
-                          Serial.write( firstParam );
+                          Serial.print( firstParam );
                           Serial.write( "\" was greater than 360 or less than -360." );
                           Serial.write( "Message was\"" );
                           Serial.write( inBoxBuffer );
                           Serial.write( "\";" );
                         }
+                        #endif
                       }
                       // Scoot.
                       else if ( subCategory == ROBOT_COMMAND_SCOOT ) {
@@ -216,19 +221,22 @@ Your response message should take the form ":[char],[id],[payload];"
                             messageGood = true;
                           }
                           // Bad angle.
+                          #ifndef NODEBUG
                           else {
                             Serial.write( ':' );
                             Serial.write( ROBOT_RESPONSE_ERROR );
                             Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
                             Serial.write( "Error: Bad angle of\"" );
-                            Serial.write( angle );
+                            Serial.print( angle );
                             Serial.write( "\" was greater than 360 or less than -360." );
                             Serial.write( "Message was\"" );
                             Serial.write( inBoxBuffer );
                             Serial.write( "\";" );
                           }
+                          #endif
                         }
                         // Wrong number of arguments to scoot. Should have got 2 but got only 1.
+                        #ifndef NODEBUG
                         else {
                           Serial.write( ':' );
                           Serial.write( ROBOT_RESPONSE_ERROR );
@@ -237,8 +245,10 @@ Your response message should take the form ":[char],[id],[payload];"
                           Serial.write( inBoxBuffer );
                           Serial.write( "\";" );
                         }
+                        #endif
                       }
                       // Bad subcategory command.
+                      #ifndef NODEBUG
                       else {
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_ERROR );
@@ -250,16 +260,19 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.write( inBoxBuffer );
                         Serial.write( "\";" );
                       }
+                      #endif
                     }
                     // Wrong number of arguments.
+                    #ifndef NODEBUG
                     else {
                       Serial.write( ':' );
                       Serial.write( ROBOT_RESPONSE_ERROR );
                       Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
-                      Serial.write( "Error: Wrong number of arguments. Message was\"" );
+                      Serial.write( "Error: Wrong number of arguments to the go service. Expecting 1 but there was none. Message was\"" );
                       Serial.write( inBoxBuffer );
                       Serial.write( "\";" );
                     }
+                    #endif
                     // Command succeeded.
                     if ( messageGood ) {
                       Serial.write( ":C" );
@@ -335,6 +348,7 @@ Your response message should take the form ":[char],[id],[payload];"
                 }
                 break;
                 #endif
+                #ifndef NODEBUG
                 default: {
                     Serial.write( ':' );
                     Serial.write( ROBOT_RESPONSE_ERROR );
@@ -344,8 +358,11 @@ Your response message should take the form ":[char],[id],[payload];"
                     Serial.write( "\";" );
 
                 }
+                #endif
                 }
-            } else {
+            }
+            #ifndef NODEBUG
+            else {
                 Serial.write( ':' );
                 Serial.write( ROBOT_RESPONSE_ERROR );
                 Serial.print( ROBOT_SERIAL_ERROR_BAD_MESSAGE );
@@ -353,6 +370,7 @@ Your response message should take the form ":[char],[id],[payload];"
                 Serial.write( inBoxBuffer );
                 Serial.write( "\";" );
             }
+            #endif
         }
     }
     #ifdef HAS_ARM_SERVO
@@ -416,7 +434,7 @@ void establishContact( ) {
     Serial.write( Serial.read() );
 }
 
-// END Arm functions
+// BEGIN Arm functions
 #ifdef ROBOT_SERVICE_ARM_SERVO
 void armControl()
 {

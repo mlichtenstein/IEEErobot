@@ -1,6 +1,9 @@
 #ifndef SETTINGS_INCLUDED
 #define SETTINGS_INCLUDED
 
+// Comment out to turn on debugging.
+#define NODEBUG
+
 // BEGIN Port Setttings
 #define ROBOT_SERIAL_PORT_SPEED 9600
 //9600
@@ -25,15 +28,15 @@
 
 // BEGIN Services
 #define ROBOT_PING_TEST 'P'
-#define ROBOT_SERVICE_CAMERA 'C'
-#define ROBOT_SERVICE_IMO 'I'
+//#define ROBOT_SERVICE_CAMERA 'C'
+//#define ROBOT_SERVICE_IMO 'I'
 #define ROBOT_SERVICE_SCAN 'J'
 #define ROBOT_SERVICE_CALIBRATE_SERVO 'M'
 #define ROBOT_SERVICE_TEST_SERVO 'L'
 //#define ROBOT_SERVICE_ARM_SERVO 'G'
 #define ROBOT_SERVICE_GO 'T'
 #define ROBOT_COMMAND_TURN 'T'
-#define ROBOT_COMMAND_SCOOT 's'
+#define ROBOT_COMMAND_SCOOT 'S'
 // END Services
 
 // BEGIN Responses
