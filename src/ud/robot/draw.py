@@ -102,7 +102,7 @@ class Robot(Drawable):
                 (x+xa-xb,y-ya-yb),
                 (x+xa+xb,y-ya+yb)), 1)
         #and draw a line for the heading:
-        pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya))
+        pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya),1)
         #finally blit it:
         tempSurface.set_alpha(self.alpha)
         tempSurface.set_colorkey((0,0,0))
@@ -116,9 +116,11 @@ class Wheels(Drawable):
 class HypobotSet(Drawable):
     name = "Hypobots"
     def draw(self, view, state):
+        if state.hypobotCloud.hypobotList != list():
+            peakWeight = state.hypobotCloud.peakWeight()
         for hypobot in state.hypobotCloud.hypobotList:
             import robotbasics
-            alpha = int(256*hypobot.weight)
+            alpha = int(256*hypobot.weight/peakWeight)
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
             Robot(self.color,alpha).drawPose(view,hypobot.pose)
 
@@ -160,10 +162,10 @@ class LogSet(Drawable):
         for log in self.logList:  #logs are, in this context, fallen logs rather than logarithms
             delX = 1.0/12*(log[1]-log[3])/math.sqrt((log[0]-log[2])**2 + (log[3]-log[1])**2)
             delY = 1.0/12*(log[2]-log[0])/math.sqrt((log[0]-log[2])**2 + (log[3]-log[1])**2)
-            pt0=(int((log[0]+delX)*view.coordConversion), int((log[1]+delY)*view.coordConversion))
-            pt1=(int((log[0]-delX)*view.coordConversion), int((log[1]-delY)*view.coordConversion))
-            pt2=(int((log[2]-delX)*view.coordConversion), int((log[3]-delY)*view.coordConversion))
-            pt3=(int((log[2]+delX)*view.coordConversion), int((log[3]+delY)*view.coordConversion))
+            pt0=(int((log[0]+delX)*view.CC), int((log[1]+delY)*view.CC))
+            pt1=(int((log[0]-delX)*view.CC), int((log[1]-delY)*view.CC))
+            pt2=(int((log[2]-delX)*view.CC), int((log[3]-delY)*view.CC))
+            pt3=(int((log[2]+delX)*view.CC), int((log[3]+delY)*view.CC))
             pygame.draw.aalines(view.surface, self.color, True, (pt0,pt1,pt2,pt3))
 
 class LandmarkSet(Drawable):

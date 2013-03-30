@@ -53,7 +53,7 @@ int PingFire(int servoNum) {
     return pulseIn(pin,HIGH,20000);
 }
 //here is a function that wraps the Savox servos
-void EyeServoWrite(int servoNum, float theta) {
+void EyeServoWrite(int servoNum, int pt) {
     int rmin; int rmax;
     switch (servoNum) {
       //rmin and rmax are the minimum and maximum unwrapped thetas the servos accept
@@ -62,7 +62,7 @@ void EyeServoWrite(int servoNum, float theta) {
       case 2: rmin = 25; rmax = 160; break;
       case 3: rmin = 20; rmax = 170; break;
     }
-      float wrappedTheta = float(rmin) + float(rmax - rmin)*theta/ROBOT_SCAN_ANGLE;
+      float wrappedTheta = float(rmin) + float(rmax - rmin)*pt/ROBOT_SCAN_DATA_POINTS;
     EyeServo[servoNum].write(int(wrappedTheta));
     
 }
@@ -188,15 +188,14 @@ Your response message should take the form ":[char],[id],[payload];"
                     Serial.write( ":J," );
                     Serial.print( id );
                     Serial.write( ","); 
-                    int pos;
                     #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
                     float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
-                    for (pos = 0; pos <= ROBOT_SCAN_DATA_POINTS; pos += 1) {
+                    for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
                         unsigned int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
                         unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<4; i++) {
-                            EyeServoWrite(i,pos);
+                            EyeServoWrite(i,pt);
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[i] = analogRead(IRpin[i]);
                             //delay(DELAY);
@@ -206,7 +205,7 @@ Your response message should take the form ":[char],[id],[payload];"
                             Serial.print( char('|'));
                             Serial.print( (i)); //EyeNum
                             Serial.write( ',' );
-                            Serial.print( (pos)); //DataPointNum
+                            Serial.print( (pt)); //DataPointNum
                             Serial.write( ',' );
                             Serial.print( (IRreading[i] & 255)); //IRlsb
                             Serial.write( ',' );

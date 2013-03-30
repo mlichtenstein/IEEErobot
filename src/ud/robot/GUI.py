@@ -47,7 +47,6 @@ class Frame:
             self.processClickUp(pos)
     def feelMiddleClick(self, screen_pos):
         if self.rect.collidepoint(screen_pos):
-            print self
             pos = (screen_pos[0] - self.origin[0], screen_pos[1] - self.origin[1])
             self.processMiddleClick()
     def draw(self):  #this is meant to be overwritten by child classes
@@ -99,7 +98,6 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
     state = State()
     selectedHypobot=0
     drawList = [EmptyDrawable()]
-    coordConversion = 540/8
     def optionsWindow(self):
         #put a dialog to change the active state of the drawables here
         pass
@@ -141,9 +139,9 @@ class BoardView(View):
     def setup(self):
         import world
         self.robot = Robot((255,255,255))
-        self.logSet = LogSet(world.World().logList)
-        self.landmarkSet = LandmarkSet(world.World().landmarkList)
-        self.hypobotSet = HypobotSet()
+        self.logSet = LogSet(world.World().logList,(139,105,20) )
+        self.landmarkSet = LandmarkSet(world.World().landmarkList,(162,68,3))
+        self.hypobotSet = HypobotSet((0,255,0))
         #the bottom of the list appears on top
         self.drawList = [   self.hypobotSet,
                             self.logSet,
@@ -203,23 +201,21 @@ class GUI:
     def __init__( self, pygame, screen):
         self.pygame = pygame
         self.screen = screen
-        self.boardView = BoardView(pygame, screen, 10, 60, 540, 540)
-        self.statusBanner = StatusBanner(pygame, screen, 10, 10, 1080, 40)
-        self.modeView = View(pygame,screen,560, 60, 300,300) #emptyFrame for now
+        self.boardView = BoardView(pygame, screen, 10, 60, 485, 485)
+        self.statusBanner = StatusBanner(pygame, screen, 10, 10, 980, 40)
+        self.modeView = View(pygame,screen,560, 60, 00,000) #emptyFrame for now
         #self.modeView = RangeView(self.pygame, self.screen, 560, 60, 540,540)
         self.frameList = [  self.boardView,
                             self.statusBanner,
                             self.modeView ]
-        print self.frameList
     def takeState(self, state):
         #this block shifts the modeView (or it should)
         if self.prevMode != state.mode:
             if state.mode == "Localize":
                 self.frameList.remove(self.modeView)
-                self.modeView = RangeView(self.pygame, self.screen,560, 60, 540,540)
+                self.modeView = RangeView(self.pygame, 
+                        self.screen, 505, 60, 485,485)
                 self.frameList.append(self.modeView)
-                print("z",self.modeView)
-                print(self.frameList)
             if state.mode == "Pathfind":
                 #self.modeFrame = pathFindView# if we want this
                 pass

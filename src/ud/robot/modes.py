@@ -96,23 +96,27 @@ class Localize( Mode ):
         print("Mode is now Localize")
         state.mode = "Localize"
         self.scanUpToDate = False
-        self.weighted = False
-        self.pruned = False
+        self.step = 1
+        self.cloudSize = 500 #approx size of cloud--we will bloom and prune to stay near this
     def act(self, state):
-        print("Localizing...")
-        cloud = state.hypobotCloud
-        if cloud.count() == 0:
-            cloud.appendGaussianCloud(150,state.pose,state.poseUncertainty)
+        import localize
+        cloud = state.hypobotCloud 
+        if self.step == 1:
+            print("=========Beginning localization.=========")
+            print "step 1: build cloud"
+            #add hbots at the current best guess, if nec
+            minCount = 100
+            if cloud.count() == 0:
+                cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
+            elif cloud.count() < minCount:
+                multiplier = int(minCount / cloud.count() +.99)
+                cloud.appendBloom(multiplier,state.poseUncertainty)
+            self.step +=1
             return None
-        if cloud.count() <150:
-            cloud.appendBloom(2,Pose(.2,.2,2))
-            return None
-        #-----------Scan block:-----------------
-        if self.scanUpToDate == False:
-            print("No scan data for this location.  Scanning...")
-            import time
-            import localize
+        if self.step == 2:
+            print "step 2: scan and generate eye data"
             self.messenger.sendMessage(settings.SERVICE_SCAN)
+            import time
             messageTime = time.time()
             cloud.generateEyeData(world.World().landmarkList)
             if not self.messenger.checkInBox():
@@ -122,19 +126,27 @@ class Localize( Mode ):
             tup = self.messenger.getMessageTuple()
             self.real_eyeList = localize.messageTupleToEyeList(tup)
             state.eyeList=self.real_eyeList
-            self.scanUpToDate = True
+            self.step +=1
             return None
-        if self.weighted == False:
-            state.hypobotCloud.weight(self.real_eyeList, world.World().landmarkList)
-            state.hypobotCloud.normalizeWeights()
-            self.weighted = True
+        if self.step == 3:
+            print "step 3: weight hbots"
+            cloud.weight(self.real_eyeList, world.World().landmarkList)
+            self.step +=1
             return None
-        if self.pruned ==False:
-            state.hypobotCloud.prune(0.5)
-            state.hypobotCloud.normalizeWeights()
-            self.pruned = True
+        if self.step == 4:
+            print "step 4: normalize and average"
+            cloud.normalize()           
+            avg = state.hypobotCloud.average()
+            state.pose = avg
+            print "Changing pose to",avg.x,",",avg.y,",",avg.theta
+            self.step +=1
             return None
-        state.pose = state.hypobotCloud.average(1)
+        if self.step == 5:
+            print "step 5: prune the cloud"
+            state.hypobotCloud.pruneFraction(0.9)
+            state.hypobotCloud.normalize()
+            self.step +=1
+            return None
         return Localize(state)
     pass
 

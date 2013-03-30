@@ -20,7 +20,7 @@
 // BEGIN Scan Settings
 #define ROBOT_IR_SCAN_TIME 4
 #define ROBOT_SCAN_DATA_POINTS 100
-#define ROBOT_SCAN_ANGLE 150
+#define ROBOT_SCAN_ANGLE 135
 // END Scan Settings
 
 // BEGIN Services

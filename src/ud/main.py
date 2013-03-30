@@ -34,7 +34,7 @@ logList = world.World.logList
 
 #setup Gui
 H = 700
-W = 1100
+W = 1000
 textHeight = 18
 
 pygame.init()
@@ -75,14 +75,10 @@ while running == True:
     nextMode = robotMode.act(state)
     if nextMode != None:
         robotMode = nextMode
-        
-
-
-    print(robotMode)
     
     # Update the GUI with the current robot state
     gui.takeState(state)
 
     gui.update(screen)
     pygame.display.update()
-    time.sleep(1)
+    time.sleep(3)

@@ -48,7 +48,7 @@ class Eye:
         self.US[dataPoint] = US
     def printReading(self):
         for range in self.IR:
-            print ("Eye "+str(self.eyeNum)+" sees  an IR range of " + str(range))
+            print "Eye",self.eyeNum,"sees  an IR range of",range
 
 def messageTupleToEyeList(messageTuple):
     string = messageTuple[2]
@@ -58,18 +58,21 @@ def messageTupleToEyeList(messageTuple):
     eyeList = copy.deepcopy(world.World().eyeList)
     for dataPointString in dataPointStringList:
         dataPoint = dataPointString.split(',')
-        eyeNum = int(dataPoint[0])                                  
-        dataPointNum = int(dataPoint[1])
-        IRlsb = int(dataPoint[2])
-        IRmsb = int(dataPoint[3])           
-        USlsb = int(dataPoint[4])
-        USmsb = int(dataPoint[5])
-        rawIR = IRmsb*256 + IRlsb
-        rawUS = USmsb*256 + USlsb
-        IR = rawIRtoFeet(rawIR)
-        US = rawUStoFeet(rawUS)
-        #print("Mt2el: Eye "+str(eyeNum)+" reports IR="+str(IR)+" feet at data point "+str(dataPointNum))
-        eyeList[eyeNum].takeReading(dataPointNum,IR,US)
+        try:
+            eyeNum = int(dataPoint[0])                                  
+            dataPointNum = int(dataPoint[1])
+            IRlsb = int(dataPoint[2])
+            IRmsb = int(dataPoint[3])           
+            USlsb = int(dataPoint[4])
+            USmsb = int(dataPoint[5])
+            rawIR = IRmsb*256 + IRlsb
+            rawUS = USmsb*256 + USlsb
+            IR = rawIRtoFeet(rawIR)
+            US = rawUStoFeet(rawUS)
+            #print("Mt2el: Eye "+str(eyeNum)+" reports IR="+str(IR)+" feet at data point "+str(dataPointNum))
+            eyeList[eyeNum].takeReading(dataPointNum,IR,US)
+        except Exception as error:
+            print "At least one data point was lost.",error
     return eyeList
 
 
@@ -82,6 +85,7 @@ class Hypobot:
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
+        self.weightingSigma = .01
         import random
         self.red = random.random() * 256
         self.blue = random.random() *256
@@ -107,14 +111,16 @@ class Hypobot:
         for eyeNum in range(0,len(self.localEyeList)):
             distSum = 0
             for i in range(settings.SCAN_DATA_POINTS):
-                distance = 10
-                correctionWindow = 2
-                for j in range(max(0,i-correctionWindow),min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
-                    a = self.localEyeList[eyeNum].IR[i]
-                    b =  real_eyeList[eyeNum].IR[j]
-                    #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
-                    distance = min(distance, abs(a-b))  #FAST
-                self.weight *= math.exp((-(distance)**2)*.008)
+                if real_eyeList[eyeNum].IR[i] != 0:     
+                    distance = 10
+                    correctionWindow = 1
+                    for j in range(max(0,i-correctionWindow),
+                            min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
+                        a = self.localEyeList[eyeNum].IR[j]
+                        b =  real_eyeList[eyeNum].IR[i]
+                        #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
+                        distance = min(distance, abs(a-b))  #FAST
+                    self.weight *= math.exp((-(distance)**2)*self.weightingSigma)
         self.color = (  int(self.weight*self.red),
                         int(self.weight*self.green),
                         int(self.weight*self.blue))
@@ -173,13 +179,18 @@ class HypobotCloud:
         for index in range(0,bloomEnd):
             for i in range(0,multiplier):
                 pose = self.hypobotList[index].pose
+                weight = self.hypobotList[index].weight
                 x = random.gauss(pose.x, poseSigma.x)
                 y = random.gauss(pose.y, poseSigma.y)                    
                 theta = random.gauss(pose.theta, poseSigma.theta)
                 if x>.5 and x<7.5 and y>.5 and y<7.5:
-                    self.hypobotList.append(Hypobot(x,y,theta))
+                    self.hypobotList.append(Hypobot(x,y,theta,weight))
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
+    def appendFlatRectangle(self, cloudSize, centerPose, edgePose):
+        import math
+        m = int(math.sqrt)
+        for i in 
     def appendGaussianCloud(self, cloudSize, pose, poseSigma):
         import random 
         for i in range (0,cloudSize):
@@ -199,33 +210,48 @@ class HypobotCloud:
             for j in range(0,cloudRootSize):
                 self.hypobotList.append(Hypobot(.5 + l*i, .5+l*j, theta))
     def generateEyeData(self, landmarkList):
+        import time
+        startTime = time.time()
         for hypobot in self.hypobotList:
             hypobot.generateEyeData(landmarkList)
-        print("generated eye data for "+str(len(self.hypobotList))+" hbots.")
+        ti = "%.2f" % (time.time()-startTime)
+        print"Generated eye data for",len(self.hypobotList),"hbots in",ti,"seconds."
     def weight(self, real_eyeList, landmarkList):
+        import time
+        startTime = time.time()
         for hypobot in self.hypobotList:
             hypobot.changeWeight(real_eyeList, landmarkList)
-        print ("reweighted "+str(len(self.hypobotList))+" hbots.")
+        ti = "%.2f" % (time.time()-startTime)
+        print"Weighted",len(self.hypobotList),"hbots in",ti,"seconds."
     def normalize(self):
         #this method adjusts the weights so their total is 1.  Returns peak hbot
         #go through the hypbobots
         totWeight = 0
         peakWeight = 0
-        peakHypobotNum = 0
+        peakBot = Hypobot(-1,-1,0, -1)
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
-        peakBot = self.getPeakBot()
+        for hypobot in self.hypobotList:
+            hypobot.weight /= totWeight
+            if peakWeight > hypobot.weight:
+                peakWeight = max(peakWeight, hypobot.weight)
+                peakBot = hypobot
         print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
                 +", "+str(peakBot.y)+", "+str(peakBot.theta)
                 +" with weight " + str(peakBot.weight))
     def getPeakBot(self):
+        peakWeight = 0
+        retBot = Hypobot(-1,-1,0, -1)
         for hbot in self.hypobotList:
-            hbot.weight /= totWeight
             if hbot.weight > peakWeight:
                 peakWeight = hbot.weight
                 retBot = hbot
+        if retBot.weight<0:
+            print "All hbot weights are zero. Probably your class Hypobot weightingSigma is too high."
         return retBot
-    def average(self, threshold =0):
+    def peakWeight(self):
+        return self.getPeakBot().weight
+    def average(self):
         import robotbasics
         #this method collapses the "wavefunction", averaging over all weights above threshold
         #threshold of .5 seems to work well
@@ -233,19 +259,17 @@ class HypobotCloud:
         avg = robotbasics.Pose(0,0,0)
         totWeight = 0
         for hypobot in self.hypobotList:
-            if hypobot.weight > threshold:
-                avg.x += hypobot.x * hypobot.weight
-                avg.y += hypobot.y * hypobot.weight
-                avg.theta += hypobot.theta * hypobot.weight
-                totWeight += hypobot.weight
+            avg.x += hypobot.x * hypobot.weight
+            avg.y += hypobot.y * hypobot.weight
+            avg.theta += hypobot.theta * hypobot.weight
+            totWeight += hypobot.weight
         avg.x /= totWeight
         avg.y /= totWeight
         avg.theta /= totWeight
         return avg
-    def pruneByWeight(self, threshold):
+    def pruneThreshold(self, threshold):
         #this method cuts all weights that are below threshold
         deleted = 0
-        self.normalizeWeights()
         for hypobot in self.hypobotList:
             if hypobot.weight < threshold:
                 deleted += 1
@@ -253,7 +277,20 @@ class HypobotCloud:
         print("Pruned "+str(deleted)+" hypobots with weights less than "
             +str(threshold)+".")
         print(str(len(self.hypobotList))+" hbots remain.")
-
+    def pruneFraction(self, fraction):
+        #this method prunes the lowest weighted hypobots
+        toPrune = int(len(self.hypobotList)*fraction)  
+        killList = sorted(self.hypobotList, key = lambda hbot: hbot.weight)
+        for i in range(0,toPrune):
+            self.hypobotList.remove(killList[i])
+    def describeCloud(self):
+        print"========HypobotCloud Report:============="
+        print"The cloud has ",len(self.hypobotList)," hbots."
+        print("The max weight is "
+                +str(max(self.hypobotList,key=lambda hbot: hbot.weight).weight)
+                +" and the min weight is "
+                +str(min(self.hypobotList,key=lambda hbot: hbot.weight).weight))
+        print"========================================="
 
 def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
     """
@@ -328,3 +365,9 @@ if __name__ == "__main__":
     testCloud.hypobotList.append(h2)
     print testCloud.average(0).x
     print testCloud.normalize()
+
+    print max(testCloud.hypobotList,key=lambda hbot: hbot.weight).weight
+
+    print testCloud.average(0).x
+
+    print testCloud.describeCloud()

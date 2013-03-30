@@ -132,7 +132,7 @@ class Messenger:
             print("message of zero length")
             return False
         ret = self.__message
-        print("Arduino says: " + ret)
+        print("Arduino says: " + ret[:160]) #cuttoff for ret
         self.__message = ""
         #import copy
         return ret
