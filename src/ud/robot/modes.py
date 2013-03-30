@@ -8,6 +8,7 @@ output.
 from robotbasics import *
 import settings
 import world
+import csv
 
 """
 Module Tests:
@@ -60,14 +61,22 @@ class Ready( Mode):
         #"Start" command
         return ReadUSBDrive(state)
         
+puckSector = []
+#global var fror puck sectors
 class ReadUSBDrive( Mode):
+#class to read in 
     def __init__( self , state):
         print("Mode is now ReadUSB")
         state.mode = "ReadUSB"
     def act(self, state):
         print("Write code that reads from the USB here")
-        if state.hypobotCloud.count() == 0:
-            state
+	USB = open("/media/robo1/Locatio.csv")
+	reader = csv.reader(USB)
+	for row in reader:
+		puckSector.append(row)
+	print puckSector
+        # if state.hypobotCloud.count() == 0:
+        #    state
         return Localize(state)
         
 
