@@ -187,37 +187,38 @@ Your response message should take the form ":[char],[id],[payload];"
                 #endif
                 #ifdef ROBOT_SERVICE_SCAN
                 case ROBOT_SERVICE_SCAN: {
+                    #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
+                    float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
+                    unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
+                    unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
+                    
+                    for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
+                        unsigned long lastTime = millis();  //used to establish a minimum read time
+                        for (int eye = 0; eye<4; eye++) {
+                            EyeServoWrite(eye,pt);
+                            USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
+                            IRreading[eye][pt] = analogRead(IRpin[eye]); 
+                        }
+                        while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
+                    }
+                    //now send the message
                     Serial.write( ":J," );
                     Serial.print( id );
                     Serial.write( ","); 
-                    #define DELAY 12 //the minimum read time--used to ensure that the scan doesn't go so fast
-                    float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
                     for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
-                        unsigned int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
-                        unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
-                        unsigned long lastTime = millis();  //used to establish a minimum read time
-                        for (int i = 0; i<4; i++) {
-                            EyeServoWrite(i,pt);
-                            USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
-                            delay(DELAY);
-                            IRreading[i] = analogRead(IRpin[i]);
-                            delay(DELAY);
-                            if (IRreading == 0) {delay(1000);}
-                        }
-                        while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
-                        for (int i=0; i<4; i++) {
-                            Serial.print( char('|'));
-                            Serial.print( (i)); //EyeNum
-                            Serial.write( ',' );
-                            Serial.print( (pt)); //DataPointNum
-                            Serial.write( ',' );
-                            Serial.print( (IRreading[i] & 255)); //IRlsb
-                            Serial.write( ',' );
-                            Serial.print( (IRreading[i] >> 8));  //IRmsb
-                            Serial.write( ',' );
-                            Serial.print( (USreading[i] & 255)); //USlsb
-                            Serial.write( ',' );
-                            Serial.print( (USreading[i] >> 8));  //USlsb
+                        for (int eye = 0; eye < 4; eye+=1){
+                                Serial.print( char('|'));
+                                Serial.print( (eye)); //EyeNum
+                                Serial.write( ',' );
+                                Serial.print( (pt)); //DataPointNum
+                                Serial.write( ',' );
+                                Serial.print( (IRreading[eye][pt] & 255)); //IRlsb
+                                Serial.write( ',' );
+                                Serial.print( (IRreading[eye][pt] >> 8));  //IRmsb
+                                Serial.write( ',' );
+                                Serial.print( (USreading[eye][pt] & 255)); //USlsb
+                                Serial.write( ',' );
+                                Serial.print( (USreading[eye][pt] >> 8));  //USlsb
                         }
                     }
                     Serial.write( ';' );
