@@ -161,7 +161,8 @@ class Localize( Mode ):
             return None
             """
         print state.pose.string()
-        raise Exception("measure it dummy")
+        import time
+        time.sleep(10)
         return Localize(state)
     pass
 
@@ -207,4 +208,6 @@ class LocalizationTest(Mode):
     def __init__( self , state):
         print("Waiting for your click to drop a best guess pose")
         state.mode = "Loc Test"
+    def act(self, state):
+        if state
 
