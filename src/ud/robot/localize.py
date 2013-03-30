@@ -38,8 +38,15 @@ class Eye:
         self.IR = [0.0]*(dataPointNum+1)
         self.US = [0.0]*(dataPointNum+1)
         self.thetaList = list() #a list of the theta at which each measurement occurs
-        for i in range(self.dataPointNum):
-            self.thetaList.append(float(self.theta_offset) - float(i)/(dataPointNum-1) * subtendedAngle)    
+        if eyeNum == 0 or eyeNum == 2: #clockwise
+            for i in range(self.dataPointNum):
+                self.thetaList.append(float(self.theta_offset)
+                 - float(i)/(dataPointNum-1) * subtendedAngle)    
+        else:
+            for j in range(self.dataPointNum):
+                i=self.dataPointNum - j - 1
+                self.thetaList.append(float(self.theta_offset)
+                 - float(i)/(dataPointNum-1) * subtendedAngle)
     def clear(self):
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum

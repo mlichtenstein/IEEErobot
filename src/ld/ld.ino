@@ -195,7 +195,8 @@ Your response message should take the form ":[char],[id],[payload];"
                         unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<4; i++) {
-                            EyeServoWrite(i,pt);
+                            if (i == 0 || i ==2){  EyeServoWrite(i,pt);} //clockwise
+                            else {                 EyeServoWrite(i, ROBOT_SCAN_DATA_POINTS - 1 - pt);} //CounterCW
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[i] = analogRead(IRpin[i]);
                             //delay(DELAY);
