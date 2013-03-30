@@ -2,9 +2,10 @@ import sys
 sys.path.append( "robot" )
 sys.path.append( "pathfinding" )
 sys.path.append( "lib" )
-import pygame, math, edit, random, pickle, easygui
-from pygame.locals import *
-import graph as g
+#import pygame, math, edit, random, pickle, easygui
+#from pygame.locals import *
+import math, pickle
+
 """
 pose = (0,0,0)
 pucks = random.sample(range(1,17),6) #get this from USB drive
@@ -51,7 +52,7 @@ for node in graph.nodes:
     if temp ==0:
         node.puck = -1
 """
-def whatNode((x,y)):
+def whatNode( graph, (x,y) ):
     nearestNode=graph.nodes[0]
     distance=960**2
     distanceLowest = 960**2
@@ -78,11 +79,11 @@ def makeAMove((X,Y, theta)):
     The node it ends up on
 
     Example:
-    >>>
+    >>> 
     """
     #pull IMU and average into (or replace) theta here
-    nearestNode = whatNode((X,Y))[0]
-    distance = whatNode((X,Y))[1]
+    nearestNode = whatNode( graph,(X,Y))[0]
+    distance = whatNode( graph,(X,Y))[1]
     nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
     #scoot to the nearest node
     if distance > nearestNode.radius:
@@ -242,30 +243,7 @@ def getOtherNode( link, node ):
         return link.node2
     else:
         return link.node1
-    
-#main without GUI
-if __name__ == "__main__":
-    
-    '''
-    try:
-        graph = theGuts.loadFile( LOAD_FILE )
-    except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
-        #import traceback
-        print e
-        #traceback.print_stack()
-    if graph == None:
-        graph = g.Graph()
-    '''
-    
-    pucks = random.sample(range(1,17),6)
-    dummy = graph.addNode(-1000,-1000)
-    pose = (0,0,0)
-    drawFlag = 1
-    botPose = g.Pose()
 
-if __name__ == "__main__":
-    #Call theGuts with a pose tuple (X, Y, Theta)
-    thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main call
 
     
     

@@ -6,6 +6,7 @@ import pygame, math, edit, random, pickle, easygui
 from pygame.locals import *
 import graph as g
 import theGuts
+import support
 
 
 def drawObjects():
@@ -33,7 +34,7 @@ def drawObjects():
     for block in blocks:
         pygame.draw.rect(screen, colorWood, block)
     for circle in circles:
-        pygame.draw.circle(screen, colorCan, circle, radiusCan) 
+        pygame.draw.circle(screen, colorCan, circle, radiusCan)
     for log in logList: #logs are, in this context, fallen logs rather than logarithms
         delX = 10*(log[1]-log[3])/math.sqrt((log[0]-log[2])**2 + (log[3]-log[1])**2)
         delY = 10*(log[2]-log[0])/math.sqrt((log[0]-log[2])**2 + (log[3]-log[1])**2)
@@ -57,7 +58,7 @@ def drawPucks():
         x = (p-1)%4*240+120
         y = (p-1)/4*240+120
         pygame.draw.circle ( screen, (90,175,70), (x,y), 15)
-
+"""
 def whatNode((x,y)):
     nearestNode=graph.nodes[0]
     distance=960**2
@@ -69,7 +70,7 @@ def whatNode((x,y)):
             nearestNode=node
             distanceLowest=distance
     return (nearestNode, distanceLowest)
-
+"""
 def drawGraph():
     for node in graph.nodes:#draw nodes
         red=0
@@ -107,17 +108,17 @@ def drawAll():
     drawGraph()
     screen.unlock()
     pygame.display.update()
-
+"""
 def makeTimer( seconds ):
     import time
     startTime = time.time()
     return lambda : time.time() - startTime < seconds
-
+"""
 def drawLine(x1,y1,x2,y2): #draws a thick red line
     pygame.draw.line(screen, (255,0,0), (x1,y1),(x2,y2),3)
     pygame.display.update()
 
-
+"""
 def makeAMove((X,Y, theta)): #returns the node
     #pull IMU and average into or replace theta
     nearestNode = whatNode((X,Y))[0]
@@ -150,9 +151,9 @@ def makeAMove((X,Y, theta)): #returns the node
             elif pendingLink == nearestNode.node2:
                 departureAngle = pendingLink.node2direction
             angle = departureAngle - theta
-            
+
             #rotate(angle) <=============================================
-            
+
             #scoot(pendingLink.length) <=============================================
             botPose.theta = nearestNode.theta #update botPose.theta with imu data
             botPose.X = nearestNode.X #update botPose.theta with imu data
@@ -166,7 +167,8 @@ def makeAMove((X,Y, theta)): #returns the node
 
 DEBUG = False
 def explorePath( allLinks, roots, startingNode ):
-    """
+"""
+"""
     Description:
     The method tries to find the shortest path to a node.
 
@@ -180,7 +182,8 @@ def explorePath( allLinks, roots, startingNode ):
 
     Example:
     >>>
-    """
+"""
+"""
     currentNode = startingNode
     previous = roots[-1]
     result = []
@@ -265,10 +268,12 @@ def explorePath( allLinks, roots, startingNode ):
     return ( result, distance )
 
 def findPath( graph, startingNode ):
-    """
+"""
+"""
     Return:
     The path.
     """
+"""
     pathInfo = explorePath( graph.links, [startingNode], startingNode )
     if pathInfo == None:
         raise Exception( "Puck not found" )
@@ -295,7 +300,7 @@ def getOtherNode( link, node ):
         return link.node2
     else:
         return link.node1
-
+"""
 # By default accept all mouse up events.
 ignoreNextMouseUpEvent = lambda: False
 if __name__ == "__main__":
@@ -317,13 +322,40 @@ if __name__ == "__main__":
     drawFlag = 1
     botPose = g.Pose()
 
-while __name__ == "__main__":
+GUILoop = False
+if __name__ == "__main__":
+	GUILoop = True
+
+if __name__ == "__main__":
+    
+    '''
+    try:
+        graph = theGuts.loadFile( LOAD_FILE )
+    except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
+        #import traceback
+        print e
+        #traceback.print_stack()
+    if graph == None:
+        graph = g.Graph()
+    '''
+    
+    pucks = random.sample(range(1,17),6)
+    dummy = graph.addNode(-1000,-1000)
+    pose = (0,0,0)
+    drawFlag = 1
+    botPose = g.Pose()
+
+if __name__ == "__main__":
+    #Call theGuts with a pose tuple (X, Y, Theta)
+    thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main call
+	
+while GUILoop:
     for event in pygame.event.get():
         if event.type == QUIT:
             LOAD_FILE = easygui.filesavebox(msg="Save File", title=None, default=None)
             theGuts.writeFile( LOAD_FILE, graph )
             pygame.quit()
-            __name__ = None
+            GUILoop = False
             break
 
         # Ignore mouse up events.
@@ -332,7 +364,7 @@ while __name__ == "__main__":
             print "ignore mouse Up"
         elif event.type == pygame.MOUSEBUTTONDOWN:
             posDown=pygame.mouse.get_pos()
-            downNode=whatNode(posDown)[0]
+            downNode=theGuts.whatNode( graph, posDown)[0]
 
             #note which node it is in
             drawFlag = 1
@@ -340,7 +372,7 @@ while __name__ == "__main__":
         elif event.type == pygame.MOUSEBUTTONUP:
             print "mouse Up"
             posUp = pygame.mouse.get_pos()
-            upNode = whatNode(posUp)[0]
+            upNode = theGuts.whatNode( graph, posUp)[0]
             #if in the same node, then:
             drawFlag = 1
 
@@ -364,7 +396,7 @@ while __name__ == "__main__":
                         link.update()
                         break
                 # Ignore mouse clicks for the next 250 ms
-                ignoreNextMouseUpEvent = makeTimer(0.250)
+                ignoreNextMouseUpEvent = support.makeTimer(0.250)
             #clicked in execute box
             elif posDown[0]>940 and posDown[1]<20:
                 drawFlag=0
@@ -372,15 +404,15 @@ while __name__ == "__main__":
                     if edit.editBot(botPose):
                         drawAll()
                     else:
-                        thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
+                        thenode = theGuts.makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
                         break
 
                 # Ignore mouse clicks for the next 250 ms
-                ignoreNextMouseUpEvent = makeTimer(0.250)
+                ignoreNextMouseUpEvent = support.makeTimer(0.250)
 
-            elif whatNode(posDown)[1] <= downNode.radius:   #if click was inside a node
-                print "what node is returning " + str(whatNode(posDown)[0])
-                if whatNode(posUp)[1] <= upNode.radius:  #and  unclick was inside a node
+            elif theGuts.whatNode( graph, posDown)[1] <= downNode.radius:   #if click was inside a node
+                print "what node is returning " + str(theGuts.whatNode( graph, posDown)[0])
+                if theGuts.whatNode( graph, posUp)[1] <= upNode.radius:  #and  unclick was inside a node
                     if downNode==upNode:  #and those were the same nodes
                         right_mouse=pygame.mouse.get_pressed()
 
@@ -398,9 +430,9 @@ while __name__ == "__main__":
                                         link.update()
                                         break
                                 # Ignore mouse clicks for the next 250 ms
-                                ignoreNextMouseUpEvent = makeTimer(0.250)
+                                ignoreNextMouseUpEvent = support.makeTimer(0.250)
                         else:
-                                graph.removeNode(whatNode(posDown)[0])  #remove that node
+                                graph.removeNode(theGuts.whatNode( graph, posDown)[0])  #remove that node
                     else: # but if they were two different nodes
                         red=random.randint(0,255)
                         green=random.randint(0,255)
