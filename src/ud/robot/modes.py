@@ -105,9 +105,9 @@ class Localize( Mode ):
             print("=========Beginning localization.=========")
             print "step 1: build cloud"
             #add hbots at the current best guess, if nec
-            minCount = 100
             if cloud.count() == 0:
-                cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
+                #cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
+                cloud.appendFlatSquare(self.cloudsize, state.pose, 1,4)
             elif cloud.count() < minCount:
                 multiplier = int(minCount / cloud.count() +.99)
                 cloud.appendBloom(multiplier,state.poseUncertainty)

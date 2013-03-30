@@ -187,10 +187,14 @@ class HypobotCloud:
                     self.hypobotList.append(Hypobot(x,y,theta,weight))
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
-    def appendFlatRectangle(self, cloudSize, centerPose, edgePose):
-        import math
-        m = int(math.sqrt)
-        for i in 
+    def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
+        #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose
+        import random
+        for i in range(0,cloudSize):
+            self.hypobotList.append(Hypobot(
+                    random.uniform(centerpose.x-xyside/2,centerpose.x+xyside/2),
+                    random.uniform(centerpose.y-xyside/2,centerpose.y+xyside/2),
+                    random.uniform(centerpose.theta-thetaside/2,centerpose.theta+thetaside/2)))
     def appendGaussianCloud(self, cloudSize, pose, poseSigma):
         import random 
         for i in range (0,cloudSize):
