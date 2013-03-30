@@ -7,7 +7,6 @@ and a function for parsing the Arduino's scan report
 import math
 import sys
 sys.path.append("..")
->>>>>>> Stashed changes
 import settings
 
 
