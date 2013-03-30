@@ -69,6 +69,8 @@ def messageTupleToEyeList(messageTuple):
             rawUS = USmsb*256 + USlsb
             IR = rawIRtoFeet(rawIR)
             US = rawUStoFeet(rawUS)
+            IR = min(IR,settings.SCAN_IR_RANGELIM) #THIS LINE IS SUPER IMPORTANT
+                #It is important because high ranges are VERY unreliable.
             #print("Mt2el: Eye "+str(eyeNum)+" reports IR="+str(IR)+" feet at data point "+str(dataPointNum))
             eyeList[eyeNum].takeReading(dataPointNum,IR,US)
         except Exception as error:
@@ -85,7 +87,6 @@ class Hypobot:
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
-        self.weightingSigma = .01
         import random
         self.red = random.random() * 256
         self.blue = random.random() *256
@@ -113,17 +114,20 @@ class Hypobot:
             for i in range(settings.SCAN_DATA_POINTS):
                 if real_eyeList[eyeNum].IR[i] != 0:     
                     distance = 10
-                    correctionWindow = 1
+                    a=0
+                    correctionWindow = 3
                     for j in range(max(0,i-correctionWindow),
                             min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
                         a = self.localEyeList[eyeNum].IR[j]
                         b =  real_eyeList[eyeNum].IR[i]
                         #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
                         distance = min(distance, abs(a-b))  #FAST
-                    self.weight *= math.exp((-(distance)**2)*self.weightingSigma)
-        self.color = (  int(self.weight*self.red),
-                        int(self.weight*self.green),
-                        int(self.weight*self.blue))
+                    self.weight *= math.exp((-(distance/self.weightingSigma(a)/2)**2))
+    def weightingSigma(self, idealRange):
+        if idealRange < 1:
+            return 1
+        else:
+            return 1
     def generateEyeData(self, landmarkList):
         #tricky, we need to use the hardware info from real_eyeList
         #plus the pose info from hypobot to transform our heading
@@ -191,10 +195,10 @@ class HypobotCloud:
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose
         import random
         for i in range(0,cloudSize):
-            self.hypobotList.append(Hypobot(
-                    random.uniform(centerpose.x-xyside/2,centerpose.x+xyside/2),
-                    random.uniform(centerpose.y-xyside/2,centerpose.y+xyside/2),
-                    random.uniform(centerpose.theta-thetaside/2,centerpose.theta+thetaside/2)))
+            x = random.uniform(centerPose.x-xyside/2,centerPose.x+xyside/2)
+            y = random.uniform(centerPose.y-xyside/2,centerPose.y+xyside/2)
+            theta = random.uniform(centerPose.theta-thetaside/2,centerPose.theta+thetaside/2)
+            self.hypobotList.append(Hypobot(x,y,theta))
     def appendGaussianCloud(self, cloudSize, pose, poseSigma):
         import random 
         for i in range (0,cloudSize):
@@ -237,7 +241,7 @@ class HypobotCloud:
             totWeight += hypobot.weight
         for hypobot in self.hypobotList:
             hypobot.weight /= totWeight
-            if peakWeight > hypobot.weight:
+            if peakWeight < hypobot.weight:
                 peakWeight = max(peakWeight, hypobot.weight)
                 peakBot = hypobot
         print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
@@ -251,7 +255,7 @@ class HypobotCloud:
                 peakWeight = hbot.weight
                 retBot = hbot
         if retBot.weight<0:
-            print "All hbot weights are zero. Probably your class Hypobot weightingSigma is too high."
+            print "All hbot weights are zero. Probably your class Hypobot weightingSigma is too low."
         return retBot
     def peakWeight(self):
         return self.getPeakBot().weight
@@ -363,15 +367,11 @@ if __name__ == "__main__":
     #test averaging:
     testCloud = HypobotCloud()
     h1 =Hypobot(10,0,0,.5)
-    h2 =Hypobot(0,0,0)
+    h2 =Hypobot(0,5,0,1)
     print h1.weight
     testCloud.hypobotList.append(h1)
     testCloud.hypobotList.append(h2)
-    print testCloud.average(0).x
+    print testCloud.average().x
+    print testCloud.average().y
     print testCloud.normalize()
-
-    print max(testCloud.hypobotList,key=lambda hbot: hbot.weight).weight
-
-    print testCloud.average(0).x
-
     print testCloud.describeCloud()

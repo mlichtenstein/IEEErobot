@@ -107,9 +107,9 @@ class Localize( Mode ):
             #add hbots at the current best guess, if nec
             if cloud.count() == 0:
                 #cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
-                cloud.appendFlatSquare(self.cloudsize, state.pose, 1,4)
-            elif cloud.count() < minCount:
-                multiplier = int(minCount / cloud.count() +.99)
+                cloud.appendFlatSquare(self.cloudSize, state.pose, 1.0,4.0)
+            elif cloud.count() < self.cloudSize:
+                multiplier = int(self.cloudSize / cloud.count() +.99)
                 cloud.appendBloom(multiplier,state.poseUncertainty)
             self.step +=1
             return None
@@ -131,22 +131,37 @@ class Localize( Mode ):
         if self.step == 3:
             print "step 3: weight hbots"
             cloud.weight(self.real_eyeList, world.World().landmarkList)
+            cloud.describeCloud()
             self.step +=1
             return None
         if self.step == 4:
-            print "step 4: normalize and average"
+            print "step 4: normalize, average, prune, change bestGuess"
             cloud.normalize()           
             avg = state.hypobotCloud.average()
+            cloud.pruneFraction(0.9)
+            cloud.describeCloud()
             state.pose = avg
             print "Changing pose to",avg.x,",",avg.y,",",avg.theta
             self.step +=1
             return None
+            """
+            while True:
+                pass
         if self.step == 5:
-            print "step 5: prune the cloud"
-            state.hypobotCloud.pruneFraction(0.9)
-            state.hypobotCloud.normalize()
+            print "step 5: prune the cloud, normalize"
+            cloud.pruneFraction(0.9)
+            cloud.normalize()
             self.step +=1
             return None
+        if self.step == 6:
+            print "step 6: focus the cloud, weight"
+            cloud.appendBloom(3,Pose(.1,.1,1))
+            cloud.weight(self.real_eyeList, world.World().landmarkList)
+            self.step +=1
+            return None
+            """
+        print state.pose.string()
+        raise Exception("measure it dummy")
         return Localize(state)
     pass
 
@@ -187,3 +202,9 @@ if __name__ == "__main__":
     while True:
         if messenger.checkInBox():
             mode.onMessageReceived( messenger.getMessage() )
+
+class LocalizationTest(Mode):
+    def __init__( self , state):
+        print("Waiting for your click to drop a best guess pose")
+        state.mode = "Loc Test"
+

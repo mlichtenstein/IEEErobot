@@ -18,6 +18,12 @@ class Pose:
         self.x = random.random()*8
         self.y = random.random()*8
         self.theta = random.random()*360
+    def string(self):
+        #a method that returns a string that describes the bot.
+        string = "x= {}' {:.1f}\"".format(int(self.x),(self.x-int(self.x))*12)\
+                +", y= {}' {:.1f}\"".format(int(self.y),(self.y-int(self.y))*12)\
+                +", theta= {:.1f}\"".format(self.theta)
+        return string
 
 class State:
     #The robot's internal state variables go here:
@@ -62,3 +68,9 @@ class Landmark:
         if landmarkType != "TREE" and landmarkType!= "ROCK":
             raise Exception("landmarkType must be TREE or ROCK")
         self.x,self.y,self.landmarkType = (x,y,landmarkType)
+
+
+if __name__ == "__main__":
+    print "??"
+    testPose = Pose(4.33333333333,2,1)
+    print testPose.string()

@@ -54,8 +54,8 @@ def drawRangeTangent(surface, color, origin_x, origin_y, theta, rDist, tanDist):
     #all units in pixels
     mid_x   = origin_x + rDist*math.cos(theta*math.pi/180)
     mid_y   = origin_y - rDist*math.sin(theta*math.pi/180)
-    start_x = mid_x - tanDist*math.sin(theta*math.pi/180)
-    start_y = mid_y - tanDist*math.cos(theta*math.pi/180)
+    start_x = mid_x - tanDist/2*math.sin(theta*math.pi/180)
+    start_y = mid_y - tanDist/2*math.cos(theta*math.pi/180)
     end_x = mid_x + tanDist/2*math.sin(theta*math.pi/180)
     end_y = mid_y + tanDist/2*math.cos(theta*math.pi/180)
     pygame.draw.line(surface, color, (start_x,start_y), (end_x, end_y))
