@@ -3,6 +3,9 @@ this library is for the basic building blocks of the representations
 our robot uses.
 """
 
+import sys
+sys.path.append( "robot" )
+
 class Pose:
     x=0
     y=0
@@ -67,10 +70,20 @@ class Landmark:
     def __init__(self, x, y, landmarkType):
         if landmarkType != "TREE" and landmarkType!= "ROCK":
             raise Exception("landmarkType must be TREE or ROCK")
+        self.effRadius = 6.7/24 #the radius of a rock
         self.x,self.y,self.landmarkType = (x,y,landmarkType)
+
+        if landmarkType == "TREE":
+            self.effRadius = 2.0/12
+        else:
+            self.effRadius = 6.7/12/2
+
 
 
 if __name__ == "__main__":
     print "??"
     testPose = Pose(4.33333333333,2,1)
     print testPose.string()
+
+    testLandmark = Landmark(1,1, "TREE")
+    print testLandmark.effRadius

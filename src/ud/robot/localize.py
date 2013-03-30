@@ -144,7 +144,33 @@ class Hypobot:
                 effective_theta = eye.thetaList[j]
                 #----------------------change generation speed here ---------------------
                 eye.IR[j] = calcIdealRange(x, y, effective_theta, landmarkList, "SLOW")
-
+    def detectCollision(self):
+        import world
+        s = world.World().robotSide/2
+        x = self.pose.x
+        y = self.pose.y
+        theta = self.pose.theta
+        xa = s*math.cos(self.pose.theta*math.pi/180)
+        ya = s*math.sin(self.pose.theta*math.pi/180)
+        xb = s*math.sin(self.pose.theta*math.pi/180)
+        yb = s*math.cos(self.pose.theta*math.pi/180)
+        cornerList = (  (x-xa+xb,y+ya+yb),
+                        (x-xa-xb,y+ya-yb),
+                        (x+xa-xb,y-ya-yb),
+                        (x+xa+xb,y-ya+yb) )
+        for corner in cornerList:
+            print corner
+            for landmark in world.World().landmarkList:
+                dsquared = (corner[0]-landmark.x)**2 + (corner[1]-landmark.y)**2
+                if landmark.landmarkType == "TREE": # JOSH WHAT IS WRONG????  why can't I call landmark.effRadius?
+                    effRadius = 2.0/12 
+                else:
+                    effRadius = 6.7/24
+                if dsquared < effRadius**2:
+                    return True
+            if corner[0]<0 or corner[0]>8 or corner[1]<0 or corner[1]>8:
+                return True
+        return False
            
 class HypobotCloud:
     """
@@ -217,6 +243,16 @@ class HypobotCloud:
         for i in range(0,cloudRootSize):
             for j in range(0,cloudRootSize):
                 self.hypobotList.append(Hypobot(.5 + l*i, .5+l*j, theta))
+    def flatten(self):
+        for hbot in self.hypobotList:
+            hbot.weight = 1
+    def clearCollided(self):
+        deleted = 0
+        for hbot in self.hypobotList:
+            if hbot.detectCollision:
+                self.hypobotList.remove(hbot)
+                deleted += 1
+        print "Deleted",deleted,"hbots due to collisions.",len(self.hypobotList),"remain."
     def generateEyeData(self, landmarkList):
         import time
         startTime = time.time()
@@ -375,3 +411,5 @@ if __name__ == "__main__":
     print testCloud.average().y
     print testCloud.normalize()
     print testCloud.describeCloud()
+    h3 = Hypobot(0,0,0,5.5)
+    print h3.detectCollision()

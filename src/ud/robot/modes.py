@@ -107,15 +107,16 @@ class Localize( Mode ):
             #add hbots at the current best guess, if nec
             if cloud.count() == 0:
                 #cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
-                cloud.appendFlatSquare(self.cloudSize, state.pose, 1.0,4.0)
+                cloud.appendFlatSquare(self.cloudSize, state.pose, 1.5, 15.0)
             elif cloud.count() < self.cloudSize:
                 multiplier = int(self.cloudSize / cloud.count() +.99)
-                cloud.appendBloom(multiplier,state.poseUncertainty)
+                cloud.appendBloom(multiplier,Pose(.3,.3,3))
             self.step +=1
             return None
         if self.step == 2:
             print "step 2: scan and generate eye data"
             self.messenger.sendMessage(settings.SERVICE_SCAN)
+            cloud.clearCollided();
             import time
             messageTime = time.time()
             cloud.generateEyeData(world.World().landmarkList)
@@ -203,11 +204,4 @@ if __name__ == "__main__":
     while True:
         if messenger.checkInBox():
             mode.onMessageReceived( messenger.getMessage() )
-
-class LocalizationTest(Mode):
-    def __init__( self , state):
-        print("Waiting for your click to drop a best guess pose")
-        state.mode = "Loc Test"
-    def act(self, state):
-        if state
 

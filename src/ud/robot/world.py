@@ -6,9 +6,11 @@ run of the program, but we may want to tweak them.  I include them in
 a class (basically a structure) so that the notation will be suggestive
 of the reference to this file.
 """
-
+import sys
+sys.path.append( "robot" )
 from robotbasics import *
 from settings import *
+
 
 class World:
     import localize
@@ -34,4 +36,4 @@ class World:
             localize.Eye(  1 ,-0.415,-0.415,  180.0, SCAN_DATA_POINTS, SCAN_ANGLE),
             localize.Eye(  2 ,-0.415,0.415,  270.0, SCAN_DATA_POINTS, SCAN_ANGLE),
             localize.Eye(  3 ,0.415,0.415,  0.0, SCAN_DATA_POINTS, SCAN_ANGLE))
-    robotSide = 1
+    robotSide = 1.0
