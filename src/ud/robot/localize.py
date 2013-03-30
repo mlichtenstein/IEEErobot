@@ -122,7 +122,7 @@ class Hypobot:
                 if real_eyeList[eyeNum].IR[i] != 0:     
                     distance = 10
                     a=0
-                    correctionWindow = 3
+                    correctionWindow = 1
                     for j in range(max(0,i-correctionWindow),
                             min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
                         a = self.localEyeList[eyeNum].IR[j]
@@ -132,7 +132,7 @@ class Hypobot:
                     self.weight *= math.exp((-(distance/self.weightingSigma(a)/2)**2))
     def weightingSigma(self, idealRange):
         if idealRange < 1:
-            return 1
+            return 2
         else:
             return 1
     def generateEyeData(self, landmarkList):
@@ -224,6 +224,7 @@ class HypobotCloud:
                     self.hypobotList.append(Hypobot(x,y,theta,weight))
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
+        self.flatten()
     def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose
         import random

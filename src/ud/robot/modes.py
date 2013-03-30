@@ -97,7 +97,7 @@ class Localize( Mode ):
         state.mode = "Localize"
         self.scanUpToDate = False
         self.step = 1
-        self.cloudSize = 500 #approx size of cloud--we will bloom and prune to stay near this
+        self.cloudSize = 1000 #approx size of cloud--we will bloom and prune to stay near this
     def act(self, state):
         import localize
         cloud = state.hypobotCloud 

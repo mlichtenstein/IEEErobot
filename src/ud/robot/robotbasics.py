@@ -39,7 +39,7 @@ class State:
         self.startPause = None
         self.mode = None
         self.moving = False
-        self.pose = Pose(3,2,68)
+        self.pose = Pose(2.0,3.0,12)
         self.poseUncertainty = Pose(.3,.3,5)
         self.pitch = 0.0
         self.roll = 0.0
@@ -72,7 +72,6 @@ class Landmark:
             raise Exception("landmarkType must be TREE or ROCK")
         self.effRadius = 6.7/24 #the radius of a rock
         self.x,self.y,self.landmarkType = (x,y,landmarkType)
-
         if landmarkType == "TREE":
             self.effRadius = 2.0/12
         else:

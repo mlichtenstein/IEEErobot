@@ -62,6 +62,8 @@ void EyeServoWrite(int servoNum, int pt) {
       case 2: rmin = 25; rmax = 160; break;
       case 3: rmin = 20; rmax = 170; break;
     }
+    if (servoNum == 1 || servoNum == 3)
+      { int temp; temp = rmin; rmin = rmax; rmax = temp;} //swapping rmin and rmax makes 1 and 3 go counterclockwise
       float wrappedTheta = float(rmin) + float(rmax - rmin)*pt/ROBOT_SCAN_DATA_POINTS;
     EyeServo[servoNum].write(int(wrappedTheta));
     
@@ -188,18 +190,19 @@ Your response message should take the form ":[char],[id],[payload];"
                     Serial.write( ":J," );
                     Serial.print( id );
                     Serial.write( ","); 
-                    #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
+                    #define DELAY 12 //the minimum read time--used to ensure that the scan doesn't go so fast
                     float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
                     for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
                         unsigned int USreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in usec
                         unsigned int IRreading[ROBOT_SCAN_DATA_POINTS];  //each eye's US reading in 5/1024 v
                         unsigned long lastTime = millis();  //used to establish a minimum read time
                         for (int i = 0; i<4; i++) {
-                            if (i == 0 || i ==2){  EyeServoWrite(i,pt);} //clockwise
-                            else {                 EyeServoWrite(i, ROBOT_SCAN_DATA_POINTS - 1 - pt);} //CounterCW
+                            EyeServoWrite(i,pt);
                             USreading[i] = PingFire(i);  //this can be slow if we do it 4 times...might need more delicate code
+                            delay(DELAY);
                             IRreading[i] = analogRead(IRpin[i]);
-                            //delay(DELAY);
+                            delay(DELAY);
+                            if (IRreading == 0) {delay(1000);}
                         }
                         while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
                         for (int i=0; i<4; i++) {
