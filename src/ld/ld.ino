@@ -179,9 +179,93 @@ Your response message should take the form ":[char],[id],[payload];"
                 break;
                 #ifdef ROBOT_SERVICE_GO
                 case ROBOT_SERVICE_GO: {
-                    Serial.write( ":C" );
-                    Serial.print( id );
-                    Serial.write( ';' );
+                    // Forward declarations.
+                    char subCategory;
+                    int firstParam;
+                    boolean messageGood = false;
+                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c,%d", &subCategory, &firstParam );
+                    
+                    // Should have received 2 parameters.
+                    if ( numOfVars == 2 ) {
+                      // Turn.
+                      if ( subCategory == ROBOT_COMMAND_TURN ) {
+                        if ( firstParam >= -360 && firstParam <= 360 ) {
+                          turn( firstParam );
+                          messageGood = true;
+                        }
+                        // Bad angle.
+                        else {
+                          Serial.write( ':' );
+                          Serial.write( ROBOT_RESPONSE_ERROR );
+                          Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                          Serial.write( "Error: Bad angle of\"" );
+                          Serial.write( firstParam );
+                          Serial.write( "\" was greater than 360 or less than -360." );
+                          Serial.write( "Message was\"" );
+                          Serial.write( inBoxBuffer );
+                          Serial.write( "\";" );
+                        }
+                      }
+                      // Scoot.
+                      else if ( subCategory == ROBOT_COMMAND_SCOOT ) {
+                        int angle = -9999;
+                        numOfVars = sscanf( inBoxBuffer, "%*c%*d,%*c,%*d,%d", &angle );
+                        if ( numOfVars == 1 ) {
+                          if ( angle >= -360 && angle <= 360 ) {
+                            scoot( firstParam, angle );
+                            messageGood = true;
+                          }
+                          // Bad angle.
+                          else {
+                            Serial.write( ':' );
+                            Serial.write( ROBOT_RESPONSE_ERROR );
+                            Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                            Serial.write( "Error: Bad angle of\"" );
+                            Serial.write( angle );
+                            Serial.write( "\" was greater than 360 or less than -360." );
+                            Serial.write( "Message was\"" );
+                            Serial.write( inBoxBuffer );
+                            Serial.write( "\";" );
+                          }
+                        }
+                        // Wrong number of arguments to scoot. Should have got 2 but got only 1.
+                        else {
+                          Serial.write( ':' );
+                          Serial.write( ROBOT_RESPONSE_ERROR );
+                          Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                          Serial.write( "Error: Wrong number of arguments to scoot. Expecting 2 but 1. Message was\"" );
+                          Serial.write( inBoxBuffer );
+                          Serial.write( "\";" );
+                        }
+                      }
+                      // Bad subcategory command.
+                      else {
+                        Serial.write( ':' );
+                        Serial.write( ROBOT_RESPONSE_ERROR );
+                        Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                        Serial.write( "Error: Bad sub category of \"." );
+                        Serial.print( subCategory );
+                        Serial.write( "\";" );
+                        Serial.write( "Message was\"" );
+                        Serial.write( inBoxBuffer );
+                        Serial.write( "\";" );
+                      }
+                    }
+                    // Wrong number of arguments.
+                    else {
+                      Serial.write( ':' );
+                      Serial.write( ROBOT_RESPONSE_ERROR );
+                      Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                      Serial.write( "Error: Wrong number of arguments. Message was\"" );
+                      Serial.write( inBoxBuffer );
+                      Serial.write( "\";" );
+                    }
+                    // Command succeeded.
+                    if ( messageGood ) {
+                      Serial.write( ":C" );
+                      Serial.print( id );
+                      Serial.write( ';' );
+                    }
                 }
                 break;
                 #endif

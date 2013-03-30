@@ -32,6 +32,8 @@
 #define ROBOT_SERVICE_TEST_SERVO 'L'
 //#define ROBOT_SERVICE_ARM_SERVO 'G'
 #define ROBOT_SERVICE_GO 'T'
+#define ROBOT_COMMAND_TURN 'T'
+#define ROBOT_COMMAND_SCOOT 's'
 // END Services
 
 // BEGIN Responses
