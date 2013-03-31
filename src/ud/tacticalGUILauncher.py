@@ -347,7 +347,8 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     #Call theGuts with a pose tuple (X, Y, Theta)
-    thenode = makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main call
+    thenode = theGuts.makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main call
+	drawBot(botPose.X,botPose.Y, botPose.theta)
 	
 while GUILoop:
     for event in pygame.event.get():
@@ -405,6 +406,7 @@ while GUILoop:
                         drawAll()
                     else:
                         thenode = theGuts.makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
+						drawBot(botPose.X,botPose.Y, botPose.theta)
                         break
 
                 # Ignore mouse clicks for the next 250 ms
