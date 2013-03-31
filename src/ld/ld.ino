@@ -18,7 +18,7 @@
 //Front-left servo, etc
 Servo FLSERVO, FRSERVO, BLSERVO, BRSERVO;
 //Pin numbers for wheel servos, motor pairs
-const int LEFT_DIR1 = 22, LEFT_DIR2 = 23, RIGHT_DIR1 = 24, RIGHT_DIR2 = 25;
+const int LEFT_DIR1 = 25, LEFT_DIR2 = 24, RIGHT_DIR1 = 26, RIGHT_DIR2 = 27;
 /*
 H-BRIDGE:    LEFT_DIR1       LEFT_DIR2      RIGHT_DIR1        RIGHT_DIR2
 forward          0               1               1                 0
@@ -115,10 +115,10 @@ void setup() {
     #endif
     #ifdef ROBOT_SERVICE_GO
     //Attach Servos
-    FLSERVO.attach(50); //front left servo
-    FRSERVO.attach(51); //front right servo
-    BLSERVO.attach(52); //back left servo
-    BRSERVO.attach(53); //back right servo
+    FLSERVO.attach(30); //front left servo
+    FRSERVO.attach(28); //front right servo
+    BRSERVO.attach(31); //back left servo
+    BLSERVO.attach(29); //back right servo
     pinMode(LEFT_DIR1, OUTPUT);
     pinMode(LEFT_DIR2, OUTPUT);
     pinMode(RIGHT_DIR1, OUTPUT);
