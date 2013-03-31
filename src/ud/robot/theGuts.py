@@ -1,7 +1,3 @@
-import sys
-sys.path.append( "robot" )
-sys.path.append( "pathfinding" )
-sys.path.append( "lib" )
 #import pygame, math, edit, random, pickle, easygui
 #from pygame.locals import *
 import math, pickle
@@ -53,6 +49,18 @@ for node in graph.nodes:
         node.puck = -1
 """
 def whatNode( graph, (x,y) ):
+    """"
+    Gets the nearest node from the current x and y position.
+    
+    Parameters:
+    graph -- is the graph containing links which is a list of links and nodes
+     which is a list of nodes.
+    (x, y) -- a tuple of a x and y coordinate. Currently, this syntax is only
+     supported in Python 2.7.
+    
+    Returns
+    The nearest node.
+    """
     nearestNode=graph.nodes[0]
     distance=960**2
     distanceLowest = 960**2
@@ -82,41 +90,7 @@ def makeAMove((X,Y, theta)):
     >>> 
     """
     #pull IMU and average into (or replace) theta here
-    nearestNode = whatNode( graph,(X,Y))[0]
-    distance = whatNode( graph,(X,Y))[1]
-    nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-    #scoot to the nearest node
-    if distance > nearestNode.radius:
-        angle =  nodeTheta - theta
-        #scoot(distance, angle)#<======================================= change mode to - Go - scoot
-        botPose.X, botPose.Y = nearestNode.X, nearestNode.Y
-        drawBot(X,Y,theta)
-    #face puck and retrieve it
-    elif 1 <= nearestNode.puck <= 16:
-        #rotate(nearestNode.theta - theta)#<============================ change mode to - Go - rotate
-        botPose.theta = nearestNode.theta
-        #grab()#<======================================================= change mode to - Arm - grab
-        nearestNode.puck=-1
-    #move along link
-    else:
-        try:
-            pendingLink = findPath( graph, nearestNode )
-            distance = pendingLink.length
-            if pendingLink == nearestNode.node1:
-                departureAngle = pendingLink.node1direction
-            elif pendingLink == nearestNode.node2:
-                departureAngle = pendingLink.node2direction
-            angle = departureAngle - theta
-            #rotate(angle) <============================================ change mode to - Go - rotate
-            #scoot(pendingLink.length) <================================ change mode to - Go - scoot
-            botPose.theta = nearestNode.theta 
-            botPose.X = nearestNode.X 
-            botPose.Y = nearestNode.Y 
-        except Exception as e:
-            print "Error: ", e
-    #update botPose.theta with imu data
-    #localize(X, Y, theta, distance)<=================================== change mode to - Localize - run
-    return nearestNode
+    return theGuts.whatNode( graph,(X,Y))[0]
 
 def explorePath( allLinks, roots, startingNode ):
     """
@@ -243,6 +217,7 @@ def getOtherNode( link, node ):
         return link.node2
     else:
         return link.node1
+
 
 
     
