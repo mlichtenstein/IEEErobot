@@ -231,25 +231,29 @@ class SerialPort:
         
         i = 0
         done = False
-        self.port = "/dev/ttyACM"
-        while not done:
-            tempPort = self.port + str(i)
-            print("trying to connect to " + tempPort + "...")
-            try:
-                self.__ser = serial.Serial( 
-                    port = tempPort, baudrate = settings.SERIAL_PORT_SPEED )
-                self.connected = True
-                self.port = tempPort
-                print("Yes! Connected to "+tempPort)
-                done = True
-            except serial.SerialException as e:
-                print("...Nope!  ",e)
-                i += 1
-            if i > 30:
-                print("no serial today, guy")
-                done = True
-                raise Exception("Either you have 30 serial connections\
-                        or something else is wrong")
+        self.port = ["/dev/ttyACM", "COM"]
+        i = 0
+        done = False
+        for portStub in ["/dev/ttyACM", "COM"]:
+            for i in range( 0, 30 ):
+                try:
+                    tempPort = portStub + str( i )
+                    self.__ser = serial.Serial( 
+                        port = tempPort, baudrate = settings.SERIAL_PORT_SPEED )
+                    self.connected = True
+                    self.port = tempPort
+                    print("Yes! Connected to "+tempPort)
+                    done = True
+                    break
+                except serial.SerialException as e:
+                    print("...Nope!  ",e)
+            if done:
+                break
+        if not done:
+            print("no serial today, guy")
+            done = True
+            raise Exception("Either you have 30 serial connections\
+                    or something else is wrong")
         
         # Avoid race condition
         time.sleep(1)

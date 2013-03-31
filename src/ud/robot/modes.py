@@ -89,7 +89,7 @@ class Go( Mode ):
         nextState = self.makeAMove()
         if nextState == None:
             # Handle error.
-            throw Exception( "Need to handle error." )
+            raise Exception( "Need to handle error." )
         if nextState == NEXT_STATE_GRAB:
             return Grab( state )
         if nextState == NEXT_STATE_LOCALIZE:
@@ -106,7 +106,7 @@ class Go( Mode ):
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
                 return NEXT_STATE_GO
-            else
+            else:
                 return None
         #face puck and retrieve it
         elif 1 <= nearestNode.puck <= 16:
@@ -129,7 +129,7 @@ class Go( Mode ):
                 if success and self.scoot( pendingLink.length ):
                     botPose.X = nearestNode.X 
                     botPose.Y = nearestNode.Y 
-                else
+                else:
                     sucess = False
                 if not success:
                     return None
