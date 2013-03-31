@@ -55,6 +55,8 @@ class Messenger:
                 must be able to converted to a string.
                 Enter this argument as a list of comma separated values:
                 messenger.sendMessage(SERVICE_SCAN,1,3,MattsBalls)
+		Return:
+			The id of the message sent.
         Throws:
             TypeError -- when charCategory is not a string.
             Exception -- when the length of charCategory is not 1.
@@ -90,6 +92,7 @@ class Messenger:
         self.__serialWrapper.write( ";" )
         print(printout+';')
         self.__id += 1
+		return id
     def checkInBox( self ):
         """
         Reads the bytes coming into the serial port while the buffer
