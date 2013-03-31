@@ -137,7 +137,7 @@ class Ready( Mode):
         #"Start" command
         return ReadUSBDrive(state)
         
-puckSector = []
+
 #global var fror puck sectors
 class ReadUSBDrive( Mode):
 #class to read in 
@@ -146,10 +146,14 @@ class ReadUSBDrive( Mode):
         state.mode = "ReadUSB"
     def act(self, state):
         print("Write code that reads from the USB here")
-	USB = open("/media/robo1/Locatio.csv")
+	script = "echo robot | sudo -S mount /dev/disk/by-label/robot /mnt/robo"
+	proc = subprocess.Popen(['bash', '-c', script], 
+		stdout=subprocess.PIPE, stdin=subporcess.PIPE)
+	stdout = proc.communicat()
+	USB = open("/mnt/robo/Locatio.csv")
 	reader = csv.reader(USB)
 	for row in reader:
-		puckSector.append(row)
+		states.remainingPucks.append(row)
 	print puckSector
         # if state.hypobotCloud.count() == 0:
         #    state
