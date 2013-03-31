@@ -1,6 +1,6 @@
 import sys
 sys.path.append( "robot" )
-sys.path.append( "pathfinding" )
+sys.path.append( "tg" )
 sys.path.append( "lib" )
 import pygame, math, edit, random, pickle, easygui
 from pygame.locals import *
