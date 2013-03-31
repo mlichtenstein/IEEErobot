@@ -72,7 +72,7 @@ def whatNode( graph, (x,y) ):
             distanceLowest=distance
     return (nearestNode, distanceLowest)
 
-def makeAMove((X,Y, theta)):
+def makeAMove( graph, (X,Y, theta)):
     """
     Description:
     The method decides what Act will come next
@@ -90,7 +90,7 @@ def makeAMove((X,Y, theta)):
     >>> 
     """
     #pull IMU and average into (or replace) theta here
-    return theGuts.whatNode( graph,(X,Y))[0]
+    return whatNode( graph,(X,Y))[0]
 
 def explorePath( allLinks, roots, startingNode ):
     """
