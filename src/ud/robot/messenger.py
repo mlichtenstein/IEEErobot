@@ -55,8 +55,8 @@ class Messenger:
                 must be able to converted to a string.
                 Enter this argument as a list of comma separated values:
                 messenger.sendMessage(SERVICE_SCAN,1,3,MattsBalls)
-		Return:
-			The id of the message sent.
+        Return:
+            The id of the message sent.
         Throws:
             TypeError -- when charCategory is not a string.
             Exception -- when the length of charCategory is not 1.
@@ -92,7 +92,7 @@ class Messenger:
         self.__serialWrapper.write( ";" )
         print(printout+';')
         self.__id += 1
-		return id
+        return id
     def checkInBox( self ):
         """
         Reads the bytes coming into the serial port while the buffer
@@ -146,32 +146,32 @@ class Messenger:
             return False
         tup = string.split(",", 2)
         return tup
-	def waitForConfirmation( self, messageID, maxWaitMS ):
-		"""
-		Description
-			Waits for a confirmation message. Failure will be caused when the
-			 timer expired or the wrong confirmation ID was received. The wrong
-			 confirmation ID is very unlikely.
-		Parameters
-			messageID -- the ID of the confirmation to check.
-			maxWaitMS -- the maximum milliseconds to wait.
-		Return
-			True -- when the operation is a success.
-			False -- when the operation failed.
-		"""
-		# Don't wait too long for the robot.
-		hasTime = support.makeTimer( maxWaitMS )
-		confirmationReceived = False
-		while hasTime():
-			# Read message.
-			if self.checkInBox():
-				message = self.getMessageTuple()
-				# Correct confirmation received.
-				if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION \
-				 and message[1] == messageID:
-					confirmationReceived = True
-					break
-		return confirmationReceived
+    def waitForConfirmation( self, messageID, maxWaitMS ):
+        """
+        Description
+            Waits for a confirmation message. Failure will be caused when the
+             timer expired or the wrong confirmation ID was received. The wrong
+             confirmation ID is very unlikely.
+        Parameters
+            messageID -- the ID of the confirmation to check.
+            maxWaitMS -- the maximum milliseconds to wait.
+        Return
+            True -- when the operation is a success.
+            False -- when the operation failed.
+        """
+        # Don't wait too long for the robot.
+        hasTime = support.makeTimer( maxWaitMS )
+        confirmationReceived = False
+        while hasTime():
+            # Read message.
+            if self.checkInBox():
+                message = self.getMessageTuple()
+                # Correct confirmation received.
+                if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION \
+                 and message[1] == messageID:
+                    confirmationReceived = True
+                    break
+        return confirmationReceived
 
 class SerialPort:
     """
@@ -226,8 +226,8 @@ class SerialPort:
         import serial
         import settings
         import time
-		#the following section is for Max's computer.
-		#increments through port names until it finds an available one
+        #the following section is for Max's computer.
+        #increments through port names until it finds an available one
         
         i = 0
         done = False
@@ -249,7 +249,7 @@ class SerialPort:
                 print("no serial today, guy")
                 done = True
                 raise Exception("Either you have 30 serial connections\
-						or something else is wrong")
+                        or something else is wrong")
         
         # Avoid race condition
         time.sleep(1)

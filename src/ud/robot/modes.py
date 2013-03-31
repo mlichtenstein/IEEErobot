@@ -72,9 +72,9 @@ class ReadUSBDrive( Mode):
         
 
 class Go( Mode ):
-	NEXT_STATE_GO = 0
-	NEXT_STATE_GRAB = 1
-	NEXT_STATE_LOCALIZE = 2
+    NEXT_STATE_GO = 0
+    NEXT_STATE_GRAB = 1
+    NEXT_STATE_LOCALIZE = 2
     """
     Class Tests:
     >>> instance = Go()
@@ -82,94 +82,94 @@ class Go( Mode ):
     True
     """
     def __init__( self , state):
-		import theGuts
+        import theGuts
         print("Mode is now Go")
         state.mode = "Go"
     def act( self, state ):
-		nextState = self.makeAMove()
-		if nextState == None:
-			# Handle error.
-			throw Exception( "Need to handle error." )
-		if nextState == NEXT_STATE_GRAB:
-			return Grab( state )
-		if nextState == NEXT_STATE_LOCALIZE:
-			return Localize( state )
-		return self
-	def makeAMove( self, ):
-		whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
-		nearestNode = whatNode[0]
-		distance = whatNode[1]
-		nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-		#scoot to the nearest node
-		if distance > nearestNode.radius:
-			angle =  nodeTheta - theta
-			if self.scoot( distance, angle ):
-				state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
-				return NEXT_STATE_GO
-			else
-				return None
-		#face puck and retrieve it
-		elif 1 <= nearestNode.puck <= 16:
-			return NEXT_STATE_GRAB
-		#move along link
-		else:
-			try:
-				pendingLink = findPath( graph, nearestNode )
-				distance = pendingLink.length
-				if pendingLink == nearestNode.node1:
-					departureAngle = pendingLink.node1direction
-				elif pendingLink == nearestNode.node2:
-					departureAngle = pendingLink.node2direction
-				angle = departureAngle - theta
-				success = True
-				if self.rotate( angle ):
-					botPose.theta = nearestNode.theta
-				else:
-					success = False
-				if success and self.scoot( pendingLink.length ):
-					botPose.X = nearestNode.X 
-					botPose.Y = nearestNode.Y 
-				else
-					sucess = False
-				if not success:
-					return None
-			except Exception as e:
-				print "Error: ", e
-		#update botPose.theta with imu data
-		return NEXT_STATE_LOCALIZE
-	def scoot( self, distance, angle ):
-		"""
-		Description
-			Sends a scoot command to the Arduino and waits for the confirmation
-			 message indicating the operation was a success. Failure will be
-			 caused when the timer expired or the wrong confirmation id was 
-			 received. The wrong confirmation ID is very unlikely.
-		Parameters
-			distance -- the distance of the traverse.
-			angle -- the theta on the traverse.
-		Return
-			True -- when the operation is a success.
-			False -- when the operation failed.
-		"""
-		messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
-			settings.COMMAND_SCOOT, distance, angle  )
-		return self.messenger.waitForConfirmation(distance * .5)
-	def rotate( self, angle ):
-		"""
-		Description
-			Sends a scoot command to the Arduino and waits for the confirmation
-			 message indicating the operation was a success. Failure will be
-			 caused when the timer expired or the wrong confirmation id was 
-			 received. The wrong confirmation ID is very unlikely.
-		Parameters
-			angle -- the theta on the traverse.
-		Return
-			True -- when the operation is a success.
-			False -- when the operation failed.
-		"""
-		messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
-			settings.COMMAND_TURN, angle  )
-		return self.messenger.waitForConfirmation(distance * .5)
+        nextState = self.makeAMove()
+        if nextState == None:
+            # Handle error.
+            throw Exception( "Need to handle error." )
+        if nextState == NEXT_STATE_GRAB:
+            return Grab( state )
+        if nextState == NEXT_STATE_LOCALIZE:
+            return Localize( state )
+        return self
+    def makeAMove( self, ):
+        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
+        nearestNode = whatNode[0]
+        distance = whatNode[1]
+        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+        #scoot to the nearest node
+        if distance > nearestNode.radius:
+            angle =  nodeTheta - theta
+            if self.scoot( distance, angle ):
+                state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
+                return NEXT_STATE_GO
+            else
+                return None
+        #face puck and retrieve it
+        elif 1 <= nearestNode.puck <= 16:
+            return NEXT_STATE_GRAB
+        #move along link
+        else:
+            try:
+                pendingLink = findPath( graph, nearestNode )
+                distance = pendingLink.length
+                if pendingLink == nearestNode.node1:
+                    departureAngle = pendingLink.node1direction
+                elif pendingLink == nearestNode.node2:
+                    departureAngle = pendingLink.node2direction
+                angle = departureAngle - theta
+                success = True
+                if self.rotate( angle ):
+                    botPose.theta = nearestNode.theta
+                else:
+                    success = False
+                if success and self.scoot( pendingLink.length ):
+                    botPose.X = nearestNode.X 
+                    botPose.Y = nearestNode.Y 
+                else
+                    sucess = False
+                if not success:
+                    return None
+            except Exception as e:
+                print "Error: ", e
+        #update botPose.theta with imu data
+        return NEXT_STATE_LOCALIZE
+    def scoot( self, distance, angle ):
+        """
+        Description
+            Sends a scoot command to the Arduino and waits for the confirmation
+             message indicating the operation was a success. Failure will be
+             caused when the timer expired or the wrong confirmation id was 
+             received. The wrong confirmation ID is very unlikely.
+        Parameters
+            distance -- the distance of the traverse.
+            angle -- the theta on the traverse.
+        Return
+            True -- when the operation is a success.
+            False -- when the operation failed.
+        """
+        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
+            settings.COMMAND_SCOOT, distance, angle  )
+        return self.messenger.waitForConfirmation(distance * .5)
+    def rotate( self, angle ):
+        """
+        Description
+            Sends a scoot command to the Arduino and waits for the confirmation
+             message indicating the operation was a success. Failure will be
+             caused when the timer expired or the wrong confirmation id was 
+             received. The wrong confirmation ID is very unlikely.
+        Parameters
+            angle -- the theta on the traverse.
+        Return
+            True -- when the operation is a success.
+            False -- when the operation failed.
+        """
+        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
+            settings.COMMAND_TURN, angle  )
+        return self.messenger.waitForConfirmation(distance * .5)
 
 class Localize( Mode ):
     """

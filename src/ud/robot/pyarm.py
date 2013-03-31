@@ -18,11 +18,11 @@ cv2.namedWindow('test',1)
 
 # show video on screen for testing
 while True:
-	flag, frame = cap.read()
-	cv2.imshow('test', frame)
-	ch = 0xFF & cv2.waitKey(1)
-	if ch != 0xFF:
-		break
+    flag, frame = cap.read()
+    cv2.imshow('test', frame)
+    ch = 0xFF & cv2.waitKey(1)
+    if ch != 0xFF:
+        break
 src_gray = cv2.cvtColor( frame, cv.CV_BGR2GRAY )
 src_gray = cv2.GaussianBlur( src_gray,(9,9), 2  )
 #############################################################################
@@ -34,14 +34,14 @@ print src_gray.shape
 circles = cv2.HoughCircles( src_gray, cv.CV_HOUGH_GRADIENT,1, 30 , param1=canny_threshold, param2=100)
 
 for cir in circles[0]:
-	print cir
-	somePointx = cv.Round(cir[0])
-	somePointy = cv.Round(cir[1])
-	radius = cv.Round(cir[2])
-	cv2.circle( frame, (somePointx, somePointy), 3,(0,255,0), -1, 8, 0 )
-	cv2.circle( frame, (somePointx, somePointy), radius, (0,0,255), 3, 8, 0 )
+    print cir
+    somePointx = cv.Round(cir[0])
+    somePointy = cv.Round(cir[1])
+    radius = cv.Round(cir[2])
+    cv2.circle( frame, (somePointx, somePointy), 3,(0,255,0), -1, 8, 0 )
+    cv2.circle( frame, (somePointx, somePointy), radius, (0,0,255), 3, 8, 0 )
 #else:
-#	print "less than one circle detected"
+#    print "less than one circle detected"
 cv2.namedWindow('farts', 1)
 cv2.imshow('farts', frame)
 cv2.waitKey(0)
@@ -73,23 +73,23 @@ print  'theta1 = {0} theta2 = {1} theta3 = {2}'.format(theta1, theta2, theta3)
 ard.write('{0},{1},{2},if'.format(int(theta1),int(theta2),int(theta3)))
 
 while ard.inWaiting():
-	pass
+    pass
 
 if ard.read() == 'd':
-	ard.write('90,10,110,f')
-	ard.flushInput()
+    ard.write('90,10,110,f')
+    ard.flushInput()
 
 while ard.inWaiting() == 0:
-	pass
+    pass
 
 if ard.read() == 'd':
-	ard.flushInput()
+    ard.flushInput()
 
 ard.write('240,10,110,f')
 
 while ard.inWaiting() == 0:
-	pass
+    pass
 
 if ard.read() == 'd':
-	ard.flushInput()
-	ard.write('90,0,90,of')
+    ard.flushInput()
+    ard.write('90,0,90,of')

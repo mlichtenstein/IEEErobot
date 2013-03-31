@@ -87,9 +87,9 @@ def drawGraph():
         pygame.draw.circle(screen,(0,0,0),(node.X,node.Y), node.radius,1)
 
     for link in graph.links:
-		#draw links
+        #draw links
         pygame.draw.line( screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
-		#draw link click location as a small circle
+        #draw link click location as a small circle
         pygame.draw.circle ( screen, (link.red/2,link.green/2,link.blue/2), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 2)
                 #draw link directionality vectors (two of them)
 
@@ -324,7 +324,7 @@ if __name__ == "__main__":
 
 GUILoop = False
 if __name__ == "__main__":
-	GUILoop = True
+    GUILoop = True
 
 if __name__ == "__main__":
     
@@ -348,8 +348,8 @@ if __name__ == "__main__":
 if __name__ == "__main__":
     #Call theGuts with a pose tuple (X, Y, Theta)
     thenode = theGuts.makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main call
-	drawBot(botPose.X,botPose.Y, botPose.theta)
-	
+    drawBot(botPose.X,botPose.Y, botPose.theta)
+    
 while GUILoop:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -406,7 +406,7 @@ while GUILoop:
                         drawAll()
                     else:
                         thenode = theGuts.makeAMove((botPose.X,botPose.Y, botPose.theta)) #<=================== this is the main pathfinding call
-						drawBot(botPose.X,botPose.Y, botPose.theta)
+                        drawBot(botPose.X,botPose.Y, botPose.theta)
                         break
 
                 # Ignore mouse clicks for the next 250 ms
