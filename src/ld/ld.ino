@@ -275,7 +275,7 @@ Your response message should take the form ":[char],[id],[payload];"
                     #endif
                     // Command succeeded.
                     if ( messageGood ) {
-                      Serial.write( ":C" );
+                      Serial.write( ":C," );
                       Serial.print( id );
                       Serial.write( ';' );
                     }
