@@ -18,6 +18,7 @@
 // BEGIN Message Settings
 #define ROBOT_SERIAL_MESSAGE_START ':'
 #define ROBOT_SERIAL_MESSAGE_STOP ';'
+#define ROBOT_SERIAL_MESSAGE_CONFIRMATION 'C'
 // END Message Settings
 
 // BEGIN Scan Settings
