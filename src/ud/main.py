@@ -4,11 +4,9 @@ sys.path.append( "robot" )
 sys.path.append( "lib" )
 
 #This is the skeletal structure of the main loop
-
 from robotbasics import *
 import pygame
 import GUI
-import landmark
 import modes
 import messenger
 import world
