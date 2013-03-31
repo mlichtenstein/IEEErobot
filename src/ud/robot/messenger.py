@@ -146,6 +146,32 @@ class Messenger:
             return False
         tup = string.split(",", 2)
         return tup
+	def waitForConfirmation( self, messageID, maxWaitMS ):
+		"""
+		Description
+			Waits for a confirmation message. Failure will be caused when the
+			 timer expired or the wrong confirmation ID was received. The wrong
+			 confirmation ID is very unlikely.
+		Parameters
+			messageID -- the ID of the confirmation to check.
+			maxWaitMS -- the maximum milliseconds to wait.
+		Return
+			True -- when the operation is a success.
+			False -- when the operation failed.
+		"""
+		# Don't wait too long for the robot.
+		hasTime = support.makeTimer( maxWaitMS )
+		confirmationReceived = False
+		while hasTime():
+			# Read message.
+			if self.checkInBox():
+				message = self.getMessageTuple()
+				# Correct confirmation received.
+				if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION \
+				 and message[1] == messageID:
+					confirmationReceived = True
+					break
+		return confirmationReceived
 
 class SerialPort:
     """
