@@ -4,6 +4,7 @@ import numpy
 import math
 import serial
 
+#set up the serial
 
 #circle detection sensitivity
 canny_threshold = 100
