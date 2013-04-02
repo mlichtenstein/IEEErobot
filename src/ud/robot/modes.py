@@ -20,6 +20,10 @@ class Mode:
     Class Tests:
     >>> instance = Mode()
     """
+    # REQUIRED: Holds the messenger that connects to the arduino layer.
+    messenger = None
+    # REQUIRED: Holds the function which signals a change of modes.
+    signalNewMode = None
     def __init__( self, state ):
         """
         Get the robot setup to go."
@@ -45,6 +49,40 @@ class Mode:
         robotStatus -- contains information such as position, mode, ect.
         """
         raise Exception( "Please write your wonderful code here." )
+    def begin( self ):
+        """
+        Description
+            The main loop will trigger this event at the start of a new mode.
+             Feel free to override.
+        """
+        pass
+    def end( self ):
+        """
+        Description
+            The main loop will trigger this event at the end of the mode.
+             Feel free to override.
+        """
+        pass
+    
+    def onConfirmation( self, confirmationID ):
+        """
+        Description
+            Triggered by the main loop when a confirmation message is received. 
+             To use the event, simply overwrite this method in a child class.
+        Parameters
+            confirmationID -- is the ID number of the message.
+        """
+        pass
+    def onMessage( self, fields ):
+        """
+        Description
+            Triggered by the main loop when message is received that is NOT
+             handled in the above message events. To use the event, simply 
+             overwrite this method in a child class. 
+        Parameters
+            fields -- a list of message parts.
+        """
+        pass
 
 class Ready( Mode):
     """
@@ -70,31 +108,75 @@ class ReadUSBDrive( Mode):
             state
         return Localize(state)
         
-
+class Scoot( Mode ):
+    def __init__( self , state, distance, destinationXY, nextMode ):
+        self.state = state
+        self.nextMode = nextMode
+    def begin( self ):
+        self.confirmationIDNeeded = self.messenger.sendMessage(  \
+            settings.SERVICE_GO, settings.COMMAND_TURN, angle  )
+    def onConfirmation( self, confirmationID ):
+        """
+        Description
+            Triggered by the main loop when a confirmation message is received.
+            XXX
+        Parameters
+            confirmationID -- is the ID number of the message.
+        """
+        if self.confirmationIDNeeded != None and \
+         confirmationID == self.confirmationIDNeeded:
+            state.pose.X, state.pose.Y = self.destinationXY
+            self.confirmationIDNeeded = None
+            signalNewMode( nextMode )
+class Rotate( Mode ):
+    def __init__( self, state, angle, destinationTheta, nextMode ):
+        self.state = state
+        self.nextMode = nextMode
+    def begin( self ):
+        self.confirmationIDNeeded = self.messenger.sendMessage(  \
+            settings.SERVICE_GO, settings.COMMAND_TURN, angle  )
+    def onConfirmation( self, confirmationID ):
+        """
+        Description
+            Triggered by the main loop when a confirmation message is received.
+            XXX
+        Parameters
+            confirmationID -- is the ID number of the message.
+        """
+        if self.confirmationIDNeeded != None and \
+         confirmationID == self.confirmationIDNeeded:
+            state.pose.theta = self.destinationTheta
+            self.confirmationIDNeeded = None
+            signalNewMode( nextMode )
+    
 class Go( Mode ):
-    NEXT_STATE_GO = 0
-    NEXT_STATE_GRAB = 1
-    NEXT_STATE_LOCALIZE = 2
     """
     Class Tests:
     >>> instance = Go()
     >>> isinstance( instance, Mode )
     True
     """
+    # Theta tolerance is maximum theta diff in degrees b/t the node and actual.
+    THETA_TOLERANCE = 1
+    # Distance tolerance is maximum dist diff b/t the node and actual.
+    DISTANCE_TOLERANCE = 1
+    
+    # BEGIN Next State enum.
+    NEXT_STATE_GO = 0
+    NEXT_STATE_GRAB = 1
+    NEXT_STATE_LOCALIZE = 2
+    # END Next State enum.
+    
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
         state.mode = "Go"
+        self.confirmationIDNeeded = None
     def act( self, state ):
-        nextState = self.makeAMove()
-        if nextState == None:
-            # Handle error.
-            raise Exception( "Need to handle error." )
-        if nextState == NEXT_STATE_GRAB:
-            return Grab( state )
-        if nextState == NEXT_STATE_LOCALIZE:
-            return Localize( state )
-        return self
+        self.makeAMove()
+        # Do not switch states by default.
+        return None 
+        
     def makeAMove( self, ):
         """
         decides between 3 actions:  Grab, travel along path, go to path.
@@ -103,17 +185,40 @@ class Go( Mode ):
         nearestNode = whatNode[0]
         distance = whatNode[1]
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-        #scoot to the nearest node
+        thetaDiff = nodeTheta - botPose.theta
+        
+        
+        # Off graph so scoot to the nearest node.
         if distance > nearestNode.radius:
-            angle =  nodeTheta - theta
-            if self.scoot( distance, angle ):
-                state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
-                return NEXT_STATE_GO
-            else:
-                return None
-        #face puck and retrieve it
+            # First turn to face the node.
+            if abs( thetaDiff ) > THETA_TOLERANCE:
+                #self.rotate( thetaDiff )
+                self.status = STATUS_TURNING
+                self.destinationTheta = nodeTheta
+                signalNewMode( \
+                    Rotate( state, thetaDiff, self.destinationTheta, self ) )
+                return
+                #return NEXT_STATE_GO
+            # Next traverse to node.
+            #angle =  nodeTheta - theta
+            #XXX
+            signalNewMode( Rotate( state, distance, \
+                ( nearestNode.X, nearestNode.Y ), self ) )
+            #self.scoot( distance, 0 )
+            #self.destinationXY = nearestNode.X, nearestNode.Y
+            
+            #return NEXT_STATE_GO
+        # Turn to view the puck then pickup.
         elif 1 <= nearestNode.puck <= 16:
-            return NEXT_STATE_GRAB
+            # First turn to face the node.
+            thetaDiff = nearestNode.theta - botPose.theta
+            if abs( nearestNode.theta - botPose.theta ) > THETA_TOLERANCE:
+                signalNewMode( Rotate( state, thetaDiff, \
+                    nearestNode.theta, self ) )
+                return
+            # Next switch to the grab mode.
+            signalNewMode( Grab( state ) )
+            return
         #move along link
         else:
             try:
@@ -139,42 +244,6 @@ class Go( Mode ):
             except Exception as e:
                 print "Error: ", e
         #update botPose.theta with imu data
-        return NEXT_STATE_LOCALIZE
-    def scoot( self, distance, angle ):
-        """
-        Description
-            Sends a scoot command to the Arduino and waits for the confirmation
-             message indicating the operation was a success. Failure will be
-             caused when the timer expired or the wrong confirmation id was 
-             received. The wrong confirmation ID is very unlikely.
-        Parameters
-            distance -- the distance of the traverse.
-            angle -- the theta on the traverse.
-        Return
-            True -- when the operation is a success.
-            False -- when the operation failed.
-        """
-        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
-            settings.COMMAND_SCOOT, distance, angle  )
-        state.hypobotCloud.scoot(distance, angle)
-        return self.messenger.waitForConfirmation(distance * .5)
-    def rotate( self, angle ):
-        """
-        Description
-            Sends a scoot command to the Arduino and waits for the confirmation
-             message indicating the operation was a success. Failure will be
-             caused when the timer expired or the wrong confirmation id was 
-             received. The wrong confirmation ID is very unlikely.
-        Parameters
-            angle -- the theta on the traverse.
-        Return
-            True -- when the operation is a success.
-            False -- when the operation failed.
-        """
-        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
-            settings.COMMAND_TURN, angle  )
-        state.hypobotCloud.scoot(angle)
-        self.messenger.waitForConfirmation(distance * .5)
 
 """========================================================================================="""
 """/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
