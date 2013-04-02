@@ -51,6 +51,30 @@ rotate right     0               1               0                 1
 rotate left      1               0               1                 0
 */
 const int LEFT_SPEED = 2, RIGHT_SPEED = 3;
+void scoot(double distance, int angle);
+
+void go(double x, double y, int theta);
+void turn(int angle);
+
+
+void right(int Angle);
+
+void left(int Angle);
+
+void forward(int feet);
+
+void reverse(int feet);
+
+
+void motorSpeed(int inSpeed);
+
+void wheelAngle(int FL_SERVO, int FR_SERVO);
+
+void faceWheels(int angle);
+
+void ackSolve(float theta, double motorSpeed);
+
+void ackTest();
 #endif
 
 #ifdef ROBOT_SERVICE_SCAN
@@ -187,6 +211,9 @@ Your response message should take the form ":[char],[id],[payload];"
                     Serial.print( id );
                     Serial.write(",PONG");
                     Serial.write( ';' );
+                      Serial.write( ":C," );
+                      Serial.print( id );
+                      Serial.write( ';' );
                 }
                 break;
                 #endif
@@ -199,6 +226,9 @@ Your response message should take the form ":[char],[id],[payload];"
                     for (int i=0; i<4; i++){
                       EyeServo[i].write(id);
                     }
+                      Serial.write( ":C," );
+                      Serial.print( id );
+                      Serial.write( ';' );
                 }
                 break;
                 #endif
@@ -211,6 +241,9 @@ Your response message should take the form ":[char],[id],[payload];"
                     for (int i=0; i<4; i++){
                       EyeServoWrite(i, id);
                     }
+                      Serial.write( ":C," );
+                      Serial.print( id );
+                      Serial.write( ';' );
                     
                 }
                 break;
@@ -322,6 +355,26 @@ Your response message should take the form ":[char],[id],[payload];"
                         for (int i=0; i<4; i++){
                            EyeServo[i].write(45);
                         }
+                    }
+                break;
+                #endif
+                #ifdef ROBOT_SERVICE_SCAN
+                case ROBOT_SERVICE_SCAN: {
+                      Serial.write( ":C," );
+                      Serial.print( id );
+                      Serial.write( ';' );
+                    #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
+                    float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
+                    unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
+                    unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
+                    
+                    for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
+                        unsigned long lastTime = millis();  //used to establish a minimum read time
+                        for (int eye = 0; eye<4; eye++) {
+                            EyeServoWrite(eye,pt);
+                            USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
+                            IRreading[eye][pt] = analogRead(IRpin[eye]); 
+                        }
                         while(digitalRead(startButton)==HIGH);
                         Serial.write(":W,");
                         Serial.print(id);
@@ -345,6 +398,25 @@ Your response message should take the form ":[char],[id],[payload];"
                         }
                         //now send the message
                         Serial.write( ":J," );
+                    }
+                    Serial.write( ';' );
+                    for (int i = 0; i<4; i++) {
+                      EyeServoWrite(i,0);
+                      //                      EyeServo[i].write(0);
+                    }
+                      Serial.write( ":C," );
+                      Serial.print( id );
+                      Serial.write( ';' );
+                }
+                break;
+                #endif
+                #ifdef ROBOT_SERVICE_ARM_SERVO
+                case ROBOT_SERVICE_ARM_SERVO: {
+                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
+                                        &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
+                    if ( numOfVars == 3 ) {
+                        Serial.write( ':' );
+                        Serial.write( ROBOT_RESPONSE_COMFIRM );
                         Serial.print( id );
                         Serial.write( ","); 
                         for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {

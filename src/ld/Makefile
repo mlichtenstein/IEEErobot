@@ -28,16 +28,16 @@ $(TESTRESULTSDIR)/%.out: $(TESTBINDIR)/%
 	echo "END Testing $<"
 
 $(TESTBINDIR)/%: $(TESTDIR)/%.cpp $(wildcard *.h) $(wildcard *.pde)
-	g++ $(SRCCDEF) $(CXXFLAGS) -o $@ $<
+	g++ -Itest $(SRCCDEF) $(CXXFLAGS) -o $@ $<
 #	g++ $(SRCCDEF) $(CXXFLAGS) -I/usr/lib/avr/include -o $@ $<
 
 $(TESTDIR)/obj/%.d: $(TESTDIR)/%.c
 	mkdir -p $(shell dirname $@)
-	g++ -M $(ALL_CFLAGS) $< | sed "s;$(notdir $*).o:;$*.o $*.d:;" > $@
+	g++ -Itest -M $(ALL_CFLAGS) $< | sed "s;$(notdir $*).o:;$*.o $*.d:;" > $@
 
 $(TESTDIR)/obj/%.d: $(TESTDIR)/%.cpp
 	mkdir -p $(shell dirname $@)
-	g++ -M $(ALL_CXXFLAGS) $< | sed "s;$(notdir $*).o:;$*.o $*.d:;" > $@
+	g++ -Itest -M $(ALL_CXXFLAGS) $< | sed "s;$(notdir $*).o:;$*.o $*.d:;" > $@
 
 ifneq ($(MAKECMDGOALS),clean)
 include $(TESTDEPEND)
