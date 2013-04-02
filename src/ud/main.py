@@ -1,28 +1,38 @@
+# Include the robot directory in the search path when importing modules.
+import sys
+sys.path.append( "robot" )
+sys.path.append( "lib" )
 
 #This is the skeletal structure of the main loop
-
 from robotbasics import *
 import pygame
 import GUI
-import landmark
 import modes
 import messenger
+import world
+import time
+import random
 
-"""=================CREATE WORLD====================================="""
+"""=================SETUP============================================"""
 
+#give the robot a state:
 state = State()
-robotMode = Pathfind()
+print dir(state)
+#establish a serial connection that will persist into modes.py:
+modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
-landmarklist = list()
-landmarklist.append(landmarks)
+#pick a start mode (should be wait, eventually)
+robotMode = modes.ReadUSBDrive(state)
 
-loglist = list()
-loglist.append(logs)
+#create world
+landmarkList = world.World.landmarkList
+logList = world.World.logList
 
 #load nodelist however you do that
 
+#setup Gui
 H = 700
-W = 1100
+W = 1000
 textHeight = 18
 
 pygame.init()
@@ -32,28 +42,41 @@ screen=pygame.display.set_mode((W,H),0,32)
 screen.fill((127,127,127))
 
 gui = GUI.GUI(pygame,screen)
-gui.takeTerrain(landmarkList)
+
+#seed random:
+random.seed(time.time())
 
 """===============MAIN LOOP=========================================="""
 running = True
 
 while running == True:
     for event in pygame.event.get():
-        if event.type==QUIT:
+        if event.type==pygame.QUIT:
             pygame.quit()
             sys.exit()    
-        if event.type == MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 for frame in gui.frameList:
                     frame.feelClickDown(pygame.mouse.get_pos())
-        if event.type == MOUSEBUTTONUP:
+        if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                for frame in gui.rameList:
+                for frame in gui.frameList:
                     frame.feelClickUp(pygame.mouse.get_pos())
             if event.button == 2:
                 for frame in gui.frameList:
-                    frame.feelMiddleClick()
+                    frame.feelMiddleClick(pygame.mouse.get_pos())
+
     # Tell the robot brain to take action.
-    mode.act(state)
+    # NOTE--I modified this to make it possible to escape the .act()s
+    # and return to this loop, so we can update the GUI between .act()s.
+    # See my Localize class to see how that works.  --Max
+    nextMode = robotMode.act(state)
+    if nextMode != None:
+        robotMode = nextMode
+    
     # Update the GUI with the current robot state
     gui.takeState(state)
+
+    gui.update(screen)
+    pygame.display.update()
+    time.sleep(3)
