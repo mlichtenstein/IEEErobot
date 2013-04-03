@@ -121,6 +121,8 @@ class GoScoot( Mode ):
         the case where the IMU sends back data that does not agree with the
         expected effect of movement. In that case, the robot may cease its
         movement and do a localization.
+    Methods
+
     Examples:
     >>> import messenger, math
     >>> Mode.signalNewMode = lambda dummy, function: 0
@@ -135,23 +137,23 @@ class GoScoot( Mode ):
     >>> isinstance( instance, Mode )
     True
     >>> instance.begin()
-    Wrote to Arduino: :T0,S,5;
+    Wrote to Arduino: :T0,S,5,0;
     >>> print state.pose.x, state.pose.y
     0 0
     >>> while instance.confirmationIDNeeded != None:
     ...     instance.onConfirmation( instance.confirmationIDNeeded )
     ...     print state.pose.x, state.pose.y
-    Wrote to Arduino: :T1,S,5;
+    Wrote to Arduino: :T1,S,5,0;
     3.53553390593 3.53553390593
-    Wrote to Arduino: :T2,S,5;
+    Wrote to Arduino: :T2,S,5,0;
     7.07106781187 7.07106781187
-    Wrote to Arduino: :T3,S,5;
+    Wrote to Arduino: :T3,S,5,0;
     10.6066017178 10.6066017178
-    Wrote to Arduino: :T4,S,2.62741699797;
+    Wrote to Arduino: :T4,S,2.62741699797,0;
     14.1421356237 14.1421356237
     16 16
     >>> instance.scoot( 10 )
-    Wrote to Arduino: :T5,S,10;
+    Wrote to Arduino: :T5,S,10,0;
     """
     SUBDISTANCE = 5
     confirmationIDNeeded = None
@@ -173,7 +175,7 @@ class GoScoot( Mode ):
         self.scoot( self.SUBDISTANCE ) 
     def scoot( self, distance ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_SCOOT, str( distance ) )
+            settings.SERVICE_GO, settings.COMMAND_SCOOT, str( distance ), str( 0 ) )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -212,6 +214,8 @@ class GoRotate( Mode ):
          angles. This is necessary in the case where the IMU sends back data
          that does not agree with the expected effect of rotation. In that
          case the robot may cease its rotation and do a localization.
+    Methods
+        
     Examples:
     >>> import messenger, math
     >>> Mode.signalNewMode = lambda dummy, function: 0
