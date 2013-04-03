@@ -212,6 +212,35 @@ class GoRotate( Mode ):
          angles. This is necessary in the case where the IMU sends back data
          that does not agree with the expected effect of rotation. In that
          case the robot may cease its rotation and do a localization.
+    Examples:
+    >>> import messenger, math
+    >>> Mode.signalNewMode = lambda dummy, function: 0
+    >>> state = State()
+    >>> state.pose.x, state.pose.y, state.pose.theta = 0, 0, 15
+    >>> dest = 31
+    >>> dist = 16
+    >>> Mode.messenger = messenger.Messenger( messenger.DebugSerialPort() )
+    >>> instance = GoRotate( state, dist, dest, None )
+    >>> isinstance( instance, GoRotate )
+    True
+    >>> isinstance( instance, Mode )
+    True
+    >>> instance.begin()
+    Wrote to Arduino: :T0,T,5;
+    >>> print state.pose.theta
+    15
+    >>> while instance.confirmationIDNeeded != None:
+    ...     instance.onConfirmation( instance.confirmationIDNeeded )
+    ...     print state.pose.theta
+    Wrote to Arduino: :T1,T,5;
+    20
+    Wrote to Arduino: :T2,T,5;
+    25
+    Wrote to Arduino: :T3,T,1;
+    30
+    31
+    >>> instance.rotate( 10 )
+    Wrote to Arduino: :T4,T,10;
     """
     SUBANGLE = 5
     confirmationIDNeeded = None
@@ -223,17 +252,17 @@ class GoRotate( Mode ):
         self.destinationTheta = destinationTheta
         # There will n equal angles and n + 1 angles. So one will be larger
         #  than the rest.
-        self.n = int( angle / SUBANGLE )
+        self.n = int( angle / self.SUBANGLE )
         # XXX need to make sure for floats that modulus gets a
         #  floating number less than 5 which is the remainder.
         # The last angle will be the remainder and larger than the rest.
-        self.lastAngle = angle % SUBANGLE
+        self.lastAngle = angle % self.SUBANGLE
 
     def begin( self ):
-        rotate( SUBANGLE ) 
+        self.rotate( self.SUBANGLE ) 
     def rotate( self, angle ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_TURN, angle )
+            settings.SERVICE_GO, settings.COMMAND_TURN, str( angle ) )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -244,19 +273,19 @@ class GoRotate( Mode ):
         """
         if self.confirmationIDNeeded != None and \
          confirmationID == self.confirmationIDNeeded:
-            # XXX need to update the theta pose each time.
-            self.confirmationIDNeeded = None
+            self.state.pose.theta = self.state.pose.theta + self.SUBANGLE 
             self.completedSubOperations = self.completedSubOperations + 1
             # Equal angle sizes.
             if self.completedSubOperations < self.n:
-                rotate( SUBANGLE ) 
+                self.rotate( self.SUBANGLE ) 
             # The last angle.
             elif self.completedSubOperations == self.n:
-                rotate( self.lastAngle ) 
+                self.rotate( self.lastAngle ) 
             # Rotation complete.
             else:
-                state.pose.theta = self.destinationTheta
-                signalNewMode( nextMode )
+                self.state.pose.theta = self.destinationTheta
+                self.signalNewMode( self.nextMode )
+                self.confirmationIDNeeded = None
 
 class GoOnGraph( Mode ):
     """
