@@ -303,7 +303,6 @@ void loop() {
                         Serial.write( ',' );
                         Serial.print( newArmTheta[2] );
                         Serial.write( ',' );
-
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_COMFIRM );
                         Serial.print( id );
