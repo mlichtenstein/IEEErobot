@@ -413,21 +413,9 @@ class Go( Mode ):
         state.mode = "Go"
         self.confirmationIDNeeded = None
     def act( self, state ):
-        self.makeAMove()
         # Do not switch states by default.
         return None 
         
-    def makeAMove( self, ):
-        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
-        nearestNode = whatNode[0]
-        distance = whatNode[1]
-        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-        thetaDiff = nodeTheta - botPose.theta
-        
-        # Off graph so scoot to the nearest node.
-        if distance > nearestNode.radius:
-            signalNewMode( TraverseOffGraph( state ) )
-            return
 class Pathfinder( Mode ):
     """
     Description
@@ -449,7 +437,26 @@ class Pathfinder( Mode ):
          which cotains the pose of robot. In another words, the closest
          distance from the pose to the link.
     """
-    pass
+    def __init__( self, state ):
+        self.state = state
+    def begin( self ):
+        # XXX need to find closest link also.
+        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
+        nearestNode = whatNode[0]
+        distance = whatNode[1]
+        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+        thetaDiff = nodeTheta - botPose.theta
+        tolerance = nearestNode.radius
+        pendingLink = findPath( graph, nearestNode )
+        
+        # Off graph so scoot to the nearest node.
+        if distance > tolerance:
+            # XXX generate an extra link or node
+            link = graph.Link( \
+                graph.Node( self.state.pose.x, self.state.pose.y ), \
+                nearestNode )
+            path.insert( link )
+        signalNewMode( Go( state, path ) )
 
 """========================================================================================="""
 """/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
