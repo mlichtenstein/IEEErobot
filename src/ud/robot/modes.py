@@ -122,12 +122,27 @@ class GoScoot( Mode ):
         expected effect of movement. In that case, the robot may cease its
         movement and do a localization.
     """
+    SUBDISTANCE = 5
+    confirmationIDNeeded = None
+    completedSubOperations = 0
     def __init__( self , state, distance, destinationXY, nextMode ):
         self.state = state
         self.nextMode = nextMode
+        self.distance = distance 
+        self.destinationXY = destinationXY
+        # There will n equal distances and n + 1 distances. So one will be 
+        #  larger than the rest.
+        self.n = int( distance / SUBDISTANCE )
+        # XXX need to make sure for floats that modulus gets a
+        #  floating number less than 5 which is the remainder.
+        # The last distance will be the remainder and larger than the rest.
+        self.lastScoot = distance % SUBDISTANCE
+
     def begin( self ):
+        scoot( SUBDISTANCE ) 
+    def scoot( self, distance ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_TURN, angle  )
+            settings.SERVICE_GO, settings.COMMAND_SCOOT, distance )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -138,9 +153,19 @@ class GoScoot( Mode ):
         """
         if self.confirmationIDNeeded != None and \
          confirmationID == self.confirmationIDNeeded:
-            state.pose.X, state.pose.Y = self.destinationXY
+            # XXX need to update the x and y position each time.
             self.confirmationIDNeeded = None
-            signalNewMode( nextMode )
+            self.completedSubOperations = self.completedSubOperations + 1
+            # Equal distances.
+            if self.completedSubOperations < self.n:
+                scoot( SUBDISTANCE ) 
+            # The last distance.
+            elif self.completedSubOperations == self.n:
+                scoot( self.lastScoot ) 
+            # Rotation complete.
+            else:
+                state.pose.X, state.pose.Y = self.destinationXY
+                signalNewMode( nextMode )
 class GoRotate( Mode ):
     """
     Description
@@ -155,12 +180,27 @@ class GoRotate( Mode ):
          that does not agree with the expected effect of rotation. In that
          case the robot may cease its rotation and do a localization.
     """
+    SUBANGLE = 5
+    confirmationIDNeeded = None
+    completedSubOperations = 0
     def __init__( self, state, angle, destinationTheta, nextMode ):
         self.state = state
         self.nextMode = nextMode
+        self.angle = angle
+        self.destinationTheta = destinationTheta
+        # There will n equal angles and n + 1 angles. So one will be larger
+        #  than the rest.
+        self.n = int( angle / SUBANGLE )
+        # XXX need to make sure for floats that modulus gets a
+        #  floating number less than 5 which is the remainder.
+        # The last angle will be the remainder and larger than the rest.
+        self.lastAngle = angle % SUBANGLE
+
     def begin( self ):
+        rotate( SUBANGLE ) 
+    def rotate( self, angle ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_TURN, angle  )
+            settings.SERVICE_GO, settings.COMMAND_TURN, angle )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -171,9 +211,19 @@ class GoRotate( Mode ):
         """
         if self.confirmationIDNeeded != None and \
          confirmationID == self.confirmationIDNeeded:
-            state.pose.theta = self.destinationTheta
+            # XXX need to update the theta pose each time.
             self.confirmationIDNeeded = None
-            signalNewMode( nextMode )
+            self.completedSubOperations = self.completedSubOperations + 1
+            # Equal angle sizes.
+            if self.completedSubOperations < self.n:
+                rotate( SUBANGLE ) 
+            # The last angle.
+            elif self.completedSubOperations == self.n:
+                rotate( self.lastAngle ) 
+            # Rotation complete.
+            else:
+                state.pose.theta = self.destinationTheta
+                signalNewMode( nextMode )
 
 class GoOnGraph( Mode ):
     """
