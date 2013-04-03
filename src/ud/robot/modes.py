@@ -108,7 +108,20 @@ class ReadUSBDrive( Mode):
             state
         return Localize(state)
         
-class Scoot( Mode ):
+class GoScoot( Mode ):
+    """
+    Description
+        This class will move the robot along a vector on the map. It will be
+         switched to from the GoOnGraph or GoOffGraph modes. The class retains
+         a reference to the mode switched from so that upon completion or
+         failure of its operation, it can switch back. The switching behavior
+         resembles function calls.
+
+       The vector must be chopped into smaller vectors. This is necessary in
+        the case where the IMU sends back data that does not agree with the
+        expected effect of movement. In that case, the robot may cease its
+        movement and do a localization.
+    """
     def __init__( self , state, distance, destinationXY, nextMode ):
         self.state = state
         self.nextMode = nextMode
@@ -128,7 +141,20 @@ class Scoot( Mode ):
             state.pose.X, state.pose.Y = self.destinationXY
             self.confirmationIDNeeded = None
             signalNewMode( nextMode )
-class Rotate( Mode ):
+class GoRotate( Mode ):
+    """
+    Description
+        This class represents the mode of the robot when it is rotating by a
+         certain angle. Will be swithced to from GoOnGraph or GoOffGraph. The
+         class retains a reference to the mode switched from so that upon
+         completion or failure of its operation, it can switch back. The
+         switching behavior resembles function calls.
+         
+        The class has to chop the whole rotation angle into lots of smaller
+         angles. This is necessary in the case where the IMU sends back data
+         that does not agree with the expected effect of rotation. In that
+         case the robot may cease its rotation and do a localization.
+    """
     def __init__( self, state, angle, destinationTheta, nextMode ):
         self.state = state
         self.nextMode = nextMode
@@ -148,13 +174,14 @@ class Rotate( Mode ):
             state.pose.theta = self.destinationTheta
             self.confirmationIDNeeded = None
             signalNewMode( nextMode )
-    
-class Go( Mode ):
+
+class GoOnGraph( Mode ):
     """
-    Class Tests:
-    >>> instance = Go()
-    >>> isinstance( instance, Mode )
-    True
+    Description
+        This class represents the mode of the robot when its calculatably
+         within the nodes and links of the tacticle plan. The mode will
+         switch to the GoRotate and GoScoot modes as needed for each link
+         in its path until it has reached the target node.
     """
     # Theta tolerance is maximum theta diff in degrees b/t the node and actual.
     THETA_TOLERANCE = 1
@@ -186,28 +213,6 @@ class Go( Mode ):
         distance = whatNode[1]
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
         thetaDiff = nodeTheta - botPose.theta
-        
-        
-        # Off graph so scoot to the nearest node.
-        if distance > nearestNode.radius:
-            # First turn to face the node.
-            if abs( thetaDiff ) > THETA_TOLERANCE:
-                #self.rotate( thetaDiff )
-                self.status = STATUS_TURNING
-                self.destinationTheta = nodeTheta
-                signalNewMode( \
-                    Rotate( state, thetaDiff, self.destinationTheta, self ) )
-                return
-                #return NEXT_STATE_GO
-            # Next traverse to node.
-            #angle =  nodeTheta - theta
-            #XXX
-            signalNewMode( Rotate( state, distance, \
-                ( nearestNode.X, nearestNode.Y ), self ) )
-            #self.scoot( distance, 0 )
-            #self.destinationXY = nearestNode.X, nearestNode.Y
-            
-            #return NEXT_STATE_GO
         # Turn to view the puck then pickup.
         elif 1 <= nearestNode.puck <= 16:
             # First turn to face the node.
@@ -219,7 +224,6 @@ class Go( Mode ):
             # Next switch to the grab mode.
             signalNewMode( Grab( state ) )
             return
-        #move along link
         else:
             try:
                 pendingLink = findPath( graph, nearestNode )
@@ -244,6 +248,70 @@ class Go( Mode ):
             except Exception as e:
                 print "Error: ", e
         #update botPose.theta with imu data
+class GoOffGraph( Mode ):
+    """
+    Description
+        This class represents the mode where the robot is too far off from the
+         links and nodes of the tacticle plan. In this off-road mode the robot
+         tries to re-align itself onto the nearest node or link. 
+    """
+    def begin( self ):
+        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
+        nearestNode = whatNode[0]
+        distance = whatNode[1]
+        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+        thetaDiff = nodeTheta - botPose.theta
+        # First turn to face the node.
+        if abs( thetaDiff ) > THETA_TOLERANCE:
+            #self.rotate( thetaDiff )
+            self.status = STATUS_TURNING
+            self.destinationTheta = nodeTheta
+            signalNewMode( \
+                Rotate( state, thetaDiff, self.destinationTheta, self ) )
+            return
+        signalNewMode( Rotate( state, distance, \
+            ( nearestNode.X, nearestNode.Y ), self ) )
+        signalNewMode( Localize( state ) )
+    pass
+class Go( Mode ):
+    """
+    Class Tests:
+    >>> instance = Go()
+    >>> isinstance( instance, Mode )
+    True
+    """
+    # Theta tolerance is maximum theta diff in degrees b/t the node and actual.
+    THETA_TOLERANCE = 1
+    # Distance tolerance is maximum dist diff b/t the node and actual.
+    DISTANCE_TOLERANCE = 1
+    
+    # BEGIN Next State enum.
+    NEXT_STATE_GO = 0
+    NEXT_STATE_GRAB = 1
+    NEXT_STATE_LOCALIZE = 2
+    # END Next State enum.
+    
+    def __init__( self , state):
+        import theGuts
+        print("Mode is now Go")
+        state.mode = "Go"
+        self.confirmationIDNeeded = None
+    def act( self, state ):
+        self.makeAMove()
+        # Do not switch states by default.
+        return None 
+        
+    def makeAMove( self, ):
+        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
+        nearestNode = whatNode[0]
+        distance = whatNode[1]
+        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+        thetaDiff = nodeTheta - botPose.theta
+        
+        # Off graph so scoot to the nearest node.
+        if distance > nearestNode.radius:
+            signalNewMode( TraverseOffGraph( state ) )
+            return
 
 """========================================================================================="""
 """/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
