@@ -121,6 +121,37 @@ class GoScoot( Mode ):
         the case where the IMU sends back data that does not agree with the
         expected effect of movement. In that case, the robot may cease its
         movement and do a localization.
+    Examples:
+    >>> import messenger, math
+    >>> Mode.signalNewMode = lambda dummy, function: 0
+    >>> state = State()
+    >>> state.pose.x, state.pose.y, state.pose.theta = 0, 0, 45
+    >>> dest = 16, 16
+    >>> dist = math.sqrt( dest[0]**2 + dest[1]**2 )
+    >>> Mode.messenger = messenger.Messenger( messenger.DebugSerialPort() )
+    >>> instance = GoScoot( state, dist, dest, None )
+    >>> isinstance( instance, GoScoot )
+    True
+    >>> isinstance( instance, Mode )
+    True
+    >>> instance.begin()
+    Wrote to Arduino: :T0,S,5;
+    >>> print state.pose.x, state.pose.y
+    0 0
+    >>> while instance.confirmationIDNeeded != None:
+    ...     instance.onConfirmation( instance.confirmationIDNeeded )
+    ...     print state.pose.x, state.pose.y
+    Wrote to Arduino: :T1,S,5;
+    3.53553390593 3.53553390593
+    Wrote to Arduino: :T2,S,5;
+    7.07106781187 7.07106781187
+    Wrote to Arduino: :T3,S,5;
+    10.6066017178 10.6066017178
+    Wrote to Arduino: :T4,S,2.62741699797;
+    14.1421356237 14.1421356237
+    16 16
+    >>> instance.scoot( 10 )
+    Wrote to Arduino: :T5,S,10;
     """
     SUBDISTANCE = 5
     confirmationIDNeeded = None
@@ -132,17 +163,17 @@ class GoScoot( Mode ):
         self.destinationXY = destinationXY
         # There will n equal distances and n + 1 distances. So one will be 
         #  larger than the rest.
-        self.n = int( distance / SUBDISTANCE )
+        self.n = int( distance / self.SUBDISTANCE )
         # XXX need to make sure for floats that modulus gets a
         #  floating number less than 5 which is the remainder.
         # The last distance will be the remainder and larger than the rest.
-        self.lastScoot = distance % SUBDISTANCE
+        self.lastScoot = distance % self.SUBDISTANCE
 
     def begin( self ):
-        scoot( SUBDISTANCE ) 
+        self.scoot( self.SUBDISTANCE ) 
     def scoot( self, distance ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_SCOOT, distance )
+            settings.SERVICE_GO, settings.COMMAND_SCOOT, str( distance ) )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -151,21 +182,23 @@ class GoScoot( Mode ):
         Parameters
             confirmationID -- is the ID number of the message.
         """
+        import math
         if self.confirmationIDNeeded != None and \
          confirmationID == self.confirmationIDNeeded:
-            # XXX need to update the x and y position each time.
-            self.confirmationIDNeeded = None
+            self.state.pose.x = self.state.pose.x + math.cos( self.state.pose.theta * math.pi / 180 ) * self.SUBDISTANCE
+            self.state.pose.y = self.state.pose.y + math.cos( self.state.pose.theta * math.pi / 180 ) * self.SUBDISTANCE
             self.completedSubOperations = self.completedSubOperations + 1
             # Equal distances.
             if self.completedSubOperations < self.n:
-                scoot( SUBDISTANCE ) 
+                self.scoot( self.SUBDISTANCE ) 
             # The last distance.
             elif self.completedSubOperations == self.n:
-                scoot( self.lastScoot ) 
+                self.scoot( self.lastScoot ) 
             # Rotation complete.
             else:
-                state.pose.X, state.pose.Y = self.destinationXY
-                signalNewMode( nextMode )
+                self.confirmationIDNeeded = None
+                self.state.pose.x, self.state.pose.y = self.destinationXY
+                self.signalNewMode( self.nextMode )
 class GoRotate( Mode ):
     """
     Description
@@ -264,7 +297,7 @@ class GoOnGraph( Mode ):
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
         thetaDiff = nodeTheta - botPose.theta
         # Turn to view the puck then pickup.
-        elif 1 <= nearestNode.puck <= 16:
+        if 1 <= nearestNode.puck <= 16:
             # First turn to face the node.
             thetaDiff = nearestNode.theta - botPose.theta
             if abs( nearestNode.theta - botPose.theta ) > THETA_TOLERANCE:
