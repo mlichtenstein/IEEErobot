@@ -428,6 +428,28 @@ class Go( Mode ):
         if distance > nearestNode.radius:
             signalNewMode( TraverseOffGraph( state ) )
             return
+class Pathfinder( Mode ):
+    """
+    Description
+        This class represents the mode of the robot that builds the 
+         instructions which the Go classes will follow. The mode will judge
+         the IMU data (if any) and the localization data to determine its
+         current position (called pedometric position).
+
+        In the case of a pedometric position that has a distance away from a
+         link or node greater than the tolerance, an off-road status will be
+         assumed. In this state, the robot will generate a phantom link/node 
+         to the nearest link or node.
+
+        In any case, a complete path from the robot to a puck or the home base
+         will be generated.
+
+        The distance from a link will be determined by finding the
+         intersection of the vector of the link and the perpandicular vector
+         which cotains the pose of robot. In another words, the closest
+         distance from the pose to the link.
+    """
+    pass
 
 """========================================================================================="""
 """/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
