@@ -175,7 +175,7 @@ class GoScoot( Mode ):
         self.scoot( self.SUBDISTANCE ) 
     def scoot( self, distance ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_SCOOT, str( distance ), str( 0 ) )
+            settings.SERVICE_GO, settings.COMMAND_SCOOT, distance, 0 )
     def onConfirmation( self, confirmationID ):
         """
         Description
@@ -266,7 +266,7 @@ class GoRotate( Mode ):
         self.rotate( self.SUBANGLE ) 
     def rotate( self, angle ):
         self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_TURN, str( angle ) )
+            settings.SERVICE_GO, settings.COMMAND_TURN, angle )
     def onConfirmation( self, confirmationID ):
         """
         Description

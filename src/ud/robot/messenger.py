@@ -88,7 +88,7 @@ class Messenger:
         for field in fields:
             self.__serialWrapper.write( ',' )
             self.__serialWrapper.write( str( field ) )
-            printout += ","+field
+            printout += ","+str( field )
         self.__serialWrapper.write( ";" )
         print(printout+';')
         self.__id += 1
