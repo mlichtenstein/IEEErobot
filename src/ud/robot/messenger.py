@@ -390,4 +390,30 @@ if __name__=="__main__":
         while not messenger.checkInBox():
             pass
         print( messenger.getMessageTuple()[2] )
+
+class DebugSerialPort( SerialPort ):
+    """
+    This class pretends to work like SerialPort, but, doesn't do anything real.
+    Examples
+    >>> instance = DebugSerialPort()
+    """
+    def __enter__( self ):
+        pass
+    def __exit__( self, type, value, traceback ):
+        pass
+    def __init__( self, port = settings.SERIAL_PORT_ADDRESS ):
+        pass
+    def makeContact( self, timeout = settings.SERIAL_PORT_SESSION_TIMEOUT ):
+        return True
+    def readAndWait( self ):
+        pass
+    def read( self ):
+        pass
+    def close( self ):
+        pass
+    def write( self, serializable ):
+        pass
+    
+
+    
             
