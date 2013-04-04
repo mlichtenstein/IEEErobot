@@ -4,12 +4,9 @@ import numpy
 import math
 import serial
 
-#set up the serial
-ard = serial.Serial('/dev/ttyACM0', 9600)
-ard.write('90,0,90,f')
 
 #circle detection sensitivity
-canny_threshold = 20
+canny_threshold = 100
 
 #set up camera VideoCap(arg) might need to be 0 on panda
 cap = cv2.VideoCapture(1)
@@ -25,11 +22,6 @@ while True:
         break
 src_gray = cv2.cvtColor( frame, cv.CV_BGR2GRAY )
 src_gray = cv2.GaussianBlur( src_gray,(9,9), 2  )
-#############################################################################
-# old C++ circle detector
-#
-#cv2.HoughCircles( src_gray, circles, cv.CV_HOUGH_GRADIENT, 1, src_gray.rows/8, canny_threshold, 100, 0, 0 )
-##############################################################################
 print src_gray.shape
 circles = cv2.HoughCircles( src_gray, cv.CV_HOUGH_GRADIENT,1, 30 , param1=canny_threshold, param2=100)
 
@@ -70,26 +62,4 @@ theta3 = -(theta3 * 57.2957795 )
 theta2 = theta2 * 57.2957795 + 90
 
 print  'theta1 = {0} theta2 = {1} theta3 = {2}'.format(theta1, theta2, theta3)
-ard.write('{0},{1},{2},if'.format(int(theta1),int(theta2),int(theta3)))
 
-while ard.inWaiting():
-    pass
-
-if ard.read() == 'd':
-    ard.write('90,10,110,f')
-    ard.flushInput()
-
-while ard.inWaiting() == 0:
-    pass
-
-if ard.read() == 'd':
-    ard.flushInput()
-
-ard.write('240,10,110,f')
-
-while ard.inWaiting() == 0:
-    pass
-
-if ard.read() == 'd':
-    ard.flushInput()
-    ard.write('90,0,90,of')

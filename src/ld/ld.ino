@@ -141,18 +141,18 @@ void setup() {
     
     //le arm setup
     #ifdef ROBOT_SERVICE_ARM_SERVO
-    R1.attach(3);
-    R2_1.attach(5);
-    R2_2.attach(6);
-    R3.attach(10);
+    R1.attach(36);
+    R2_1.attach(37);
+    R2_2.attach(38);
+    R3.attach(39);
     pinMode(8, OUTPUT);
     #endif
     #ifdef ROBOT_SERVICE_GO
     //Attach Servos
     FLSERVO.attach(30); //front left servo
-    FRSERVO.attach(28); //front right servo
-    BRSERVO.attach(31); //back left servo
-    BLSERVO.attach(29); //back right servo
+    FRSERVO.attach(31); //front right servo
+    BLSERVO.attach(32); //back left servo
+    BRSERVO.attach(33); //back right servo
     pinMode(LEFT_DIR1, OUTPUT);
     pinMode(LEFT_DIR2, OUTPUT);
     pinMode(RIGHT_DIR1, OUTPUT);
@@ -245,6 +245,12 @@ Your response message should take the form ":[char],[id],[payload];"
                           Serial.write( "\";" );
                         }
                         #endif
+                      }
+                      // forward fuck
+                      else if ( subCategory == ROBOT_COMMAND_FORWARD ) {
+                            forward( firstParam );
+                            messageGood = true;
+                        
                       }
                       // Scoot.
                       else if ( subCategory == ROBOT_COMMAND_SCOOT ) {
@@ -371,8 +377,26 @@ Your response message should take the form ":[char],[id],[payload];"
                     }
                     break;
                     #endif
-                    //this block is used for calibrating savox servos
-                    
+                    //This block controls the arm:
+
+                    #ifdef ROBOT_SERVICE_ARM_SERVO
+                    case ROBOT_SERVICE_ARM_SERVO: {
+                        numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
+                                            &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
+                        if ( numOfVars == 3 ) {
+                            Serial.print( newArmTheta[0] );
+                            Serial.write( ',' );
+                            Serial.print( newArmTheta[1] );
+                            Serial.write( ',' );
+                            Serial.print( newArmTheta[2] );
+                            Serial.write( ',' );
+                          
+                            Serial.write( ':' );
+                            Serial.write( ROBOT_RESPONSE_COMFIRM );
+                        }    
+                      }
+                      break;
+                    #endif  
                     
                     //this block is used for calibrating the IR sensors
                     case ROBOT_CALIB_IR : {
@@ -385,28 +409,6 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.print(';');
                     }
                     break;
-                    #ifdef ROBOT_SERVICE_ARM_SERVO
-                    case ROBOT_SERVICE_ARM_SERVO: {
-                        numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
-                                            &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
-                        if ( numOfVars == 3 ) {
-                            Serial.write( ':' );
-                            Serial.write( ROBOT_RESPONSE_COMFIRM );
-                            Serial.print( id );
-                            Serial.write( ';' );
-                            armControl();
-                        } else {
-                            Serial.write( ':' );
-                            Serial.write( ROBOT_RESPONSE_ERROR );
-                            Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
-                            Serial.write( "Error: Wrong number of arguments. Message was\"" );
-                            Serial.write( inBoxBuffer );
-                            Serial.write( "\";" );
-                        }
-
-                    }
-                    break;
-                    #endif
                     default: {
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_ERROR );
@@ -506,9 +508,10 @@ void establishContact( ) {
 #ifdef ROBOT_SERVICE_ARM_SERVO
 void armControl()
 {
-  newArmTheta[2] = 280 - newArmTheta[2];
+  newArmTheta[2] = 275 - newArmTheta[2];
   for(int i = 1; i <= 200; i++)
   {
+    //Serial.write( 'i' );
      R1.writeMicroseconds((int)(convertR1(oldArmTheta[0]) + (convertR1(newArmTheta[0]) - convertR1(oldArmTheta[0]))*i/200));
      R2_1.writeMicroseconds((int)(convertR2_1(oldArmTheta[1]) + (convertR2_1(newArmTheta[1]) - convertR2_1(oldArmTheta[1]))*i/200));
      R2_2.writeMicroseconds((int)(convertR2_2(oldArmTheta[1]) + (convertR2_2(newArmTheta[1]) - convertR2_2(oldArmTheta[1]))*i/200));
@@ -528,15 +531,15 @@ void armControl()
 // that gives a full360 of rotation
 double convertR1(int inDegree)
 {
-  return 950 + ((double)inDegree/360 * 2440);
+  return 1080 + ((double)inDegree/360 * 2350);
 }
 double convertR2_1(int inDegree)
 {
-  return 1040 + ((double)inDegree/360 * 2010);
+  return 1005 + ((double)inDegree/360 * 2180);
 }
 double convertR2_2(int inDegree)
 {
-  return 1030 + ((double)(inDegree)/360 * 2300);
+  return 1030 + ((double)(inDegree)/360 * 230);
 }
 double convertR3(int inDegree)
 {
@@ -560,14 +563,32 @@ void scoot(double distance, int angle)
       forwardFlag *=-1;
       angle += 360;
     }
-  faceWheels(angle);
+
+   if (-90 <= angle && angle <= 90)
+   {
+       //       Serial.println("angle is: ");
+       //Serial.println(angle-180);
+      faceWheels(angle);
+   }
+   else if (angle > 90)
+   {
+         Serial.println("angle is: ");
+    Serial.println(angle-180);
+      faceWheels(angle-180);
+            forwardFlag *= -1;
+   }
+   else if (angle < -90)
+   {
+      faceWheels(angle+180);
+      forwardFlag *= -1;
+   }
   if (forwardFlag == 1)
   {
-    forward(distance);
+      forward(distance);
   }
   else if (forwardFlag == -1)
   {
-    reverse(distance);
+      reverse(distance);
   }
 }
 
@@ -583,35 +604,30 @@ void go(double x, double y, int theta)
 }
 void turn(int angle){
   //translate angle to live in [-180,180]
-  while (angle > 180)
-    {angle -= 360;}
-  while (angle < -180)
-    {angle += 360;}
-    if (angle<0)
-    {
-        left(abs(angle));
-    }
-    else if (angle>0)
-    {
-        right(abs(angle));
-    }
+	if (angle<0)
+	{
+		left(abs(angle));
+	}
+	else if (angle>0)
+	{
+		right(abs(angle));
+	}
 }
-
 
 void right(int Angle)
 {//pass a degree, will use for delay
         motorSpeed(0);
     digitalWrite(LEFT_DIR1, LOW);
-        digitalWrite(LEFT_DIR2, HIGH);
-        digitalWrite(RIGHT_DIR1, LOW);
-        digitalWrite(RIGHT_DIR2, HIGH);
-        FLSERVO.write(90-40);   //front right servo
-        FRSERVO.write(90+40);   //back right servo
+		digitalWrite(LEFT_DIR2, HIGH);
+		digitalWrite(RIGHT_DIR1, LOW);
+		digitalWrite(RIGHT_DIR2, HIGH);
+        FLSERVO.write(90+40);   //front right servo
+        FRSERVO.write(90-40);   //back right servo
         BLSERVO.write(90-40);   //back left
         BRSERVO.write(90+40);   //front left
         delay(500);
         motorSpeed(255);
-        delay(int(Angle/33.75*1000));
+        delay(int(Angle/26.15*1000));
         motorSpeed(0);
 }
 
@@ -619,50 +635,50 @@ void left(int Angle)
 {
         motorSpeed(0);
                 digitalWrite(LEFT_DIR1, HIGH);
-        digitalWrite(LEFT_DIR2, LOW );
-        digitalWrite(RIGHT_DIR1, HIGH);
-        digitalWrite(RIGHT_DIR2, LOW);
-        FLSERVO.write(90-40);   //set servos
-        FRSERVO.write(90+40);
+		digitalWrite(LEFT_DIR2, LOW );
+		digitalWrite(RIGHT_DIR1, HIGH);
+		digitalWrite(RIGHT_DIR2, LOW);
+        FLSERVO.write(90+40);   //set servos
+        FRSERVO.write(90-40);
         BLSERVO.write(90-40);
         BRSERVO.write(90+40);
         delay(500);
         motorSpeed(255);
-        delay(int(Angle/33.75*1000));
+        delay(int(Angle/26.15*1000));
         motorSpeed(0);
 }
 
 void forward(int feet)
 {
-        motorSpeed(0);
-        digitalWrite(LEFT_DIR1, LOW);
-        digitalWrite(LEFT_DIR2, HIGH );
-        digitalWrite(RIGHT_DIR1, HIGH);
-        digitalWrite(RIGHT_DIR2, LOW);
-        FLSERVO.write(90);   //set servos
+		motorSpeed(0);
+		digitalWrite(LEFT_DIR1, LOW);
+		digitalWrite(LEFT_DIR2, HIGH );
+		digitalWrite(RIGHT_DIR1, HIGH);
+		digitalWrite(RIGHT_DIR2, LOW);
+    /*    FLSERVO.write(90);   //set servos
         FRSERVO.write(90);
         BLSERVO.write(90);
-        BRSERVO.write(90);
-        delay(500);
-        motorSpeed(255);
-        delay(int(feet/.294*1000));
+        BRSERVO.write(90);*/
+		delay(500);
+		motorSpeed(255);
+        delay(int(feet/.26*1000));
         motorSpeed(0);
 }
 
 void reverse(int feet)
 {
-        motorSpeed(0);
-        digitalWrite(LEFT_DIR1, HIGH);
-        digitalWrite(LEFT_DIR2, LOW );
-        digitalWrite(RIGHT_DIR1, LOW );
-        digitalWrite(RIGHT_DIR2, HIGH);
-        FLSERVO.write(90);   //set servos
-        FRSERVO.write(90);
-        BLSERVO.write(90);
-        BRSERVO.write(90);
-        delay(500);
-        motorSpeed(255);
-        delay(int(feet/.294*1000));
+		motorSpeed(0);
+		digitalWrite(LEFT_DIR1, HIGH);
+		digitalWrite(LEFT_DIR2, LOW );
+		digitalWrite(RIGHT_DIR1, LOW );
+		digitalWrite(RIGHT_DIR2, HIGH);
+            /*  FLSERVO.write(90);   //set servos
+                FRSERVO.write(90);
+                BLSERVO.write(90);
+                BRSERVO.write(90); */
+		delay(500);
+		motorSpeed(255);
+        delay(int(feet/.26*1000));
         motorSpeed(0);
 }
 
@@ -675,18 +691,20 @@ void motorSpeed(int inSpeed)
 
 void wheelAngle(int FL_SERVO, int FR_SERVO)
 { //this function writes out the servo values
-  FLSERVO.write(FL_SERVO);   //set servos
-  FRSERVO.write(FR_SERVO);
-  BLSERVO.write(90-FL_SERVO);
+  FLSERVO.write(90-FL_SERVO);   //set servos
+  FRSERVO.write(90+FR_SERVO);
+  BLSERVO.write(90+FL_SERVO);
   BRSERVO.write(90-FR_SERVO); 
 }
 
 void faceWheels(int angle)
 { //this function writes out the servo values
-  FLSERVO.write(angle);   //set servos
-  FRSERVO.write(angle);
-  BLSERVO.write(angle);
-  BRSERVO.write(angle); 
+  Serial.println("Angle: ");
+  Serial.println(angle);
+  FLSERVO.write(angle+90);   //set servos
+  FRSERVO.write(angle+90);
+  BLSERVO.write(angle+90);
+  BRSERVO.write(angle+90); 
 }
 
 void ackSolve(float theta, double motorSpeed)
@@ -759,5 +777,5 @@ void ackTest()
   delay(100);                // waits 100ms
   } 
 }
-#endif
+#endif 
 // END Go functions
