@@ -10,6 +10,29 @@
 #include <Servo.h>
 
 #ifdef ROBOT_SERVICE_GO
+void scoot(double distance, int angle);
+
+void go(double x, double y, int theta);
+void turn(int angle);
+
+
+void right(int Angle);
+
+void left(int Angle);
+
+void forward(int feet);
+
+void reverse(int feet);
+void motorSpeed(int inSpeed);
+
+void wheelAngle(int FL_SERVO, int FR_SERVO);
+
+void faceWheels(int angle);
+
+void ackSolve(float theta, double motorSpeed);
+
+void ackTest();
+
 #include <math.h>
 
 //Coordinates of wheel stems in cartesian plane with origin at center of bot
@@ -162,7 +185,7 @@ Your response message should take the form ":[char],[id],[payload];"
                 case ROBOT_PING_TEST: {
                     Serial.write( ":P," );
                     Serial.print( id );
-                    Serial.print(",PONG");
+                    Serial.write(",PONG");
                     Serial.write( ';' );
                 }
                 break;
@@ -291,6 +314,7 @@ Your response message should take the form ":[char],[id],[payload];"
                       Serial.print( id );
                       Serial.write( ';' );
                     }
+                }
                     break;
                     #endif
                     //this block is "wait mode," a simple poll for a button
@@ -349,17 +373,7 @@ Your response message should take the form ":[char],[id],[payload];"
                     #endif
                     //this block is used for calibrating savox servos
                     
-                    //this block is "wait mode," a simple poll for a button
-                    case ROBOT_WAIT_MODE: {
-                        for (int i=0; i<4; i++){
-                           EyeServo[i].write(45);
-                        }
-                        while(digitalRead(startButton)==HIGH);
-                        Serial.write(":W,");
-                        Serial.print(id);
-                        Serial.write(";");
-                    }
-                    break;
+                    
                     //this block is used for calibrating the IR sensors
                     case ROBOT_CALIB_IR : {
                         Serial.write( ":i," );
@@ -371,14 +385,6 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.print(';');
                     }
                     break;
-                    #ifdef ROBOT_SERVICE_GO
-                    case ROBOT_SERVICE_GO: {
-                        Serial.write( ":C" );
-                        Serial.print( id );
-                        Serial.write( ';' );
-                    }
-                    break;
-                    #endif
                     #ifdef ROBOT_SERVICE_ARM_SERVO
                     case ROBOT_SERVICE_ARM_SERVO: {
                         numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
