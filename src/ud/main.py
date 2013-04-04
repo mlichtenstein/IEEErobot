@@ -4,7 +4,7 @@ sys.path.append( "robot" )
 sys.path.append( "lib" )
 
 #This is the skeletal structure of the main loop
-from robotbasics import *
+import robotbasics
 import pygame
 import GUI
 import modes
@@ -16,8 +16,7 @@ import random
 """=================SETUP============================================"""
 
 #give the robot a state:
-state = State()
-print dir(state)
+state = robotbasics.State()
 #establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
@@ -70,13 +69,16 @@ while running == True:
     # NOTE--I modified this to make it possible to escape the .act()s
     # and return to this loop, so we can update the GUI between .act()s.
     # See my Localize class to see how that works.  --Max
-    nextMode = robotMode.act(state)
-    if nextMode != None:
-        robotMode = nextMode
+
+    print state.pose
+    if state.paused == False:
+        nextMode = robotMode.act(state)
+        if nextMode != None:
+            robotMode = nextMode
     
     # Update the GUI with the current robot state
-    gui.takeState(state)
+    state = gui.takeState(state)
 
     gui.update(screen)
     pygame.display.update()
-    time.sleep(3)
+    time.sleep(.3)

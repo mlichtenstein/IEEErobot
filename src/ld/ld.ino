@@ -1,6 +1,7 @@
 #include "Settings.h"
 #ifndef TESTING
     #if ARDUINO >= 100
+
         #include "Arduino.h"
     #else
         #include "WProgram.h"
@@ -31,13 +32,16 @@ const int LEFT_SPEED = 2, RIGHT_SPEED = 3;
 
 #ifdef ROBOT_SERVICE_SCAN
 
-//This block defines pins for the Eye modules
+//A start pin:
+//int startButton = 43;
+#define startButton 43
+//This block sets pins for the Eye modules
 Servo EyeServo[4];
 int DELAY = 55;
 int pos;
 int deltaPos = 1;
 int IRpin[] = {A0,A1,A2,A3};
-int pingPin[] = {30,31,32,33};
+int pingPin[] = {50,51,52,53};
 int servoPin[] = {10,11,12,13};
 
 //here is a function for the Eye modules
@@ -93,6 +97,13 @@ void establishContact( );
 bool readMessage( );
 
 void setup() {
+    #ifdef ROBOT_WAIT_MODE
+    
+
+    pinMode(startButton, INPUT);
+    digitalWrite(startButton, HIGH);
+    #endif
+
     #ifdef ROBOT_SERVICE_SCAN
     for (int i = 0; i<4; i++) {
         EyeServo[i].attach(servoPin[i]);
@@ -142,7 +153,8 @@ void loop() {
             int id;
             int numOfVars = sscanf( inBoxBuffer, "%c%d", &type, &id );
             if ( numOfVars == 2 ) {
-                switch ( type ) {
+                switch ( type ) 
+                {
 /*  The following are where you paste your arduino code.  Make sure an entry in Settings.h corresponds to your case.
 Your response message should take the form ":[char],[id],[payload];"
 */                  
@@ -166,6 +178,7 @@ Your response message should take the form ":[char],[id],[payload];"
                       EyeServo[i].write(id);
                     }
                 }
+                break;
                 #endif
                 //this block is used for testing the calibration of savox servos
                 #ifdef ROBOT_SERVICE_TEST_SERVO
@@ -282,6 +295,17 @@ Your response message should take the form ":[char],[id],[payload];"
                 }
                 break;
                 #endif
+                //this block is "wait mode," a simple poll for a button
+                    case ROBOT_WAIT_MODE: {
+                        for (int i=0; i<4; i++){
+                           EyeServo[i].write(45);
+                        }
+                        while(digitalRead(startButton)==HIGH);
+                        Serial.write(":W,");
+                        Serial.print(id);
+                        Serial.write(";");
+                    }
+                    break;
                 #ifdef ROBOT_SERVICE_SCAN
                 case ROBOT_SERVICE_SCAN: {
                     #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
@@ -296,7 +320,6 @@ Your response message should take the form ":[char],[id],[payload];"
                             USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[eye][pt] = analogRead(IRpin[eye]); 
                         }
-                        while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
                     }
                     //now send the message
                     Serial.write( ":J," );
@@ -322,29 +345,97 @@ Your response message should take the form ":[char],[id],[payload];"
                     for (int i = 0; i<4; i++) {
                       EyeServoWrite(i,0);
                       //                      EyeServo[i].write(0);
-                    }
+                     }
                 }
                 break;
                 #endif
-                #ifdef ROBOT_SERVICE_ARM_SERVO
-                case ROBOT_SERVICE_ARM_SERVO: {
-                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
-                                        &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
-                    if ( numOfVars == 3 ) {
-                        Serial.write( ':' );
-                        Serial.write( ROBOT_RESPONSE_COMFIRM );
+                    case ROBOT_PING_TEST:  {
+                        Serial.write( ":P," );
+                        Serial.print( id );
+                        Serial.print(",PONG");
+                        Serial.write( ';' );
+                    }
+                    break;
+                    
+                    //this block is used for calibrating savox servos
+                    case ROBOT_SERVICE_CALIBRATE_SERVO: {
+                        Serial.write( ":M" );
                         Serial.print( id );
                         Serial.write( ';' );
-                        armControl();
-                    } else {
+                        for (int i=0; i<4; i++){
+                          EyeServo[i].write(id);
+                        }
+                    }
+                    break;
+                    //this block is used for testing the calibration of savox servos
+                    case ROBOT_SERVICE_TEST_SERVO: {
+                        Serial.write( ":L" );
+                        Serial.print( id );
+                        Serial.write( ';' );
+                        for (int i=0; i<4; i++){
+                          EyeServoWrite(i, id);
+                        }
+                    }
+                    break;
+                    //this block is "wait mode," a simple poll for a button
+                    case ROBOT_WAIT_MODE: {
+                        for (int i=0; i<4; i++){
+                           EyeServo[i].write(45);
+                        }
+                        while(digitalRead(startButton)==HIGH);
+                        Serial.write(":W,");
+                        Serial.print(id);
+                        Serial.write(";");
+                    }
+                    break;
+                    //this block is used for calibrating the IR sensors
+                    case ROBOT_CALIB_IR : {
+                        Serial.write( ":i," );
+                        Serial.print( id );
+                        for (int eye=0; eye<4; eye++) {
+                            Serial.print(',');
+                            Serial.print(analogRead(IRpin[eye]));
+                        }
+                        Serial.print(';');
+                    }
+                    break;
+                    #ifdef ROBOT_SERVICE_GO
+                    case ROBOT_SERVICE_GO: {
+                        Serial.write( ":C" );
+                        Serial.print( id );
+                        Serial.write( ';' );
+                    }
+                    break;
+                    #endif
+                    #ifdef ROBOT_SERVICE_ARM_SERVO
+                    case ROBOT_SERVICE_ARM_SERVO: {
+                        numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
+                                            &( newArmTheta[0] ), &( newArmTheta[1] ), &( newArmTheta[2] ) );
+                        if ( numOfVars == 3 ) {
+                            Serial.write( ':' );
+                            Serial.write( ROBOT_RESPONSE_COMFIRM );
+                            Serial.print( id );
+                            Serial.write( ';' );
+                            armControl();
+                        } else {
+                            Serial.write( ':' );
+                            Serial.write( ROBOT_RESPONSE_ERROR );
+                            Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
+                            Serial.write( "Error: Wrong number of arguments. Message was\"" );
+                            Serial.write( inBoxBuffer );
+                            Serial.write( "\";" );
+                        }
+
+                    }
+                    break;
+                    #endif
+                    default: {
                         Serial.write( ':' );
                         Serial.write( ROBOT_RESPONSE_ERROR );
-                        Serial.print( ROBOT_SERIAL_ERROR_WRONG_ARGUMENTS );
-                        Serial.write( "Error: Wrong number of arguments. Message was\"" );
+                        Serial.print( ROBOT_SERIAL_ERROR_NO_SERVICE );
+                        Serial.write( "Error: No such service. Message was\"" );
                         Serial.write( inBoxBuffer );
                         Serial.write( "\";" );
-                    }
-
                 }
                 break;
                 #endif
@@ -359,8 +450,8 @@ Your response message should take the form ":[char],[id],[payload];"
 
                 }
                 #endif
-                }
-            }
+                } //end switch
+            } //end input check
             #ifndef NODEBUG
             else {
                 Serial.write( ':' );
@@ -371,8 +462,8 @@ Your response message should take the form ":[char],[id],[payload];"
                 Serial.write( "\";" );
             }
             #endif
-        }
-    }
+        }//end read message
+    } //end serial available
     #ifdef HAS_ARM_SERVO
     if ( armManager.inMove() ) {
         for (int i = 0; i < ARM_SERVOS; ++i ) {
@@ -384,7 +475,7 @@ Your response message should take the form ":[char],[id],[payload];"
     }
     #endif
     delay( 150 );
-}
+} //end loop()
 
 /**
  * Reads the bytes from the serial buffer and returns true

@@ -10,13 +10,37 @@ sys.path.append("..")
 import settings
 
 
-
 def rawIRtoFeet(rawIR):
     if rawIR != 0:
         feet = (2525.0*pow(rawIR, - 0.85) - 4)/12
     else:
         feet = 0
     return feet
+
+
+def feetToRawIR(dInFeet):
+    #using a lookup table.  Sue me.  --Max
+    table=((4, 444.1666666667),(5, 490.1666666667),(6, 561),
+            (7, 560.5),(8, 547.1666666667),(9, 522.1666666667),(10, 493.8333333333),(11, 459.8333333333),
+            (12, 424.3333333333),(13, 402.5),(14, 382.6666666667),(15, 346.8333333333),(16, 328.8333333333),
+            (17, 301.5),(18, 291.5),(19, 281.1666666667),(20, 257.6666666667),(21, 249),(22, 232),
+            (23, 226.1666666667),(24, 211),(25, 203),(26, 200.3333333333),(27, 200.8333333333),
+            (28, 191.6666666667),(29, 196.8333333333),(30, 188.1666666667),(31, 190.3333333333),
+            (32, 184),(33, 185.1666666667),(34, 186.6666666667),(35, 183.3333333333),(36, 186.6666666667),
+            (37, 178),(38, 178),(39, 181.1666666667),(40, 182.1666666667),(41, 183.5),(42, 182.5),
+            (43, 179.6666666667),(44, 178.1666666667),(45, 176.6666666667),(46, 171.3333333333),(47, 176.3333333333),
+            (48, 182.6666666667),(49, 173.1666666667),(50, 170.1666666667),(51, 166.3333333333),(52, 176.8333333333),
+            (53, 172.3333333333),(54, 172.8333333333),(55, 167.5),(56, 168),(57, 173.3333333333),(58, 172.5),
+            (59, 167.6666666667),(60, 163.3333333333),(61, 172.5))
+    d = float(dInFeet)*12 #in inches
+    if d >= 4 and d <60:
+        lower = int(d)
+        upper = lower+1
+        interval = d - lower
+        interpolated = table[lower-4][1]*(1-interval) + table[upper-4][1]*(interval) #the 0th entry corresponds to 4 inches
+        return interpolated
+    else:
+        return 0
 
 def rawUStoFeet(rawUS):
     if rawUS != 0:
@@ -26,6 +50,12 @@ def rawUStoFeet(rawUS):
         feet = speedOfSound * rawUS / 2
         return feet
     return 0
+
+"""
+Class Eye represents the Eye Module. You pass the relevant eye in as eyenum. X_offset and y_offset are used to find the distance from the
+center of the robot. It is the container to store and manipulate readings from the IR and US Sensors.
+
+"""
 
 class Eye:
     def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
@@ -51,6 +81,9 @@ class Eye:
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
     def takeReading(self, dataPoint, IR, US):
+        """
+        takeReading returns data from both the Infrared sensor and the Ultrasound sensor
+        """    
         self.IR[dataPoint] = IR
         self.US[dataPoint] = US
     def printReading(self):
@@ -58,6 +91,9 @@ class Eye:
             print "Eye",self.eyeNum,"sees  an IR range of",range
 
 def messageTupleToEyeList(messageTuple):
+    """
+    messageTupleToEyelist receives data from the arduino and processes it to be handled by the pandaboard
+    """
     string = messageTuple[2]
     dataPointStringList = string.split('|')[1:]
     import world
@@ -74,20 +110,27 @@ def messageTupleToEyeList(messageTuple):
             USmsb = int(dataPoint[5])
             rawIR = IRmsb*256 + IRlsb
             rawUS = USmsb*256 + USlsb
-            IR = rawIRtoFeet(rawIR)
-            US = rawUStoFeet(rawUS)
-            IR = min(IR,settings.SCAN_IR_RANGELIM) #THIS LINE IS SUPER IMPORTANT
-                #It is important because high ranges are VERY unreliable.
-            #print("Mt2el: Eye "+str(eyeNum)+" reports IR="+str(IR)+" feet at data point "+str(dataPointNum))
-            eyeList[eyeNum].takeReading(dataPointNum,IR,US)
+            US = rawUStoFeet(rawUS)  #this is weird--Eye stores raw IR data but converted US data.  So sorry.
+            eyeList[eyeNum].takeReading(dataPointNum,rawIR,US)
         except Exception as error:
             print "At least one data point was lost.",error
     return eyeList
 
-
+"""
+Hypobot generates a cloud of hypothetical bots for statistical comparison of incoming data to find its likeliest current location.
+The closest number of hypobots that exist are averaged to a final value. The number is stored in modes.pi. It's declared in the localize function.
+"""
 class Hypobot:
+    """
+    Weight:
+    According to Beyes theorem, each measurement tells you something about the correctness of a hypobot. The weight
+    starts at 1 and is reduced by a gaussian factor for each sensor measurement. (Kalman Filter)
+    """
     def __init__(self, x, y, theta, weight = 1):
         import robotbasics
+        self.scootThetaSigma = 5
+        self.scootDistanceSigma = .3
+        self.rotateSigma = 15 
         self.x = x
         self.y = y
         self.theta = theta
@@ -101,7 +144,7 @@ class Hypobot:
         self.color = (int(self.red),int(self.green), int(self.blue))
     def changeWeight(self, real_eyeList, landmarkList):
         """
-        this method weights each hypobot according to how well it's
+        this method weights each hypobot according to how well its 
         generated eye data resembles the real eye data.  It's more or
         less a simple product of beysian probabilities--a monte carlo
         kalman filter.  ONLY call it after you've generated eye data,
@@ -119,23 +162,30 @@ class Hypobot:
         for eyeNum in range(0,len(self.localEyeList)):
             distSum = 0
             for i in range(settings.SCAN_DATA_POINTS):
+                #first do IR:
                 if real_eyeList[eyeNum].IR[i] != 0:     
-                    distance = 10
-                    a=0
-                    correctionWindow = 1
-                    for j in range(max(0,i-correctionWindow),
-                            min(settings.SCAN_DATA_POINTS,i+correctionWindow+1)):
-                        a = self.localEyeList[eyeNum].IR[j]
-                        b =  real_eyeList[eyeNum].IR[i]
-                        #distance = min(distance, (a**2 + b**2 - 2*a*b*math.cos((i-j)*math.pi/180))) #SLOW
-                        distance = min(distance, abs(a-b))  #FAST
-                    self.weight *= math.exp((-(distance/self.weightingSigma(a)/2)**2))
-    def weightingSigma(self, idealRange):
-        if idealRange < 1:
-            return 2
-        else:
-            return 1
+                    a = self.localEyeList[eyeNum].IR[i]
+                    b =  real_eyeList[eyeNum].IR[i]
+                    #print a,"=ir=", b
+                    distance = abs(a-b)  #FAST
+                    self.weight *= math.exp((-(distance/self.weightingSigmaIR(a)/2)**2)) 
+                    #^Gaussian function of approximation for computing weight of a measurement."
+                #Next do US
+                if real_eyeList[eyeNum].US[i] != 0 and real_eyeList[eyeNum].US[i] < 1.0:
+                    a = self.localEyeList[eyeNum].US[i]
+                    b =  real_eyeList[eyeNum].US[i]
+                    #print a,"=us=", b
+                    self.weight *= math.exp((-(distance/self.weightingSigmaUS(a)/2)**2)) 
+
+    def weightingSigmaIR(self, IRrange):
+        #finding sigma in a method allows it to be non-constant, making this an Extended Kalman Filter
+            return 100
+    def weightingSigmaUS(self, USrange):
+        return 10.0/12 #tenth of an inch?  Heh, maybe
     def generateEyeData(self, landmarkList):
+        """
+        generateEyeData() gives calculated values of what each hypobot would be seeing based on its x,y,and theta.
+        """
         #tricky, we need to use the hardware info from real_eyeList
         #plus the pose info from hypobot to transform our heading
         import copy
@@ -150,9 +200,28 @@ class Hypobot:
             for j in range(settings.SCAN_DATA_POINTS):
                 effective_theta = eye.thetaList[j]
                 #----------------------change generation speed here ---------------------
-                eye.IR[j] = calcIdealRange(x, y, effective_theta, landmarkList, "SLOW")
+                distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "SLOW")
+                eye.IR[j] = feetToRawIR(distInFeetIR)
+                distInFeetUS = calcIdealRangeUS(x, y, effective_theta, landmarkList)
+    def scoot(self, scootDistance, scootAngle):
+        import random
+        thetaEff = (self.pose.theta + random.gauss(scootAngle, self.scootAngleSigma))*math.pi/180
+        dEff = random.gauss(scootDistance,self.scootDistanceSigma)
+        newPose = Pose(self.pose.x + dEff*math.cos(thetaEff),
+                        self.pose.y - dEff*math.sin(thetaEff),
+                        self.theta)
+        self.pose = newPose
+    def rotate(self,rotateAngle):
+        import random
+        newTheta = self.pose.theta + random.gauss(rotateAngle, self.rotateSigma)
+        self.pose.theta = newTheta
+    """
+    DetectCollision is used to kill off any hypobot that is colliding with another object since no two 
+    objects can exist in the same space.
+    CURRENTLY THIS FUNCTION DOES NOT OPERATE CORRECTLY! Half of all hypobots seem to be killed each time. (500/1000)
+    """
     def detectCollision(self):
-        import world
+        """import world
         s = world.World().robotSide/2
         x = self.pose.x
         y = self.pose.y
@@ -177,8 +246,13 @@ class Hypobot:
                     return True
             if corner[0]<0 or corner[0]>8 or corner[1]<0 or corner[1]>8:
                 return True
-        return False
-           
+        return False"""
+        if self.pose.x < 0.5 or self.pose.x > 7.5 or self.pose.y < 0.5 or self.pose.y > 7.5:
+            return True
+        else:
+            return False
+
+        
 class HypobotCloud:
     """
     This class is a wrapper for hypobotList.  It includes functions for
@@ -202,6 +276,7 @@ class HypobotCloud:
     """
     def __init__(self):
         self.hypobotList = list()
+        self.cloudSize = 1000 #approx size of cloud--we will bloom and prune to stay near this
     def clear(self):
         l = len(self.hypobotList)
         self.hypobotList = list()
@@ -225,6 +300,14 @@ class HypobotCloud:
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
         self.flatten()
+    def appendBoost(self, poseSigma):
+        import random
+        cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
+        clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
+                        random.gauss(cloneTarget.y, poseSigma.y),
+                        random.gauss(cloneTarget.theta, poseSigma.theta),
+                        cloneTarget.weight)
+        self.hypobotList.append(clone)
     def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose
         import random
@@ -262,6 +345,7 @@ class HypobotCloud:
                 deleted += 1
         print "Deleted",deleted,"hbots due to collisions.",len(self.hypobotList),"remain."
     def generateEyeData(self, landmarkList):
+        print "Generating eye data..."
         import time
         startTime = time.time()
         for hypobot in self.hypobotList:
@@ -315,9 +399,12 @@ class HypobotCloud:
             avg.y += hypobot.y * hypobot.weight
             avg.theta += hypobot.theta * hypobot.weight
             totWeight += hypobot.weight
-        avg.x /= totWeight
-        avg.y /= totWeight
-        avg.theta /= totWeight
+        try:
+            avg.x /= totWeight
+            avg.y /= totWeight
+            avg.theta /= totWeight
+        except:
+            print "Total weight is zero.  Probably, something is wrong with your eye modules"
         return avg
     def pruneThreshold(self, threshold):
         #this method cuts all weights that are below threshold
@@ -330,7 +417,7 @@ class HypobotCloud:
             +str(threshold)+".")
         print(str(len(self.hypobotList))+" hbots remain.")
     def pruneFraction(self, fraction):
-        #this method prunes the lowest weighted hypobots
+        #this method prunes the lowest hypobots, so fraction = .9 means only the top 10% remain
         toPrune = int(len(self.hypobotList)*fraction)  
         killList = sorted(self.hypobotList, key = lambda hbot: hbot.weight)
         for i in range(0,toPrune):
@@ -343,8 +430,14 @@ class HypobotCloud:
                 +" and the min weight is "
                 +str(min(self.hypobotList,key=lambda hbot: hbot.weight).weight))
         print"========================================="
+    def scootAll(self, distance, angle):
+        for hbot in self.hypobotList:
+            hbot.scoot(distance,angle)
+    def rotateAll(self, angle):
+        for hbot in self.hypobotList:
+            hbot.rotate(angle)
 
-def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
+def calcIdealRangeIR(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
     """
     This function will calculate the range detected by an ideal IR
     sensor    at x_eye, y_eye and pointing in the theta_board direction.
@@ -405,19 +498,28 @@ def calcIdealRange(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board
                 r = min(r, d - radius + radius*(theta/lim)**2)
     return r
 
+def calcIdealRangeUS(x_eye, y_eye, theta_board, landmarkList):
+    import world
+    r = 10 #start with that range
+    for landmark in landmarkList:
+        if landmark.landmarkType == "ROCK":
+            d = math.sqrt((x_eye-landmark.x)**2 + (y_eye-landmark.y)**2) - world.World().rockRadius
+            r = min(r,d)
+        if landmark.landmarkType == "TREE":
+            #treeSide = world.World().treeSide
+            treeSide = 2
+            if x_eye < landmark.x + treeSide/2 and x_eye > landmark.x - treeSide/2:
+                d = abs(y_eye - landmark.y) - treeSide/2
+            elif y_eye < landmark.y + treeSide/2 and y_eye > landmark.y - treeSide/2:
+                d = abs(x_eye - landmark.x) - treeSide/2
+            else:
+                x_corner = landmark.x + math.copysign(treeSide/2, x_eye - landmark.x)
+                y_corner = landmark.y + math.copysign(treeSide/2, y_eye - landmark.y)
+                d = math.sqrt((x_eye-x_corner)**2 + (y_eye-y_corner)**2)
+            r = min(r,d)
+    return r
 
 if __name__ == "__main__":
 
-    #test averaging:
-    testCloud = HypobotCloud()
-    h1 =Hypobot(10,0,0,.5)
-    h2 =Hypobot(0,5,0,1)
-    print h1.weight
-    testCloud.hypobotList.append(h1)
-    testCloud.hypobotList.append(h2)
-    print testCloud.average().x
-    print testCloud.average().y
-    print testCloud.normalize()
-    print testCloud.describeCloud()
-    h3 = Hypobot(0,0,0,5.5)
-    print h3.detectCollision()
+    import robotbasics
+    print calcIdealRangeUS(0,6.5/12,222,[robotbasics.Landmark(0.0,0, "ROCK")])

@@ -96,6 +96,9 @@ class Go( Mode ):
             return Localize( state )
         return self
     def makeAMove( self, ):
+        """
+        decides between 3 actions:  Grab, travel along path, go to path.
+        """
         whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
@@ -153,6 +156,7 @@ class Go( Mode ):
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_SCOOT, distance, angle  )
+        state.hypobotCloud.scoot(distance, angle)
         return self.messenger.waitForConfirmation(distance * .5)
     def rotate( self, angle ):
         """
@@ -169,7 +173,66 @@ class Go( Mode ):
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
-        return self.messenger.waitForConfirmation(distance * .5)
+        state.hypobotCloud.scoot(angle)
+        self.messenger.waitForConfirmation(distance * .5)
+
+"""========================================================================================="""
+"""/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
+"""========================================================================================="""
+
+class LocStep: #A step is any object with a .do method.  Included only as a template.
+    def do(self, mode, state):
+        pass
+class PrimeCloud(LocStep):
+    def do(self, mode, state):
+        print("=========Beginning localization.=========")
+        print "Priming cloud in sector 1..."
+        #add hbots at the current best guess, if nec
+        state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, 1.0, 5.0)
+        Localize.nextStep = Scan() #we only want to prime the cloud once
+        return Scan()
+class Scan(LocStep):
+    def do(self, mode, state):
+        print "scanning and generating eye data..."
+        mode.messenger.sendMessage(settings.SERVICE_SCAN)
+        state.hypobotCloud.clearCollided();
+        import time
+        import localize
+        messageTime = time.time()
+        state.hypobotCloud.generateEyeData(world.World().landmarkList)
+        if not mode.messenger.checkInBox():
+            print("Waiting for scan to finish")
+            while not mode.messenger.checkInBox():
+                pass
+        tup = mode.messenger.getMessageTuple()
+        self.real_eyeList = localize.messageTupleToEyeList(tup)
+        state.eyeList=self.real_eyeList
+        return WeightCloud()
+class WeightCloud(LocStep):
+    def do(self, mode, state):
+        print "weighting hbots..."
+        state.hypobotCloud.weight(state.eyeList, world.World().landmarkList)
+        state.hypobotCloud.describeCloud()
+        return AverageCloud()
+class AverageCloud(LocStep):
+    def do(self, mode, state):
+        print "averaging cloud... "
+        state.hypobotCloud.normalize()           
+        avg = state.hypobotCloud.average()
+        state.hypobotCloud.describeCloud()
+        state.pose = avg
+        print "Changing pose to",avg.x,",",avg.y,",",avg.theta
+        return PruneAndBoost()
+class PruneAndBoost(LocStep):
+    def do(self, mode, state):
+        print "pruning and boosting..."
+        state.hypobotCloud.pruneFraction(0.32) #approx 1 sigma
+        while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
+            state.hypobotCloud.appendBoost(state.poseUncertainty)
+        return Scan() #REPLACE WITH GoToPathfind()
+class GoToPathfind(LocStep):
+    def do(self, mode, state):
+        return None #escapes to next mode
 
 class Localize( Mode ):
     """
@@ -181,77 +244,19 @@ class Localize( Mode ):
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        self.scanUpToDate = False
-        self.step = 1
-        self.cloudSize = 1000 #approx size of cloud--we will bloom and prune to stay near this
+        self.thisStep = PrimeCloud()
     def act(self, state):
-        import localize
-        cloud = state.hypobotCloud 
-        if self.step == 1:
-            print("=========Beginning localization.=========")
-            print "step 1: build cloud"
-            #add hbots at the current best guess, if nec
-            if cloud.count() == 0:
-                #cloud.appendGaussianCloud(minCount,state.pose,state.poseUncertainty)
-                cloud.appendFlatSquare(self.cloudSize, state.pose, 1.5, 15.0)
-            elif cloud.count() < self.cloudSize:
-                multiplier = int(self.cloudSize / cloud.count() +.99)
-                cloud.appendBloom(multiplier,Pose(.3,.3,3))
-            self.step +=1
-            return None
-        if self.step == 2:
-            print "step 2: scan and generate eye data"
-            self.messenger.sendMessage(settings.SERVICE_SCAN)
-            cloud.clearCollided();
-            import time
-            messageTime = time.time()
-            cloud.generateEyeData(world.World().landmarkList)
-            if not self.messenger.checkInBox():
-                print("Waiting for scan to finish")
-                while not self.messenger.checkInBox():
-                    pass
-            tup = self.messenger.getMessageTuple()
-            self.real_eyeList = localize.messageTupleToEyeList(tup)
-            state.eyeList=self.real_eyeList
-            self.step +=1
-            return None
-        if self.step == 3:
-            print "step 3: weight hbots"
-            cloud.weight(self.real_eyeList, world.World().landmarkList)
-            cloud.describeCloud()
-            self.step +=1
-            return None
-        if self.step == 4:
-            print "step 4: normalize, average, prune, change bestGuess"
-            cloud.normalize()           
-            avg = state.hypobotCloud.average()
-            cloud.pruneFraction(0.9)
-            cloud.describeCloud()
-            state.pose = avg
-            print "Changing pose to",avg.x,",",avg.y,",",avg.theta
-            self.step +=1
-            return None
-            """
-            while True:
-                pass
-        if self.step == 5:
-            print "step 5: prune the cloud, normalize"
-            cloud.pruneFraction(0.9)
-            cloud.normalize()
-            self.step +=1
-            return None
-        if self.step == 6:
-            print "step 6: focus the cloud, weight"
-            cloud.appendBloom(3,Pose(.1,.1,1))
-            cloud.weight(self.real_eyeList, world.World().landmarkList)
-            self.step +=1
-            return None
-            """
-        print state.pose.string()
-        import time
-        time.sleep(10)
-        return Localize(state)
-    pass
+        nextStep = self.thisStep.do(self, state)
+        if nextStep == None:
+            return Go(state)
+        else:
+            self.thisStep = nextStep
+            return None #come bak to Localize
+
+
+"""========================================================================================="""
+"""/\/\/\/\/\/\/\/\/\/\/\/\/\  THUS ENDS LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
+"""========================================================================================="""
 
 
 class Grab( Mode ):
@@ -290,4 +295,3 @@ if __name__ == "__main__":
     while True:
         if messenger.checkInBox():
             mode.onMessageReceived( messenger.getMessage() )
-

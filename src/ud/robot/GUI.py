@@ -60,7 +60,7 @@ class Frame:
     def setup(self):
         pass
     def takeState(self, state):
-        pass
+        return state
                 
 class Button(Frame): 
     down = False
@@ -103,6 +103,7 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
         pass
     def takeState(self, state):
         self.state = state
+        return state
     def takeWorld(self, logList, landmarkList): #DEPRECATED -- delete this when you're in the mood for a bughunt
         self.logList = logList
         self.landmarkList = landmarkList
@@ -175,6 +176,7 @@ class StatusBanner(Frame):
         import time
         ti = time.time() - state.startTime
         self.modifyStrings(state.mode, state.remainingPucks, ti)
+        return state
     def draw(self):
         self.surface.fill(0x07BB07)
         UpperLeft = [0,250, 800]
@@ -193,6 +195,27 @@ class StatusBanner(Frame):
         self.string[1] = "PUCKS REMAINING: " + tempstring1[:-1]
         self.string[2] = "TIME: " + str(time)
 
+"""=========================CONTROLS============================================"""
+
+class PauseButton(Frame):
+    def setup(self):
+        self.paused=False
+        self.font = pygame.font.Font(None, 26)
+    def feelClickDown(self, screen_pos):
+        self.paused != self.paused
+    def takeState(self, state):
+        state.paused = self.paused
+        return state
+    def draw(self):
+        if self.paused == False:
+            self.surface.fill((0,255,0))
+            tempSurface = self.font.render("PAUSE", True, (0,0,0))
+        else:
+            self.surface.fill((255,0,0))
+            tempSurface = self.font.render("UNPAUSE", True, (0,0,0))
+        tempUL = (10,10)
+        self.surface.blit(tempSurface,tempUL)
+
 """==========================GUI CLASS==========================================="""
 
 class GUI:
@@ -205,9 +228,11 @@ class GUI:
         self.statusBanner = StatusBanner(pygame, screen, 10, 10, 980, 40)
         self.modeView = View(pygame,screen,560, 60, 00,000) #emptyFrame for now
         #self.modeView = RangeView(self.pygame, self.screen, 560, 60, 540,540)
+        self.pauseButton = PauseButton(pygame, screen, 10, 630, 100, 100)
         self.frameList = [  self.boardView,
                             self.statusBanner,
-                            self.modeView ]
+                            self.modeView ,
+                            self.pauseButton]
     def takeState(self, state):
         #this block shifts the modeView (or it should)
         if self.prevMode != state.mode:
@@ -222,6 +247,7 @@ class GUI:
             self.prevMode = state.mode                
         for frame in self.frameList:
             frame.takeState(state)
+        return state
     def update(self,screen):
         for frame in self.frameList:
             frame.update(screen)

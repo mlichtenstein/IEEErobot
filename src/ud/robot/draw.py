@@ -135,7 +135,7 @@ class IRreadings(Drawable):
             for eye in hypobot.eyeList:
                 for i in range(0,settings.SCAN_DATA_POINTS):
                     if eye.IR[i] != 0:
-                        D = eye.IR[i] * view.CC
+                        D = eye.IR[i] / 3
                         theta = hypobot.theta * (math.pi/180)
                         x = int((hypobot.x + eye.x_offset*math.cos(theta) +
                                 eye.y_offset*math.sin(theta))*view.CC)

@@ -38,6 +38,8 @@
 #define ROBOT_SERVICE_GO 'T'
 #define ROBOT_COMMAND_TURN 'T'
 #define ROBOT_COMMAND_SCOOT 'S'
+#define ROBOT_CALIB_IR 'i'
+#define ROBOT_WAIT_MODE 'W'
 // END Services
 
 // BEGIN Responses

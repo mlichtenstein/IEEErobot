@@ -135,7 +135,7 @@ class Messenger:
             print("message of zero length")
             return False
         ret = self.__message
-        print("Arduino says: " + ret[:160]) #cuttoff for ret
+        print("Arduino says: " + ret) #to cutoff ret, replace with ret[:160]
         self.__message = ""
         #import copy
         return ret
@@ -143,6 +143,7 @@ class Messenger:
     def getMessageTuple(self):
         string = self.getMessage()
         if string == False:
+            "No message"
             return False
         tup = string.split(",", 2)
         return tup
