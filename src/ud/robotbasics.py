@@ -41,7 +41,7 @@ class State:
         self.mode = None
         self.moving = False
         self.pose = Pose(.5,.5,270) #make this the starting pose
-        self.poseUncertainty = Pose(.3,.3,5) #total guesswork
+        self.poseUncertainty = Pose(1,1,5) #total guesswork
         self.pitch = 0.0
         self.roll = 0.0
         self.distanceSinceScan = Pose(0,0,0) #distance, in feet, since last scan
@@ -75,15 +75,15 @@ class Landmark:
         self.x,self.y,self.landmarkType = (x,y,landmarkType)
         if landmarkType == "TREE":
             self.effRadius = 2.0/12
-        else:
+        if landmarkType == "ROCK:"
             self.effRadius = 6.7/12/2
 
 
 
 if __name__ == "__main__":
     print "??"
-    testPose = Pose(4.33333333333,2,1)
-    print testPose.string()
 
+    testLandmark = Landmark(1,1, "ROCK")
+    print testLandmark.effRadius
     testLandmark = Landmark(1,1, "TREE")
     print testLandmark.effRadius

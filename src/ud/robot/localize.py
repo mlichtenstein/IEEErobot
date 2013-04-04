@@ -221,8 +221,14 @@ class Hypobot:
     CURRENTLY THIS FUNCTION DOES NOT OPERATE CORRECTLY! Half of all hypobots seem to be killed each time. (500/1000)
     """
     def detectCollision(self):
-        """import world
+        import world
         s = world.World().robotSide/2
+        if self.pose.x < 0.5 or self.pose.x > 7.5 or self.pose.y < 0.5 or self.pose.y > 7.5:
+            return True
+        for landmark in world.World().landmarkList:
+            dsquared = (self.pose.x-landmark.x)**2 + (self.pose.y-landmark.y)**2
+            if dsquared < (landmark.effRadius + s)**2:
+                return True
         x = self.pose.x
         y = self.pose.y
         theta = self.pose.theta
@@ -230,27 +236,23 @@ class Hypobot:
         ya = s*math.sin(self.pose.theta*math.pi/180)
         xb = s*math.sin(self.pose.theta*math.pi/180)
         yb = s*math.cos(self.pose.theta*math.pi/180)
-        cornerList = (  (x-xa+xb,y+ya+yb),
+        cornerList = [  (x-xa+xb,y+ya+yb),
                         (x-xa-xb,y+ya-yb),
                         (x+xa-xb,y-ya-yb),
-                        (x+xa+xb,y-ya+yb) )
+                        (x+xa+xb,y-ya+yb) ]
         for corner in cornerList:
-            print corner
             for landmark in world.World().landmarkList:
                 dsquared = (corner[0]-landmark.x)**2 + (corner[1]-landmark.y)**2
-                if landmark.landmarkType == "TREE": # JOSH WHAT IS WRONG????  why can't I call landmark.effRadius?
-                    effRadius = 2.0/12 
-                else:
-                    effRadius = 6.7/24
-                if dsquared < effRadius**2:
+                if dsquared < landmark.effRadius**2:
                     return True
             if corner[0]<0 or corner[0]>8 or corner[1]<0 or corner[1]>8:
                 return True
-        return False"""
-        if self.pose.x < 0.5 or self.pose.x > 7.5 or self.pose.y < 0.5 or self.pose.y > 7.5:
-            return True
+        return False
+        """
+        
         else:
             return False
+        """
 
         
 class HypobotCloud:
@@ -276,7 +278,7 @@ class HypobotCloud:
     """
     def __init__(self):
         self.hypobotList = list()
-        self.cloudSize = 10 #approx size of cloud--we will bloom and prune to stay near this
+        self.cloudSize = 2000 #approx size of cloud--we will bloom and prune to stay near this
     def clear(self):
         l = len(self.hypobotList)
         self.hypobotList = list()
@@ -339,10 +341,13 @@ class HypobotCloud:
             hbot.weight = 1
     def clearCollided(self):
         deleted = 0
+        killList = list()
         for hbot in self.hypobotList:
-            if hbot.detectCollision:
-                self.hypobotList.remove(hbot)
+            if hbot.detectCollision() == True:
+                killList.append(hbot)
                 deleted += 1
+        for hbot in killList:
+            self.hypobotList.remove(hbot)
         print "Deleted",deleted,"hbots due to collisions.",len(self.hypobotList),"remain."
     def generateEyeData(self, landmarkList):
         print "Generating eye data..."

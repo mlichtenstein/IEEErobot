@@ -188,14 +188,19 @@ class PrimeCloud(LocStep):
         print("=========Beginning localization.=========")
         print "Priming cloud in sector 1..."
         #add hbots at the current best guess, if nec
-        state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, 1.0, 5.0)
+        state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, 10.0, 225.0)
         Localize.nextStep = Scan() #we only want to prime the cloud once
+        return ClearCollided()
+class ClearCollided(LocStep):
+    def do(self, mode, state):
+        print "clearing out collided hbots"
+        state.hypobotCloud.clearCollided();
         return Scan()
 class Scan(LocStep):
     def do(self, mode, state):
         print "scanning and generating eye data..."
         mode.messenger.sendMessage(settings.SERVICE_SCAN)
-        state.hypobotCloud.clearCollided();
+        
         import time
         import localize
         messageTime = time.time()

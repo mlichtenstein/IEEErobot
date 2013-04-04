@@ -124,26 +124,6 @@ class HypobotSet(Drawable):
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
             Robot(self.color,alpha).drawPose(view,hypobot.pose)
 
-class IRreadings(Drawable):
-    """
-    the IR readings are drawn as radial lines
-    """
-    name = "IRreadings"
-    def draw(self, view, state):
-        import settings
-        for hypobot in state.hypobotList:
-            for eye in hypobot.eyeList:
-                for i in range(0,settings.SCAN_DATA_POINTS):
-                    if eye.IR[i] != 0:
-                        D = eye.IR[i] / 806
-                        theta = hypobot.theta * (math.pi/180)
-                        x = int((hypobot.x + eye.x_offset*math.cos(theta) +
-                                eye.y_offset*math.sin(theta))*view.CC)
-                        y = int((hypobot.y - eye.x_offset*math.sin(theta) +
-                                eye.y_offset*math.cos(theta))*view.CC)
-                        drawRange(self.surface,color, x, y,
-                                hypobot.theta + eye.thetaList[i], D/2, D)
-
 class LogSet(Drawable):
     name = "Logs"
     def __init__(self, logList, color=None, default=None):
@@ -238,7 +218,7 @@ class IRranges(Drawable):
             y_eye=int(y0 + eye.y_offset*view.CC)
             for i in range(0,settings.SCAN_DATA_POINTS):
                 theta = eye.thetaList[i]
-                IR = eye.IR[i]*view.CC
+                IR = eye.IR[i] / 3
                 drawRange(view.surface, self.color, x_eye,y_eye,theta,10,IR)
 
 class USranges(Drawable):

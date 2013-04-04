@@ -202,7 +202,7 @@ class PauseButton(Frame):
         self.paused=False
         self.font = pygame.font.Font(None, 26)
     def feelClickDown(self, screen_pos):
-        self.paused != self.paused
+        self.paused = not self.paused
     def takeState(self, state):
         state.paused = self.paused
         return state

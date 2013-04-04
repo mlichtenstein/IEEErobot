@@ -70,7 +70,6 @@ while running == True:
     # and return to this loop, so we can update the GUI between .act()s.
     # See my Localize class to see how that works.  --Max
 
-    print state.pose
     if state.paused == False:
         nextMode = robotMode.act(state)
         if nextMode != None:
@@ -81,4 +80,4 @@ while running == True:
 
     gui.update(screen)
     pygame.display.update()
-    time.sleep(.3)
+    time.sleep(3)
