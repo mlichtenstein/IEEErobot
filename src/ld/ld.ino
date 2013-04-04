@@ -171,6 +171,18 @@ void loop() {
                 }
                 break;
 #endif
+                //this block tests sending doubles to ard.
+                case 'd': {
+                  Serial.write(":d,");
+                  Serial.print(id);
+                  Serial.write(",");
+                  int myDouble;
+                  char spoil;
+                  int numOfVars = sscanf( inBoxBuffer, "%c%d", &spoil, &myDouble );
+                  Serial.print(myDouble);
+                  Serial.print(';');
+                }
+                break;
                 //this block is used for calibrating savox servos
 #ifdef ROBOT_SERVICE_CALIBRATE_SERVO
                 case ROBOT_SERVICE_CALIBRATE_SERVO: {
