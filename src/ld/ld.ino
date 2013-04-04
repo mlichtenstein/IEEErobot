@@ -158,9 +158,8 @@ void loop() {
 /*  The following are where you paste your arduino code.  Make sure an entry in Settings.h corresponds to your case.
 Your response message should take the form ":[char],[id],[payload];"
 */                  
-                
-                    #ifdef ROBOT_PING_TEST
-                    case ROBOT_PING_TEST: {
+                #ifdef ROBOT_PING_TEST
+                case ROBOT_PING_TEST: {
                     Serial.write( ":P," );
                     Serial.print( id );
                     Serial.print(",PONG");
@@ -292,10 +291,9 @@ Your response message should take the form ":[char],[id],[payload];"
                       Serial.print( id );
                       Serial.write( ';' );
                     }
-                }
-                break;
-                #endif
-                //this block is "wait mode," a simple poll for a button
+                    break;
+                    #endif
+                    //this block is "wait mode," a simple poll for a button
                     case ROBOT_WAIT_MODE: {
                         for (int i=0; i<4; i++){
                            EyeServo[i].write(45);
@@ -306,77 +304,51 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.write(";");
                     }
                     break;
-                #ifdef ROBOT_SERVICE_SCAN
-                case ROBOT_SERVICE_SCAN: {
-                    #define DELAY 52 //the minimum read time--used to ensure that the scan doesn't go so fast
-                    float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
-                    unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
-                    unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
-                    
-                    for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
-                        unsigned long lastTime = millis();  //used to establish a minimum read time
-                        for (int eye = 0; eye<4; eye++) {
-                            EyeServoWrite(eye,pt);
-                            USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
-                            IRreading[eye][pt] = analogRead(IRpin[eye]); 
+                    #ifdef ROBOT_SERVICE_SCAN
+                    case ROBOT_SERVICE_SCAN: {
+                        int DELAY = 52; //the minimum read time--used to ensure that the scan doesn't go so fast
+                        float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
+                        unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
+                        unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
+                        
+                        for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
+                            unsigned long lastTime = millis();  //used to establish a minimum read time
+                            for (int eye = 0; eye<4; eye++) {
+                                EyeServoWrite(eye,pt);
+                                USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
+                                IRreading[eye][pt] = analogRead(IRpin[eye]); 
+                            }
                         }
-                    }
-                    //now send the message
-                    Serial.write( ":J," );
-                    Serial.print( id );
-                    Serial.write( ","); 
-                    for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
-                        for (int eye = 0; eye < 4; eye+=1){
-                                Serial.print( char('|'));
-                                Serial.print( (eye)); //EyeNum
-                                Serial.write( ',' );
-                                Serial.print( (pt)); //DataPointNum
-                                Serial.write( ',' );
-                                Serial.print( (IRreading[eye][pt] & 255)); //IRlsb
-                                Serial.write( ',' );
-                                Serial.print( (IRreading[eye][pt] >> 8));  //IRmsb
-                                Serial.write( ',' );
-                                Serial.print( (USreading[eye][pt] & 255)); //USlsb
-                                Serial.write( ',' );
-                                Serial.print( (USreading[eye][pt] >> 8));  //USlsb
-                        }
-                    }
-                    Serial.write( ';' );
-                    for (int i = 0; i<4; i++) {
-                      EyeServoWrite(i,0);
-                      //                      EyeServo[i].write(0);
-                     }
-                }
-                break;
-                #endif
-                    case ROBOT_PING_TEST:  {
-                        Serial.write( ":P," );
+                        //now send the message
+                        Serial.write( ":J," );
                         Serial.print( id );
-                        Serial.print(",PONG");
+                        Serial.write( ","); 
+                        for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
+                            for (int eye = 0; eye < 4; eye+=1){
+                                    Serial.print( char('|'));
+                                    Serial.print( (eye)); //EyeNum
+                                    Serial.write( ',' );
+                                    Serial.print( (pt)); //DataPointNum
+                                    Serial.write( ',' );
+                                    Serial.print( (IRreading[eye][pt] & 255)); //IRlsb
+                                    Serial.write( ',' );
+                                    Serial.print( (IRreading[eye][pt] >> 8));  //IRmsb
+                                    Serial.write( ',' );
+                                    Serial.print( (USreading[eye][pt] & 255)); //USlsb
+                                    Serial.write( ',' );
+                                    Serial.print( (USreading[eye][pt] >> 8));  //USlsb
+                            }
+                        }
                         Serial.write( ';' );
+                        for (int i = 0; i<4; i++) {
+                          EyeServoWrite(i,0);
+                          //                      EyeServo[i].write(0);
+                         }
                     }
                     break;
-                    
+                    #endif
                     //this block is used for calibrating savox servos
-                    case ROBOT_SERVICE_CALIBRATE_SERVO: {
-                        Serial.write( ":M" );
-                        Serial.print( id );
-                        Serial.write( ';' );
-                        for (int i=0; i<4; i++){
-                          EyeServo[i].write(id);
-                        }
-                    }
-                    break;
-                    //this block is used for testing the calibration of savox servos
-                    case ROBOT_SERVICE_TEST_SERVO: {
-                        Serial.write( ":L" );
-                        Serial.print( id );
-                        Serial.write( ';' );
-                        for (int i=0; i<4; i++){
-                          EyeServoWrite(i, id);
-                        }
-                    }
-                    break;
+                    
                     //this block is "wait mode," a simple poll for a button
                     case ROBOT_WAIT_MODE: {
                         for (int i=0; i<4; i++){
@@ -438,7 +410,6 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.write( "\";" );
                 }
                 break;
-                #endif
                 #ifndef NODEBUG
                 default: {
                     Serial.write( ':' );
@@ -596,13 +567,13 @@ void scoot(double distance, int angle)
 
 void go(double x, double y, int theta)
 {
-	int angle = 180/PI*atan2(y,x);
+    int angle = 180/PI*atan2(y,x);
         //Serial.println(angle);
-	turn(angle);
-	forward(hypot(x,y));
-	int dAngle=theta-angle;
-	turn(dAngle);
-	
+    turn(angle);
+    forward(hypot(x,y));
+    int dAngle=theta-angle;
+    turn(dAngle);
+    
 }
 void turn(int angle){
   //translate angle to live in [-180,180]
@@ -610,14 +581,14 @@ void turn(int angle){
     {angle -= 360;}
   while (angle < -180)
     {angle += 360;}
-	if (angle<0)
-	{
-		left(abs(angle));
-	}
-	else if (angle>0)
-	{
-		right(abs(angle));
-	}
+    if (angle<0)
+    {
+        left(abs(angle));
+    }
+    else if (angle>0)
+    {
+        right(abs(angle));
+    }
 }
 
 
@@ -625,9 +596,9 @@ void right(int Angle)
 {//pass a degree, will use for delay
         motorSpeed(0);
     digitalWrite(LEFT_DIR1, LOW);
-		digitalWrite(LEFT_DIR2, HIGH);
-		digitalWrite(RIGHT_DIR1, LOW);
-		digitalWrite(RIGHT_DIR2, HIGH);
+        digitalWrite(LEFT_DIR2, HIGH);
+        digitalWrite(RIGHT_DIR1, LOW);
+        digitalWrite(RIGHT_DIR2, HIGH);
         FLSERVO.write(90-40);   //front right servo
         FRSERVO.write(90+40);   //back right servo
         BLSERVO.write(90-40);   //back left
@@ -642,9 +613,9 @@ void left(int Angle)
 {
         motorSpeed(0);
                 digitalWrite(LEFT_DIR1, HIGH);
-		digitalWrite(LEFT_DIR2, LOW );
-		digitalWrite(RIGHT_DIR1, HIGH);
-		digitalWrite(RIGHT_DIR2, LOW);
+        digitalWrite(LEFT_DIR2, LOW );
+        digitalWrite(RIGHT_DIR1, HIGH);
+        digitalWrite(RIGHT_DIR2, LOW);
         FLSERVO.write(90-40);   //set servos
         FRSERVO.write(90+40);
         BLSERVO.write(90-40);
@@ -657,34 +628,34 @@ void left(int Angle)
 
 void forward(int feet)
 {
-		motorSpeed(0);
-		digitalWrite(LEFT_DIR1, LOW);
-		digitalWrite(LEFT_DIR2, HIGH );
-		digitalWrite(RIGHT_DIR1, HIGH);
-		digitalWrite(RIGHT_DIR2, LOW);
+        motorSpeed(0);
+        digitalWrite(LEFT_DIR1, LOW);
+        digitalWrite(LEFT_DIR2, HIGH );
+        digitalWrite(RIGHT_DIR1, HIGH);
+        digitalWrite(RIGHT_DIR2, LOW);
         FLSERVO.write(90);   //set servos
         FRSERVO.write(90);
         BLSERVO.write(90);
         BRSERVO.write(90);
-		delay(500);
-		motorSpeed(255);
+        delay(500);
+        motorSpeed(255);
         delay(int(feet/.294*1000));
         motorSpeed(0);
 }
 
 void reverse(int feet)
 {
-		motorSpeed(0);
-		digitalWrite(LEFT_DIR1, HIGH);
-		digitalWrite(LEFT_DIR2, LOW );
-		digitalWrite(RIGHT_DIR1, LOW );
-		digitalWrite(RIGHT_DIR2, HIGH);
+        motorSpeed(0);
+        digitalWrite(LEFT_DIR1, HIGH);
+        digitalWrite(LEFT_DIR2, LOW );
+        digitalWrite(RIGHT_DIR1, LOW );
+        digitalWrite(RIGHT_DIR2, HIGH);
         FLSERVO.write(90);   //set servos
         FRSERVO.write(90);
         BLSERVO.write(90);
         BRSERVO.write(90);
-		delay(500);
-		motorSpeed(255);
+        delay(500);
+        motorSpeed(255);
         delay(int(feet/.294*1000));
         motorSpeed(0);
 }
@@ -692,8 +663,8 @@ void reverse(int feet)
 
 void motorSpeed(int inSpeed)
 {
-	analogWrite(LEFT_SPEED, inSpeed);
-	analogWrite(RIGHT_SPEED, inSpeed);
+    analogWrite(LEFT_SPEED, inSpeed);
+    analogWrite(RIGHT_SPEED, inSpeed);
 }
 
 void wheelAngle(int FL_SERVO, int FR_SERVO)
@@ -757,7 +728,7 @@ void ackSolve(float theta, double motorSpeed)
       FL_SERVO=FL_Angle*180/PI+90;
       FR_SERVO=FR_Angle*180/PI+90;
       
-	  wheelAngle(FL_SERVO,FR_SERVO);
+      wheelAngle(FL_SERVO,FR_SERVO);
 }
 
 void ackTest()

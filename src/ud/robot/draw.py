@@ -135,14 +135,14 @@ class IRreadings(Drawable):
             for eye in hypobot.eyeList:
                 for i in range(0,settings.SCAN_DATA_POINTS):
                     if eye.IR[i] != 0:
-                        D = eye.IR[i] / 3
+                        D = eye.IR[i] / 806
                         theta = hypobot.theta * (math.pi/180)
                         x = int((hypobot.x + eye.x_offset*math.cos(theta) +
                                 eye.y_offset*math.sin(theta))*view.CC)
                         y = int((hypobot.y - eye.x_offset*math.sin(theta) +
                                 eye.y_offset*math.cos(theta))*view.CC)
                         drawRange(self.surface,color, x, y,
-                                hypobot.theta + eye.thetaList[i],D/2, D)
+                                hypobot.theta + eye.thetaList[i], D/2, D)
 
 class LogSet(Drawable):
     name = "Logs"

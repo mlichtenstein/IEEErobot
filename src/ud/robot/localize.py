@@ -276,7 +276,7 @@ class HypobotCloud:
     """
     def __init__(self):
         self.hypobotList = list()
-        self.cloudSize = 1000 #approx size of cloud--we will bloom and prune to stay near this
+        self.cloudSize = 10 #approx size of cloud--we will bloom and prune to stay near this
     def clear(self):
         l = len(self.hypobotList)
         self.hypobotList = list()
