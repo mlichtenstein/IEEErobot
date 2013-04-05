@@ -98,6 +98,8 @@ int analogRead(uint8_t pin) {
 // END Mock Declarations
 
 // Pull in test file.
+#include "../Settings.h"
+#undef NODEBUG
 #include "../ld.ino"
 
 
@@ -237,9 +239,7 @@ bool goodBehavior_loop() {
       loop();
       char type;
       int id;
-      TEST_EQUAL( 2, sscanf( Serial.outBuffer, ":%c%d%*s;", &type, &id ) );
-      TEST_EQUAL( ROBOT_RESPONSE_ERROR, type );
-      TEST_EQUAL( ROBOT_SERIAL_ERROR_BAD_MESSAGE, id );
+      TEST_EQUAL( 0, strlen( Serial.outBuffer ) );
       if ( !status ) {
         printf( "outbuffer: %s\n", Serial.outBuffer );
         printf( "type: %c\n", type );
@@ -250,7 +250,9 @@ bool goodBehavior_loop() {
       Serial.nextChar = 0;
       Serial.outBuffer[0] = '\0';
       loop();
-      TEST_EQUAL( 0, strlen( Serial.outBuffer ) );
+      TEST_EQUAL( 2, sscanf( Serial.outBuffer, ":%c%d%*s;", &type, &id ) );
+      TEST_EQUAL( ROBOT_RESPONSE_ERROR, type );
+      TEST_EQUAL( ROBOT_SERIAL_ERROR_BAD_MESSAGE, id );
       if ( !status ) {
         printf( "outbuffer: %s\n", Serial.outBuffer );
         printf( "type: %c\n", type );
@@ -258,7 +260,6 @@ bool goodBehavior_loop() {
       }
   }
   printf( "line %d\n", __LINE__ );
-
   if ( status )
     printf( "Test %s successful!\n", __FUNCTION__ );
   return status;
