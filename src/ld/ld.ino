@@ -119,9 +119,10 @@ void loop() {
                 case ROBOT_SERVICE_GO: {
                     // Forward declarations.
                     char subCategory;
-                    double firstParam;
+                    int temp;
                     boolean messageGood = false;
-                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c,%f", &subCategory, &firstParam );
+                    numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c,%d", &subCategory, &temp );
+                    double firstParam = (double)temp / 100.0;
 
                     // Should have received 2 parameters.
                     if ( numOfVars == 2 ) {
@@ -154,8 +155,8 @@ void loop() {
                         }
                         // Scoot.
                         else if ( subCategory == ROBOT_COMMAND_SCOOT ) {
-                            double angle = -9999;
-                            numOfVars = sscanf( inBoxBuffer, "%*c%*d,%*c,%*f,%f", &angle );
+                            numOfVars = sscanf( inBoxBuffer, "%*c%*d,%*c,%*d,%d", &temp );
+                            double angle = (double)temp / 100.0;
                             if ( numOfVars == 1 ) {
                                 if ( angle >= -360 && angle <= 360 ) {
                                     scoot( firstParam, angle );
