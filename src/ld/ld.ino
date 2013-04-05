@@ -37,7 +37,7 @@ int DELAY = 55;
 int pos;
 int deltaPos = 1;
 int IRpin[] = {A0,A1,A2,A3};
-int pingPin[] = {30,31,32,33};
+int pingPin[] = {46,48,50,52};
 int servoPin[] = {10,11,12,13};
 
 //here is a function for the Eye modules
