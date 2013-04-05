@@ -9,6 +9,28 @@
 #include <Servo.h>
 
 #ifdef ROBOT_SERVICE_GO
+void scoot(double distance, int angle);
+
+void go(double x, double y, int theta);
+void turn(int angle);
+
+
+void right(int Angle);
+
+void left(int Angle);
+
+void forward(int feet);
+
+void reverse(int feet);
+void motorSpeed(int inSpeed);
+
+void wheelAngle(int FL_SERVO, int FR_SERVO);
+
+void faceWheels(int angle);
+
+void ackSolve(float theta, double motorSpeed);
+
+void ackTest();
 #include <math.h>
 
 //Coordinates of wheel stems in cartesian plane with origin at center of bot
@@ -166,7 +188,10 @@ void loop() {
                 case ROBOT_PING_TEST: {
                     Serial.write( ":P," );
                     Serial.print( id );
-                    Serial.print(",PONG");
+                    Serial.write(",PONG");
+                    Serial.write( ';' );
+                    Serial.write( ":C," );
+                    Serial.print( id );
                     Serial.write( ';' );
                 }
                 break;
@@ -181,6 +206,9 @@ void loop() {
                   int numOfVars = sscanf( inBoxBuffer, "%c%d", &spoil, &myDouble );
                   Serial.print(myDouble);
                   Serial.print(';');
+                  Serial.write( ":C," );
+                Serial.print( id );
+                Serial.write( ';' );
                 }
                 break;
                 //this block is used for calibrating savox servos
@@ -192,6 +220,9 @@ void loop() {
                     for (int i=0; i<4; i++) {
                         EyeServo[i].write(id);
                     }
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
 #endif
                 //this block is used for testing the calibration of savox servos
@@ -203,7 +234,9 @@ void loop() {
                     for (int i=0; i<4; i++) {
                         EyeServoWrite(i, id);
                     }
-
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
 #endif
@@ -356,6 +389,9 @@ void loop() {
                         EyeServoWrite(i,0);
                         //                      EyeServo[i].write(0);
                     }
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
 #endif
@@ -384,7 +420,9 @@ void loop() {
                         Serial.write( inBoxBuffer );
                         Serial.write( "\";" );
                     }
-
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
 #endif
@@ -529,7 +567,7 @@ void scoot(double distance, int angle) {
         //Serial.println(angle-180);
         faceWheels(angle);
     } else if (angle > 90) {
-        Serial.println("angle is: ");
+        Serial.write("angle is: \n");
         Serial.println(angle-180);
         faceWheels(angle-180);
         forwardFlag *= -1;
@@ -643,7 +681,7 @@ void wheelAngle(int FL_SERVO, int FR_SERVO) {
 
 void faceWheels(int angle) {
     //this function writes out the servo values
-    Serial.println("Angle: ");
+    Serial.write("Angle: \n");
     Serial.println(angle);
     FLSERVO.write(angle+90);   //set servos
     FRSERVO.write(angle+90);
