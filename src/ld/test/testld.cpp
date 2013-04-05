@@ -101,6 +101,9 @@ int analogRead(uint8_t pin) {
 #include "../Settings.h"
 #undef NODEBUG
 #include "../ld.ino"
+#include "../arm.cpp"
+#include "../go.cpp"
+#include "../scan.cpp"
 
 
 
