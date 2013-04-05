@@ -310,14 +310,34 @@ bool goodBehavior_confirmations() {
             ROBOT_SERVICE_TEST_SERVO,
             //ROBOT_SERVICE_ARM_SERVO,
             ROBOT_SERVICE_GO,
+            ROBOT_SERVICE_GO,
             ROBOT_CALIB_IR,
             ROBOT_WAIT_MODE
       };
+      int subCmds[] = {
+            ROBOT_COMMAND_TURN,
+	    ROBOT_COMMAND_SCOOT
+      };
   printf( "line %d\n", __LINE__ );
+      int s = 0;
       int serviceCount = sizeof( services );
       for ( int i = 0; i < serviceCount; ++i ) {
   printf( "line %d\n", __LINE__ );
-          sprintf( buffer, ":%c%d;", services[ i ], 1014 );
+          if ( services[ i ] == ROBOT_SERVICE_GO ) {
+	      switch ( subCmds[ s++ ] ) {
+	      case ROBOT_COMMAND_TURN:
+		      sprintf( buffer, ":%c%d,%c,%d;", services[ i ], 1014,
+			ROBOT_COMMAND_TURN, 10 );
+	      break;
+	      case ROBOT_COMMAND_SCOOT:
+		      sprintf( buffer, ":%c%d,%c,%d,%d;", services[ i ], 1014,
+			ROBOT_COMMAND_SCOOT, 10, 10 );
+	      break;
+	      }
+          }
+	  else {
+              sprintf( buffer, ":%c%d;", services[ i ], 1014 );
+	  }
             printf( "input88: \"%s\"\n", buffer );
           Serial.buffer = buffer; //":J1014;";
           Serial.nextChar = 0;
