@@ -51,6 +51,10 @@ class HardwareSerial {
         strcpy( outBuffer + out_nextChar, out );
         out_nextChar += len;
     }
+    void println( int out ) {
+        print( out );
+        write( "\r\n" );
+    }
     void flush() {
     }
     void begin( int ) {
@@ -66,6 +70,8 @@ void Servo::write( int ) {
 uint8_t Servo::attach( int ) {
 }
 Servo::Servo( ) {
+}
+void Servo::writeMicroseconds(int) {
 }
 HardwareSerial Serial;
 #define A0 0
