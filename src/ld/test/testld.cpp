@@ -20,6 +20,8 @@ void delay( int ) {
 }
 void analogWrite( int, int ) {
 }
+int digitalRead( int ) {
+}
 class HardwareSerial {
   public:
     const char* buffer;
