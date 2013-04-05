@@ -75,7 +75,7 @@ class Landmark:
         self.x,self.y,self.landmarkType = (x,y,landmarkType)
         if landmarkType == "TREE":
             self.effRadius = 2.0/12
-        if landmarkType == "ROCK:"
+        if landmarkType == "ROCK":
             self.effRadius = 6.7/12/2
 
 

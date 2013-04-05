@@ -372,14 +372,17 @@ class HypobotCloud:
         peakBot = Hypobot(-1,-1,0, -1)
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
-        for hypobot in self.hypobotList:
-            hypobot.weight /= totWeight
-            if peakWeight < hypobot.weight:
-                peakWeight = max(peakWeight, hypobot.weight)
-                peakBot = hypobot
-        print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
-                +", "+str(peakBot.y)+", "+str(peakBot.theta)
-                +" with weight " + str(peakBot.weight))
+        try:    
+            for hypobot in self.hypobotList:
+                hypobot.weight /= totWeight
+                if peakWeight < hypobot.weight:
+                    peakWeight = max(peakWeight, hypobot.weight)
+                    peakBot = hypobot
+            print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
+                    +", "+str(peakBot.y)+", "+str(peakBot.theta)
+                    +" with weight " + str(peakBot.weight))
+        except:
+            print "total weight is zero.  Your eye modules likely do not function."
     def getPeakBot(self):
         peakWeight = 0
         retBot = Hypobot(-1,-1,0, -1)

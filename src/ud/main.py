@@ -47,17 +47,18 @@ logList = world.World.logList
 #load nodelist however you do that
 
 #setup Gui
-H = 700
-W = 1000
-textHeight = 18
+if __debug__:
+    H = 700
+    W = 1000
+    textHeight = 18
 
-pygame.init()
-pygame.font.init()
-Font = pygame.font.Font(None, textHeight)
-screen=pygame.display.set_mode((W,H),0,32)
-screen.fill((127,127,127))
+    pygame.init()
+    pygame.font.init()
+    Font = pygame.font.Font(None, textHeight)
+    screen=pygame.display.set_mode((W,H),0,32)
+    screen.fill((127,127,127))
 
-gui = GUI.GUI(pygame,screen)
+    gui = GUI.GUI(pygame,screen)
 
 #seed random:
 random.seed(time.time())
@@ -67,21 +68,23 @@ running = True
 
 robotMode.begin()
 while running == True:
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            pygame.quit()
-            sys.exit()    
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                for frame in gui.frameList:
-                    frame.feelClickDown(pygame.mouse.get_pos())
-        if event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 1:
-                for frame in gui.frameList:
-                    frame.feelClickUp(pygame.mouse.get_pos())
-            if event.button == 2:
-                for frame in gui.frameList:
-                    frame.feelMiddleClick(pygame.mouse.get_pos())
+
+    if __debug__:
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()    
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    for frame in gui.frameList:
+                        frame.feelClickDown(pygame.mouse.get_pos())
+            if event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    for frame in gui.frameList:
+                        frame.feelClickUp(pygame.mouse.get_pos())
+                if event.button == 2:
+                    for frame in gui.frameList:
+                        frame.feelMiddleClick(pygame.mouse.get_pos())
 
     # Tell the robot brain to take action.
     # NOTE--I modified this to make it possible to escape the .act()s
@@ -114,7 +117,8 @@ while running == True:
     #-------------------------------------------------------------------------
     
     # Update the GUI with the current robot state
-    state = gui.takeState(state)
+    if __debug__:    
+        state = gui.takeState(state)
 
     gui.update(screen)
     pygame.display.update()
