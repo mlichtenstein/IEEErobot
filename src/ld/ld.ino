@@ -61,7 +61,8 @@ int deltaPos = 1;
 int IRpin[] = {A0,A1,A2,A3};
 int pingPin[] = {46,48,50,52};
 int servoPin[] = {10,11,12,13};
-
+#define IRMATION 'C'
+// END Message Settings
 //here is a function for the Eye modules
 int PingFire(int servoNum) {
     int pin = pingPin[servoNum];
@@ -130,6 +131,11 @@ void establishContact( );
 bool readMessage( );
 
 void setup() {
+#ifdef ROBOT_WAIT_MODE
+#define startButton 12
+    pinMode(startButton, INPUT);
+    digitalWrite(startButton, HIGH);
+#endif
 #ifdef ROBOT_SERVICE_SCAN
     for (int i = 0; i<4; i++) {
         EyeServo[i].attach(servoPin[i]);
@@ -198,17 +204,17 @@ void loop() {
 #endif
                 //this block tests sending doubles to ard.
                 case 'd': {
-                  Serial.write(":d,");
-                  Serial.print(id);
-                  Serial.write(",");
-                  int myDouble;
-                  char spoil;
-                  int numOfVars = sscanf( inBoxBuffer, "%c%d", &spoil, &myDouble );
-                  Serial.print(myDouble);
-                  Serial.print(';');
-                  Serial.write( ":C," );
-                Serial.print( id );
-                Serial.write( ';' );
+                    Serial.write(":d,");
+                    Serial.print(id);
+                    Serial.write(",");
+                    int myDouble;
+                    char spoil;
+                    int numOfVars = sscanf( inBoxBuffer, "%c%d", &spoil, &myDouble );
+                    Serial.print(myDouble);
+                    Serial.print(';');
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
                 //this block is used for calibrating savox servos
@@ -345,6 +351,22 @@ void loop() {
                         Serial.print( id );
                         Serial.write( ';' );
                     }
+                }
+                break;
+#endif
+#ifdef ROBOT_WAIT_MODE
+                //this block is "wait mode," a simple poll for a button
+                case ROBOT_WAIT_MODE: {
+                    for (int i=0; i<4; i++) {
+                        EyeServo[i].write(45);
+                    }
+                    while(digitalRead(startButton)==HIGH);
+                    Serial.write(":W,");
+                    Serial.print(id);
+                    Serial.write(";");
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
 #endif
