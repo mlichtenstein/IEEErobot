@@ -363,7 +363,6 @@ Your response message should take the form ":[char],[id],[payload];"
                         }
                     }
                 break;
-                #endif
                 #ifdef ROBOT_SERVICE_SCAN
                 case ROBOT_SERVICE_SCAN: {
                       Serial.write( ":C," );
@@ -386,35 +385,11 @@ Your response message should take the form ":[char],[id],[payload];"
                         Serial.print(id);
                         Serial.write(";");
                     }
-                    break;
-                    #ifdef ROBOT_SERVICE_SCAN
-                    case ROBOT_SERVICE_SCAN: {
-                        int DELAY = 52; //the minimum read time--used to ensure that the scan doesn't go so fast
-                        float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
-                        unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
-                        unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
-                        
-                        for (int pt = 0; pt <= ROBOT_SCAN_DATA_POINTS; pt += 1) {
-                            unsigned long lastTime = millis();  //used to establish a minimum read time
-                            for (int eye = 0; eye<4; eye++) {
-                                EyeServoWrite(eye,pt);
-                                USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
-                                IRreading[eye][pt] = analogRead(IRpin[eye]); 
-                            }
-                        }
-                        //now send the message
-                        Serial.write( ":J," );
-                    }
-                    Serial.write( ';' );
-                    for (int i = 0; i<4; i++) {
-                      EyeServoWrite(i,0);
-                      //                      EyeServo[i].write(0);
-                    }
                       Serial.write( ":C," );
                       Serial.print( id );
                       Serial.write( ';' );
-                }
-                break;
+                    }
+                    break;
                 #endif
                 #ifdef ROBOT_SERVICE_ARM_SERVO
                 case ROBOT_SERVICE_ARM_SERVO: {
