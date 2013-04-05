@@ -146,15 +146,14 @@ class ReadUSBDrive( Mode):
         state.mode = "ReadUSB"
     def act(self, state):
         print("Write code that reads from the USB here")
-	script = "echo robot | sudo -S mount /dev/disk/by-label/robot /mnt/robo"
+	script = "echo robot | sudo -S mount /dev/disk/by-label/IEER5 /mnt/robo"
 	proc = subprocess.Popen(['bash', '-c', script], 
-		stdout=subprocess.PIPE, stdin=subporcess.PIPE)
-	stdout = proc.communicat()
+		stdout=subprocess.PIPE)
+	stdout = proc.communicate()
 	USB = open("/mnt/robo/Locatio.csv")
 	reader = csv.reader(USB)
 	for row in reader:
 		states.remainingPucks.append(row)
-	print puckSector
         # if state.hypobotCloud.count() == 0:
         #    state
         return Localize(state)
