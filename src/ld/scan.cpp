@@ -4,7 +4,6 @@
 //This block defines pins for the Eye modules
 Servo EyeServo[4];
 //the minimum read time--used to ensure that the scan doesn't go so fast
-#define DELAY 55
 int pos;
 int deltaPos = 1;
 int IRpin[] = {A0,A1,A2,A3};

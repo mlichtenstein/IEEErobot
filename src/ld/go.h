@@ -1,23 +1,23 @@
 #if defined( ROBOT_SERVICE_GO ) && !defined( GUARD_GO_HEADER )
 #define GUARD_GO_HEADER
-void scoot(double distance, int angle);
+void scoot(double distance, double angle);
 
-void go(double x, double y, int theta);
-void turn(int angle);
+void go(double x, double y, double theta);
+void turn(double angle);
 
 
-void right(int Angle);
+void right(double Angle);
 
-void left(int Angle);
+void left(double Angle);
 
-void forward(int feet);
+void forward(double feet);
 
-void reverse(int feet);
-void motorSpeed(int inSpeed);
+void reverse(double feet);
+void motorSpeed(double inSpeed);
 
-void wheelAngle(int FL_SERVO, int FR_SERVO);
+void wheelAngle(double FL_SERVO, double FR_SERVO);
 
-void faceWheels(int angle);
+void faceWheels(double angle);
 
 void ackSolve(float theta, double motorSpeed);
 

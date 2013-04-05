@@ -30,7 +30,7 @@ void setupGo() {
     pinMode(RIGHT_DIR1, OUTPUT);
     pinMode(RIGHT_DIR2, OUTPUT);
 }
-void scoot(double distance, int angle) {
+void scoot(double distance, double angle) {
     int forwardFlag = 1;
     while (angle > 180) {
         forwardFlag *=-1;
@@ -61,16 +61,16 @@ void scoot(double distance, int angle) {
     }
 }
 
-void go(double x, double y, int theta) {
-    int angle = 180/PI*atan2(y,x);
+void go(double x, double y, double theta) {
+    double angle = 180/PI*atan2(y,x);
     //Serial.println(angle);
     turn(angle);
     forward(hypot(x,y));
-    int dAngle=theta-angle;
+    double dAngle=theta-angle;
     turn(dAngle);
 
 }
-void turn(int angle) {
+void turn(double angle) {
     //translate angle to live in [-180,180]
     if (angle<0) {
         left(abs(angle));
@@ -79,7 +79,7 @@ void turn(int angle) {
     }
 }
 
-void right(int Angle) {
+void right(double Angle) {
     //pass a degree, will use for delay
     motorSpeed(0);
     digitalWrite(LEFT_DIR1, LOW);
@@ -96,7 +96,7 @@ void right(int Angle) {
     motorSpeed(0);
 }
 
-void left(int Angle) {
+void left(double Angle) {
     motorSpeed(0);
     digitalWrite(LEFT_DIR1, HIGH);
     digitalWrite(LEFT_DIR2, LOW );
@@ -112,7 +112,7 @@ void left(int Angle) {
     motorSpeed(0);
 }
 
-void forward(int feet) {
+void forward(double feet) {
     motorSpeed(0);
     digitalWrite(LEFT_DIR1, LOW);
     digitalWrite(LEFT_DIR2, HIGH );
@@ -128,7 +128,7 @@ void forward(int feet) {
     motorSpeed(0);
 }
 
-void reverse(int feet) {
+void reverse(double feet) {
     motorSpeed(0);
     digitalWrite(LEFT_DIR1, HIGH);
     digitalWrite(LEFT_DIR2, LOW );
@@ -145,12 +145,12 @@ void reverse(int feet) {
 }
 
 
-void motorSpeed(int inSpeed) {
+void motorSpeed(double inSpeed) {
     analogWrite(LEFT_SPEED, inSpeed);
     analogWrite(RIGHT_SPEED, inSpeed);
 }
 
-void wheelAngle(int FL_SERVO, int FR_SERVO) {
+void wheelAngle(double FL_SERVO, double FR_SERVO) {
     //this function writes out the servo values
     FLSERVO.write(90-FL_SERVO);   //set servos
     FRSERVO.write(90+FR_SERVO);
@@ -158,7 +158,7 @@ void wheelAngle(int FL_SERVO, int FR_SERVO) {
     BRSERVO.write(90-FR_SERVO);
 }
 
-void faceWheels(int angle) {
+void faceWheels(double angle) {
     //this function writes out the servo values
     Serial.write("Angle: \n");
     Serial.println(angle);
