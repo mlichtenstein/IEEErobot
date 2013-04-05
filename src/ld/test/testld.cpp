@@ -294,11 +294,14 @@ bool goodBehavior_confirmations() {
             ROBOT_PING_TEST,
             //ROBOT_SERVICE_CAMERA,
             //ROBOT_SERVICE_IMO,
+            ROBOT_PING_TEST,
             ROBOT_SERVICE_SCAN,
             ROBOT_SERVICE_CALIBRATE_SERVO,
             ROBOT_SERVICE_TEST_SERVO,
             //ROBOT_SERVICE_ARM_SERVO,
-            //ROBOT_SERVICE_GO,
+            ROBOT_SERVICE_GO,
+            ROBOT_CALIB_IR,
+            ROBOT_WAIT_MODE
       };
   printf( "line %d\n", __LINE__ );
       int serviceCount = sizeof( services );
