@@ -1,5 +1,5 @@
+#include "Settings.h"
 #include "scan.h"
-
 
 //This block defines pins for the Eye modules
 Servo EyeServo[4];

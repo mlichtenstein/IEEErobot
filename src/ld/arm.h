@@ -3,4 +3,11 @@
 extern int newArmTheta[];
 void setupArm();
 void armControl();
+#ifndef TESTING
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+#endif
 #endif

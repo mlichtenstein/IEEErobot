@@ -23,4 +23,11 @@ void ackSolve(float theta, double motorSpeed);
 
 void ackTest();
 void setupGo() ;
+#ifndef TESTING
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+#endif
 #endif

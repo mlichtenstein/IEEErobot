@@ -1,4 +1,6 @@
+#include "Settings.h"
 #include "go.h"
+
 
 #include <math.h>
 

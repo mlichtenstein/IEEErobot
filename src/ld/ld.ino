@@ -1,17 +1,10 @@
 #include "Settings.h"
-#ifndef TESTING
-#if ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-#endif
-#include <Servo.h>
 
 #include "go.h"
 #include "scan.h"
 #include "arm.h"
 
+#include <Servo.h>
 
 /// A counter for out going IDs.
 int messageID = 0;

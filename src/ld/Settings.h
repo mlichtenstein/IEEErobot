@@ -55,6 +55,13 @@
 // END Error
 
 typedef int Number;
-
+#ifndef TESTING
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+#endif
+#include <Servo.h>
 #endif // SETTINGS_INCLUDED
 

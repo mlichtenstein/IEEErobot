@@ -6,4 +6,11 @@ extern int IRpin[];
 void setupScan();
 int PingFire(int servoNum);
 void EyeServoWrite(int servoNum, int pt);
+#ifndef TESTING
+#if ARDUINO >= 100
+#include "Arduino.h"
+#else
+#include "WProgram.h"
+#endif
+#endif
 #endif

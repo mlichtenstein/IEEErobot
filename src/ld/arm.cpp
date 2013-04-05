@@ -1,4 +1,6 @@
+#include "Settings.h"
 #include "arm.h"
+
 
 Servo R1,R2_1,R2_2,R3;
 int newArmTheta[] = {0,0,0};
