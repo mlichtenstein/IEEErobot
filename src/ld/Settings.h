@@ -21,6 +21,11 @@
 #define ROBOT_SERIAL_MESSAGE_CONFIRMATION 'C'
 // END Message Settings
 
+// BEGIN Time Distance Settings
+#define MS_PER_FOOT 3846 //the inverse linear velocity of the robot
+#define MS_PER_DEGREE 38 //the inverse angular velocity of the robot
+// END Time Distance Settings
+
 // BEGIN Scan Settings
 #define ROBOT_IR_SCAN_TIME 4
 #define ROBOT_SCAN_DATA_POINTS 90

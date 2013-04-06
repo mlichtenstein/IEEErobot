@@ -122,14 +122,15 @@ void loop() {
                     int temp;
                     boolean messageGood = false;
                     numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c,%d", &subCategory, &temp );
-                    double firstParam = (double)temp / 100.0;
-
+                    float firstParam = (float)temp / 120.0; //Convert pixels to feet
+                    Serial.write("Feet:");
+                    Serial.print(firstParam);
                     // Should have received 2 parameters.
                     if ( numOfVars == 2 ) {
                         // Turn.
                         if ( subCategory == ROBOT_COMMAND_TURN ) {
                             if ( firstParam >= -360 && firstParam <= 360 ) {
-                                turn( firstParam );
+                                turn( firstParam*120 ); //Uh I guess we wanted degrees not feet
                                 messageGood = true;
                             }
                             // Bad angle.
@@ -156,7 +157,7 @@ void loop() {
                         // Scoot.
                         else if ( subCategory == ROBOT_COMMAND_SCOOT ) {
                             numOfVars = sscanf( inBoxBuffer, "%*c%*d,%*c,%*d,%d", &temp );
-                            double angle = (double)temp / 100.0;
+                            float angle = (float)temp;
                             if ( numOfVars == 1 ) {
                                 if ( angle >= -360 && angle <= 360 ) {
                                     scoot( firstParam, angle );

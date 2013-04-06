@@ -51,7 +51,7 @@ class State:
         self.armConfig = [0,0,0] #the thetas of each arm servo
         self.hypobotCloud = localize.HypobotCloud()
         self.eyeList = copy.deepcopy(world.World().eyeList)
-        self.remainingPucks = (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16)
+        self.remainingPucks = []
         self.magnetOn = False
         self.lightsOn = False
     def pause(self):

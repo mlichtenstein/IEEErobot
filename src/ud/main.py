@@ -26,7 +26,7 @@ modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
 
 #pick a start mode (should be wait, eventually)
-robotMode = modes.Go(state)
+robotMode = modes.LoadAll(state)
 #create world
 landmarkList = world.World.landmarkList
 logList = world.World.logList
@@ -82,8 +82,8 @@ while running == True:
 
     if state.paused == False:
         nextMode = robotMode.act(state)
-    #    if nextMode != None:
-    #        robotMode = nextMode
+        if nextMode != None:
+            robotMode = nextMode
     
     #-------------------------------------------------------------------------
     # BEGIN Event Driven Architecture

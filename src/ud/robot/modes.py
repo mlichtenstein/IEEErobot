@@ -10,6 +10,8 @@ import settings
 import world
 import csv
 import subprocess
+import theGuts
+import graph
 
 """
 Module Tests:
@@ -88,41 +90,45 @@ class Mode:
     
 #opens graph from file, and opens usb, then preps the graph for use
 class LoadAll( Mode):
-    
+    graph = None
     def __init__( self , state ):
         state.mode = "Loading..."
     def loadGraph(self, path ):
         try:
-            graph = theGuts.loadFile( path )
+            self.graph = theGuts.loadFile( path )
         except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
+            print "load File error"
             #import traceback
             print e
             #traceback.print_stack()
-        if graph == None:
-            graph = g.Graph()
-            
+        if self.graph == None:
+            self.graph = graph.Graph()
+        
     def act(self, state):
         print "attemping to load ~/IEEErobot/src/ud/saveFile"
-        loadGraph("~/IEEErobot/src/ud/saveFile")
+        self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile")
+        #THIS MUST BE CHANGED ON PANDA
         script = "echo robot | sudo -S mkdir /mnt/robo"
         proc = subprocess.Popen(['bash', '-c', script],
                                 stdout=subprocess.PIPE)
-        stdout = proc.comunicate()
-	script = "echo robot | sudo -S mount /dev/disk/by-label/IEEER5 /mnt/robo"
-	proc = subprocess.Popen(['bash', '-c', script], 
-		stdout=subprocess.PIPE)
-	stdout = proc.communicate()
-	USB = open("/mnt/robo/Locatio.csv")
-	reader = csv.reader(USB)
-	graph.pucks=list()
-	for row in reader:
-		graph.pucks.append(row)
-        for n in graph.nodes:
-            for p in pucks:
-                if not(n.pucks==p):
-                    n.puck=-1
+        stdout = proc.communicate()
+        script = "echo rty456 | sudo -S mount /dev/disk/by-label/IEEER5 /mnt/robo"
+        #replace rty456 with robot
+        proc = subprocess.Popen(['bash', '-c', script], 
+            stdout=subprocess.PIPE)
+        stdout = proc.communicate()
+        USB = open("/mnt/robo/Locatio.csv")
+        reader = csv.reader(USB)
+        self.graph.pucks=list()
+        for row in reader:
+            state.remainingPucks.append(row)
+            self.graph.pucks.append(row)
+            for n in self.graph.nodes:
+                for p in self.graph.pucks:
+                    if not(n.puck==p):
+                        n.puck=-1
         return Localize(state)
-    
+        
 class Ready( Mode):
     """
     the state that the robot sits in while it waits for the judge to press
@@ -137,15 +143,6 @@ class Ready( Mode):
         #"Start" command
         return ReadUSBDrive(state)
         
-class ReadUSBDrive( Mode):
-    def __init__( self , state):
-        print("Mode is now ReadUSB")
-        state.mode = "ReadUSB"
-    def act(self, state):
-        print("Write code that reads from the USB here")
-        if state.hypobotCloud.count() == 0:
-            state
-        return Localize(state)
         
 class Go( Mode ):
     MS_PER_FOOT = 4000
@@ -240,7 +237,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
 
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(messageID, distance * settings.MS_PER_FOOT / 1000 )
+        return self.messenger.waitForConfirmation(messageID, distance) #send the distance in pixels (ie tentsh of inches)
     def rotate( self, angle ):
         """
         Description
@@ -257,7 +254,7 @@ class Go( Mode ):
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
         self.state.hypobotCloud.rotateAll(angle)
-        self.messenger.waitForConfirmation(distance * settings.MS_PER_DISTANCE / 1000 )
+        self.messenger.waitForConfirmation(distance)
 
 
 """========================================================================================="""

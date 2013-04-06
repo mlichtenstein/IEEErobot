@@ -190,10 +190,7 @@ class StatusBanner(Frame):
             self.string[0] = "MODE: NONE"
         else:
             self.string[0] = "MODE: " + mode
-        tempstring1 = ""
-        for puck in pucksRemaining:
-            tempstring1 += str(puck) + ","
-        self.string[1] = "PUCKS REMAINING: " + tempstring1[:-1]
+        self.string[1] = "PUCKS REMAINING: "+str(pucksRemaining)
         self.string[2] = "TIME: " + str(time)
 
 """=========================CONTROLS============================================"""

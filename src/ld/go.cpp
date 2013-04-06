@@ -94,7 +94,7 @@ void right(double Angle) {
     BRSERVO.write(90+40);   //front left
     delay(500);
     motorSpeed(255);
-    delay(int(Angle/26.15*1000));
+    delay(int(Angle*MS_PER_DEGREE));
     motorSpeed(0);
 }
 
@@ -110,7 +110,7 @@ void left(double Angle) {
     BRSERVO.write(90+40);
     delay(500);
     motorSpeed(255);
-    delay(int(Angle/26.15*1000));
+    delay(int(Angle*MS_PER_DEGREE));
     motorSpeed(0);
 }
 
@@ -126,7 +126,7 @@ void forward(double feet) {
         BRSERVO.write(90);*/
     delay(500);
     motorSpeed(255);
-    delay(int(feet/.26*1000));
+    delay(int(feet*MS_PER_FOOT)); //changed so that speed is a setting
     motorSpeed(0);
 }
 
@@ -142,7 +142,7 @@ void reverse(double feet) {
         BRSERVO.write(90); */
     delay(500);
     motorSpeed(255);
-    delay(int(feet/.26*1000));
+    delay(int(feet*MS_PER_FOOT));  //changed so that speed is a setting
     motorSpeed(0);
 }
 

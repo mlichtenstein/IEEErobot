@@ -128,7 +128,7 @@ class Hypobot:
     """
     def __init__(self, x, y, theta, weight = 1):
         import robotbasics
-        self.scootThetaSigma = 5
+        self.scootAngleSigma = 5
         self.scootDistanceSigma = .3
         self.rotateSigma = 15 
         self.x = x
@@ -204,13 +204,13 @@ class Hypobot:
                 #----------------------change generation speed here ---------------------
                 distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "FAST")
                 eye.IR[j] = feetToRawIR(distInFeetIR)
-                print "eye:", eye.eyeNum, "j:",j,"feet:", distInFeetIR, "IR:", eye.IR[j]
                 distInFeetUS = calcIdealRangeUS(x, y, effective_theta, landmarkList)
     def scoot(self, scootDistance, scootAngle):
         import random
+        import robotbasics
         thetaEff = (self.pose.theta + random.gauss(scootAngle, self.scootAngleSigma))*math.pi/180
         dEff = random.gauss(scootDistance,self.scootDistanceSigma)
-        newPose = Pose(self.pose.x + dEff*math.cos(thetaEff),
+        newPose = robotbasics.Pose(self.pose.x + dEff*math.cos(thetaEff),
                         self.pose.y - dEff*math.sin(thetaEff),
                         self.theta)
         self.pose = newPose

@@ -4,6 +4,7 @@ class Graph:
     def __init__( self ):
         self.nodes = list()
         self.links = list()
+        self.pucks = list()
         
     def addNode( self, x, y):
         self.nodes.append(Node(x,y))
