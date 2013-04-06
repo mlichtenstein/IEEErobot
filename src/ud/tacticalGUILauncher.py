@@ -306,6 +306,7 @@ ignoreNextMouseUpEvent = lambda: False
 if __name__ == "__main__":
     graph = None
     LOAD_FILE = easygui.fileopenbox(msg=None, title=None, default=None)
+    print LOAD_FILE
     try:
         graph = theGuts.loadFile( LOAD_FILE )
     except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:

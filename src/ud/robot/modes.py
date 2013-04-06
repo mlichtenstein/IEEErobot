@@ -8,6 +8,8 @@ output.
 from robotbasics import *
 import settings
 import world
+import csv
+import subprocess
 
 """
 Module Tests:
@@ -83,7 +85,44 @@ class Mode:
             fields -- a list of message parts.
         """
         pass
-
+    
+#opens graph from file, and opens usb, then preps the graph for use
+class LoadAll( Mode):
+    
+    def __init__( self , state ):
+        state.mode = "Loading..."
+    def loadGraph(self, path ):
+        try:
+            graph = theGuts.loadFile( path )
+        except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
+            #import traceback
+            print e
+            #traceback.print_stack()
+        if graph == None:
+            graph = g.Graph()
+            
+    def act(self, state):
+        print "attemping to load ~/IEEErobot/src/ud/saveFile"
+        loadGraph("~/IEEErobot/src/ud/saveFile")
+        script = "echo robot | sudo -S mkdir /mnt/robo"
+        proc = subprocess.Popen(['bash', '-c', script],
+                                stdout=subprocess.PIPE)
+        stdout = proc.comunicate()
+	script = "echo robot | sudo -S mount /dev/disk/by-label/IEEER5 /mnt/robo"
+	proc = subprocess.Popen(['bash', '-c', script], 
+		stdout=subprocess.PIPE)
+	stdout = proc.communicate()
+	USB = open("/mnt/robo/Locatio.csv")
+	reader = csv.reader(USB)
+	graph.pucks=list()
+	for row in reader:
+		graph.pucks.append(row)
+        for n in graph.nodes:
+            for p in pucks:
+                if not(n.pucks==p):
+                    n.puck=-1
+        return Localize(state)
+    
 class Ready( Mode):
     """
     the state that the robot sits in while it waits for the judge to press
