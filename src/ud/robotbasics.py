@@ -40,7 +40,7 @@ class State:
         self.startPause = None
         self.mode = None
         self.moving = False
-        self.pose = Pose(6.0,5.0,175) #make this the starting pose
+        self.pose = Pose(0.6,0.6,270) #make this the starting pose
         self.poseUncertainty = Pose(.3,.3,10) #total guesswork
         self.pitch = 0.0
         self.roll = 0.0

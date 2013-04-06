@@ -108,218 +108,31 @@ class ReadUSBDrive( Mode):
             state
         return Localize(state)
         
-class GoScoot( Mode ):
-    """
-    Description
-        This class will move the robot along a vector on the map. It will be
-         switched to from the GoOnGraph or GoOffGraph modes. The class retains
-         a reference to the mode switched from so that upon completion or
-         failure of its operation, it can switch back. The switching behavior
-         resembles function calls.
-
-       The vector must be chopped into smaller vectors. This is necessary in
-        the case where the IMU sends back data that does not agree with the
-        expected effect of movement. In that case, the robot may cease its
-        movement and do a localization.
-    Methods
-
-    Examples:
-    >>> import messenger, math
-    >>> Mode.signalNewMode = lambda dummy, function: 0
-    >>> state = State()
-    >>> state.pose.x, state.pose.y, state.pose.theta = 0, 0, 45
-    >>> dest = 16, 16
-    >>> dist = math.sqrt( dest[0]**2 + dest[1]**2 )
-    >>> Mode.messenger = messenger.Messenger( messenger.DebugSerialPort() )
-    >>> instance = GoScoot( state, dist, dest, None )
-    >>> isinstance( instance, GoScoot )
-    True
-    >>> isinstance( instance, Mode )
-    True
-    >>> instance.begin()
-    Wrote to Arduino: :T0,S,5,0;
-    >>> print state.pose.x, state.pose.y
-    0 0
-    >>> while instance.confirmationIDNeeded != None:
-    ...     instance.onConfirmation( instance.confirmationIDNeeded )
-    ...     print state.pose.x, state.pose.y
-    Wrote to Arduino: :T1,S,5,0;
-    3.53553390593 3.53553390593
-    Wrote to Arduino: :T2,S,5,0;
-    7.07106781187 7.07106781187
-    Wrote to Arduino: :T3,S,5,0;
-    10.6066017178 10.6066017178
-    Wrote to Arduino: :T4,S,2.62741699797,0;
-    14.1421356237 14.1421356237
-    16 16
-    >>> instance.scoot( 10 )
-    Wrote to Arduino: :T5,S,10,0;
-    """
-    SUBDISTANCE = 5
-    confirmationIDNeeded = None
-    completedSubOperations = 0
-    def __init__( self , state, distance, destinationXY, nextMode ):
-        self.state = state
-        self.nextMode = nextMode
-        self.distance = distance 
-        self.destinationXY = destinationXY
-        # There will n equal distances and n + 1 distances. So one will be 
-        #  larger than the rest.
-        self.n = int( distance / self.SUBDISTANCE )
-        # XXX need to make sure for floats that modulus gets a
-        #  floating number less than 5 which is the remainder.
-        # The last distance will be the remainder and larger than the rest.
-        self.lastScoot = distance % self.SUBDISTANCE
-
-    def begin( self ):
-        self.scoot( self.SUBDISTANCE ) 
-    def scoot( self, distance ):
-        self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_SCOOT, distance, 0 )
-    def onConfirmation( self, confirmationID ):
-        """
-        Description
-            Triggered by the main loop when a confirmation message is received.
-            XXX
-        Parameters
-            confirmationID -- is the ID number of the message.
-        """
-        import math
-        if self.confirmationIDNeeded != None and \
-         confirmationID == self.confirmationIDNeeded:
-            self.state.pose.x = self.state.pose.x + math.cos( self.state.pose.theta * math.pi / 180 ) * self.SUBDISTANCE
-            self.state.pose.y = self.state.pose.y + math.cos( self.state.pose.theta * math.pi / 180 ) * self.SUBDISTANCE
-            self.completedSubOperations = self.completedSubOperations + 1
-            # Equal distances.
-            if self.completedSubOperations < self.n:
-                self.scoot( self.SUBDISTANCE ) 
-            # The last distance.
-            elif self.completedSubOperations == self.n:
-                self.scoot( self.lastScoot ) 
-            # Rotation complete.
-            else:
-                self.confirmationIDNeeded = None
-                self.state.pose.x, self.state.pose.y = self.destinationXY
-                self.signalNewMode( self.nextMode )
-class GoRotate( Mode ):
-    """
-    Description
-        This class represents the mode of the robot when it is rotating by a
-         certain angle. Will be swithced to from GoOnGraph or GoOffGraph. The
-         class retains a reference to the mode switched from so that upon
-         completion or failure of its operation, it can switch back. The
-         switching behavior resembles function calls.
-         
-        The class has to chop the whole rotation angle into lots of smaller
-         angles. This is necessary in the case where the IMU sends back data
-         that does not agree with the expected effect of rotation. In that
-         case the robot may cease its rotation and do a localization.
-    Methods
-        
-    Examples:
-    >>> import messenger, math
-    >>> Mode.signalNewMode = lambda dummy, function: 0
-    >>> state = State()
-    >>> state.pose.x, state.pose.y, state.pose.theta = 0, 0, 15
-    >>> dest = 31
-    >>> dist = 16
-    >>> Mode.messenger = messenger.Messenger( messenger.DebugSerialPort() )
-    >>> instance = GoRotate( state, dist, dest, None )
-    >>> isinstance( instance, GoRotate )
-    True
-    >>> isinstance( instance, Mode )
-    True
-    >>> instance.begin()
-    Wrote to Arduino: :T0,T,5;
-    >>> print state.pose.theta
-    15
-    >>> while instance.confirmationIDNeeded != None:
-    ...     instance.onConfirmation( instance.confirmationIDNeeded )
-    ...     print state.pose.theta
-    Wrote to Arduino: :T1,T,5;
-    20
-    Wrote to Arduino: :T2,T,5;
-    25
-    Wrote to Arduino: :T3,T,1;
-    30
-    31
-    >>> instance.rotate( 10 )
-    Wrote to Arduino: :T4,T,10;
-    """
-    SUBANGLE = 5
-    confirmationIDNeeded = None
-    completedSubOperations = 0
-    def __init__( self, state, angle, destinationTheta, nextMode ):
-        self.state = state
-        self.nextMode = nextMode
-        self.angle = angle
-        self.destinationTheta = destinationTheta
-        # There will n equal angles and n + 1 angles. So one will be larger
-        #  than the rest.
-        self.n = int( angle / self.SUBANGLE )
-        # XXX need to make sure for floats that modulus gets a
-        #  floating number less than 5 which is the remainder.
-        # The last angle will be the remainder and larger than the rest.
-        self.lastAngle = angle % self.SUBANGLE
-
-    def begin( self ):
-        self.rotate( self.SUBANGLE ) 
-    def rotate( self, angle ):
-        self.confirmationIDNeeded = self.messenger.sendMessage(  \
-            settings.SERVICE_GO, settings.COMMAND_TURN, angle )
-    def onConfirmation( self, confirmationID ):
-        """
-        Description
-            Triggered by the main loop when a confirmation message is received.
-            XXX
-        Parameters
-            confirmationID -- is the ID number of the message.
-        """
-        if self.confirmationIDNeeded != None and \
-         confirmationID == self.confirmationIDNeeded:
-            self.state.pose.theta = self.state.pose.theta + self.SUBANGLE 
-            self.completedSubOperations = self.completedSubOperations + 1
-            # Equal angle sizes.
-            if self.completedSubOperations < self.n:
-                self.rotate( self.SUBANGLE ) 
-            # The last angle.
-            elif self.completedSubOperations == self.n:
-                self.rotate( self.lastAngle ) 
-            # Rotation complete.
-            else:
-                self.state.pose.theta = self.destinationTheta
-                self.signalNewMode( self.nextMode )
-                self.confirmationIDNeeded = None
-
-class GoOnGraph( Mode ):
-    """
-    Description
-        This class represents the mode of the robot when its calculatably
-         within the nodes and links of the tacticle plan. The mode will
-         switch to the GoRotate and GoScoot modes as needed for each link
-         in its path until it has reached the target node.
-    """
-    # Theta tolerance is maximum theta diff in degrees b/t the node and actual.
-    THETA_TOLERANCE = 1
-    # Distance tolerance is maximum dist diff b/t the node and actual.
-    DISTANCE_TOLERANCE = 1
-    
-    # BEGIN Next State enum.
+class Go( Mode ):
+    MS_PER_DISTANCE = 100
     NEXT_STATE_GO = 0
     NEXT_STATE_GRAB = 1
     NEXT_STATE_LOCALIZE = 2
-    # END Next State enum.
-    
+    """
+    Class Tests:
+    >>> instance = Go()
+    >>> isinstance( instance, Mode )
+    True
+    """
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
         state.mode = "Go"
-        self.confirmationIDNeeded = None
     def act( self, state ):
-        self.makeAMove()
-        # Do not switch states by default.
-        return None 
-        
+        nextState = self.makeAMove()
+        if nextState == None:
+            # Handle error.
+            raise Exception( "Need to handle error." )
+        if nextState == NEXT_STATE_GRAB:
+            return Grab( state )
+        if nextState == NEXT_STATE_LOCALIZE:
+            return Localize( state )
+        return self
     def makeAMove( self, ):
         """
         decides between 3 actions:  Grab, travel along path, go to path.
@@ -328,18 +141,18 @@ class GoOnGraph( Mode ):
         nearestNode = whatNode[0]
         distance = whatNode[1]
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-        thetaDiff = nodeTheta - botPose.theta
-        # Turn to view the puck then pickup.
-        if 1 <= nearestNode.puck <= 16:
-            # First turn to face the node.
-            thetaDiff = nearestNode.theta - botPose.theta
-            if abs( nearestNode.theta - botPose.theta ) > THETA_TOLERANCE:
-                signalNewMode( Rotate( state, thetaDiff, \
-                    nearestNode.theta, self ) )
-                return
-            # Next switch to the grab mode.
-            signalNewMode( Grab( state ) )
-            return
+        #scoot to the nearest node
+        if distance > nearestNode.radius:
+            angle =  nodeTheta - theta
+            if self.scoot( distance, angle ):
+                state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
+                return NEXT_STATE_GO
+            else:
+                return None
+        #face puck and retrieve it
+        elif 1 <= nearestNode.puck <= 16:
+            return NEXT_STATE_GRAB
+        #move along link
         else:
             try:
                 pendingLink = findPath( graph, nearestNode )
@@ -355,8 +168,8 @@ class GoOnGraph( Mode ):
                 else:
                     success = False
                 if success and self.scoot( pendingLink.length ):
-                    botPose.X = nearestNode.X 
-                    botPose.Y = nearestNode.Y 
+                    botPose.X = nearestNode.X
+                    botPose.Y = nearestNode.Y
                 else:
                     sucess = False
                 if not success:
@@ -364,99 +177,43 @@ class GoOnGraph( Mode ):
             except Exception as e:
                 print "Error: ", e
         #update botPose.theta with imu data
-class GoOffGraph( Mode ):
-    """
-    Description
-        This class represents the mode where the robot is too far off from the
-         links and nodes of the tacticle plan. In this off-road mode the robot
-         tries to re-align itself onto the nearest node or link. 
-    """
-    def begin( self ):
-        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
-        nearestNode = whatNode[0]
-        distance = whatNode[1]
-        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-        thetaDiff = nodeTheta - botPose.theta
-        # First turn to face the node.
-        if abs( thetaDiff ) > THETA_TOLERANCE:
-            #self.rotate( thetaDiff )
-            self.status = STATUS_TURNING
-            self.destinationTheta = nodeTheta
-            signalNewMode( \
-                Rotate( state, thetaDiff, self.destinationTheta, self ) )
-            return
-        signalNewMode( Rotate( state, distance, \
-            ( nearestNode.X, nearestNode.Y ), self ) )
-        signalNewMode( Localize( state ) )
-    pass
-class Go( Mode ):
-    """
-    Class Tests:
-    >>> instance = Go()
-    >>> isinstance( instance, Mode )
-    True
-    """
-    # Theta tolerance is maximum theta diff in degrees b/t the node and actual.
-    THETA_TOLERANCE = 1
-    # Distance tolerance is maximum dist diff b/t the node and actual.
-    DISTANCE_TOLERANCE = 1
-    
-    # BEGIN Next State enum.
-    NEXT_STATE_GO = 0
-    NEXT_STATE_GRAB = 1
-    NEXT_STATE_LOCALIZE = 2
-    # END Next State enum.
-    
-    def __init__( self , state):
-        import theGuts
-        print("Mode is now Go")
-        state.mode = "Go"
-        self.confirmationIDNeeded = None
-    def act( self, state ):
-        # Do not switch states by default.
-        return None 
-        
-class Pathfinder( Mode ):
-    """
-    Description
-        This class represents the mode of the robot that builds the 
-         instructions which the Go classes will follow. The mode will judge
-         the IMU data (if any) and the localization data to determine its
-         current position (called pedometric position).
+        return NEXT_STATE_LOCALIZE
+    def scoot( self, distance, angle ):
+        """
+        Description
+            Sends a scoot command to the Arduino and waits for the confirmation
+             message indicating the operation was a success. Failure will be
+             caused when the timer expired or the wrong confirmation id was
+             received. The wrong confirmation ID is very unlikely.
+        Parameters
+            distance -- the distance of the traverse.
+            angle -- the theta on the traverse.
+        Return
+            True -- when the operation is a success.
+            False -- when the operation failed.
+        """
+        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
+            settings.COMMAND_SCOOT, distance, angle  )
+        state.hypobotCloud.scoot(distance, angle)
+        return self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
+    def rotate( self, angle ):
+        """
+        Description
+            Sends a scoot command to the Arduino and waits for the confirmation
+             message indicating the operation was a success. Failure will be
+             caused when the timer expired or the wrong confirmation id was
+             received. The wrong confirmation ID is very unlikely.
+        Parameters
+            angle -- the theta on the traverse.
+        Return
+            True -- when the operation is a success.
+            False -- when the operation failed.
+        """
+        messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
+            settings.COMMAND_TURN, angle  )
+        state.hypobotCloud.scoot(angle)
+        self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
 
-        In the case of a pedometric position that has a distance away from a
-         link or node greater than the tolerance, an off-road status will be
-         assumed. In this state, the robot will generate a phantom link/node 
-         to the nearest link or node.
-
-        In any case, a complete path from the robot to a puck or the home base
-         will be generated.
-
-        The distance from a link will be determined by finding the
-         intersection of the vector of the link and the perpandicular vector
-         which cotains the pose of robot. In another words, the closest
-         distance from the pose to the link.
-    """
-    def __init__( self, state ):
-        self.state = state
-    def begin( self ):
-        # XXX need to find closest link also.
-        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
-        nearestNode = whatNode[0]
-        distance = whatNode[1]
-        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
-        thetaDiff = nodeTheta - botPose.theta
-        tolerance = nearestNode.radius
-        pendingLink = findPath( graph, nearestNode )
-        
-        # Off graph so scoot to the nearest node.
-        if distance > tolerance:
-            # XXX generate an extra link or node
-            link = graph.Link( \
-                graph.Node( self.state.pose.x, self.state.pose.y ), \
-                nearestNode )
-            path.insert( link )
-        signalNewMode( Go( state, path ) )
 
 """========================================================================================="""
 """/\/\/\/\/\/\/\/\/\/\/\/\/\/\  HERE BE LOCALIZATION  /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/"""
@@ -545,7 +302,7 @@ class Localize( Mode ):
             return Go(state)
         else:
             self.thisStep = nextStep
-            return None #come bak to Localize
+            return Go(state)
 
 
 """========================================================================================="""

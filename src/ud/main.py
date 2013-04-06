@@ -26,7 +26,7 @@ modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
 
 #pick a start mode (should be wait, eventually)
-robotMode = modes.ReadUSBDrive(state)
+robotMode = modes.Localize(state)
 #create world
 landmarkList = world.World.landmarkList
 logList = world.World.logList
