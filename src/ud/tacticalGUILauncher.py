@@ -8,7 +8,6 @@ import graph as g
 import theGuts
 import support
 
-
 def drawObjects():
     blocks = [(235-17,607-17,34,34),(258-17,250-17,34,34),(737-17,739-17,34,34),(942-17,198-17,34,34)]
     circles = [(180,875),(498,118),(469,598)]
@@ -314,7 +313,6 @@ if __name__ == "__main__":
         #traceback.print_stack()
     if graph == None:
         graph = g.Graph()
-    pucks = random.sample(range(1,17),6)
     dummy = graph.addNode(-1000,-1000)
     pygame.init()
     screen=pygame.display.set_mode((960,960),0,32)
@@ -339,7 +337,7 @@ if __name__ == "__main__":
         graph = g.Graph()
     '''
     
-    pucks = random.sample(range(1,17),6)
+    pucks = random.sample(range(1,17),16)
     dummy = graph.addNode(-1000,-1000)
     pose = (0,0,0)
     drawFlag = 1
@@ -379,16 +377,22 @@ while GUILoop:
 
             clickTravel = math.hypot(posDown[0]-posUp[0],posDown[1]-posUp[1])
 
-            clickedLink = False
+            clickedLink = None
             for link in graph.links:
-                if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
-                    clickedLink = True
+                hX=abs(link.node1.X+link.node2.X)/2
+                print "hx: ", hX
+                hY=abs(link.node1.Y+link.node2.Y)/2
+                print "hY: ", hY
+                print "mousePos: ", posDown[0], ",", posDown[1]
+                if math.hypot(posDown[0]-hX, posDown[1]-hY)<6:
+                    clickedLink = link
+                    break
 
 
             #clicked on link - so edit link
-            if clickedLink:
-                clickedLink=False
-                link.update()
+            if clickedLink  != None:
+                print "clickedLink: ", clickedLink
+                clickedLink.update()
                 while 1:
                     if edit.editLink(link):
                         drawAll()
@@ -398,6 +402,7 @@ while GUILoop:
                         break
                 # Ignore mouse clicks for the next 250 ms
                 ignoreNextMouseUpEvent = support.makeTimer(0.250)
+                clickedLink = None
             #clicked in execute box
             elif posDown[0]>940 and posDown[1]<20:
                 drawFlag=0
