@@ -519,9 +519,10 @@ class AverageCloud(LocStep):
 class PruneAndBoost(LocStep):
     def do(self, mode, state):
         print "pruning and boosting..."
-        state.hypobotCloud.pruneFraction(0.32) #approx 1 sigma
+        state.hypobotCloud.pruneThreshold(0.5) #approx 1 sigma
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
             state.hypobotCloud.appendBoost(state.poseUncertainty)
+        state.hypobotCloud.flatten()
         return Scan() #REPLACE WITH GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):

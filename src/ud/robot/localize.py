@@ -137,6 +137,7 @@ class Hypobot:
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
+        self.weightForgiveness = 1/10
         import random
         self.red = random.random() * 256
         self.blue = random.random() *256
@@ -199,10 +200,11 @@ class Hypobot:
             y = self.y - math.sin(self.theta)*eye.x_offset + math.cos(self.theta)*eye.y_offset
             theta = self.theta + eye.theta_offset 
             for j in range(settings.SCAN_DATA_POINTS):
-                effective_theta = eye.thetaList[j]
+                effective_theta = self.theta + eye.thetaList[j]
                 #----------------------change generation speed here ---------------------
-                distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "SLOW")
+                distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "FAST")
                 eye.IR[j] = feetToRawIR(distInFeetIR)
+                print "eye:", eye.eyeNum, "j:",j,"feet:", distInFeetIR, "IR:", eye.IR[j]
                 distInFeetUS = calcIdealRangeUS(x, y, effective_theta, landmarkList)
     def scoot(self, scootDistance, scootAngle):
         import random
@@ -468,7 +470,7 @@ def calcIdealRangeIR(x_eye, y_eye, theta_board, landmarkList, speed): #theta_boa
         with thousands of hbots.  God help us if this happens.
     """
     import world
-    r = settings.SCAN_IR_RANGELIM #caps ideal ranges
+    r = 100 #caps ideal ranges
     theta_board = theta_board * math.pi/180  #math like this prefers to be done in radians
     circles = list()
     squares = list()
@@ -514,7 +516,7 @@ def calcIdealRangeIR(x_eye, y_eye, theta_board, landmarkList, speed): #theta_boa
 
 def calcIdealRangeUS(x_eye, y_eye, theta_board, landmarkList):
     import world
-    r = 10 #start with that range
+    r = 100 #start with that range
     for landmark in landmarkList:
         if landmark.landmarkType == "ROCK":
             d = math.sqrt((x_eye-landmark.x)**2 + (y_eye-landmark.y)**2) - world.World().rockRadius

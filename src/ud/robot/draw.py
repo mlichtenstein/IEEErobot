@@ -7,6 +7,8 @@ it won't draw what you want.
 
 import math
 import pygame
+import localize
+import world
 
 class Drawable:
     """
@@ -213,6 +215,24 @@ class IRranges(Drawable):
         x0 = 4*view.CC
         y0 = 4*view.CC
         for eye in state.eyeList:
+            import settings
+            x_eye=int(x0 + eye.x_offset*view.CC)
+            y_eye=int(y0 + eye.y_offset*view.CC)
+            for i in range(0,settings.SCAN_DATA_POINTS):
+                theta = eye.thetaList[i]
+                IR = eye.IR[i] / 3
+                drawRange(view.surface, self.color, x_eye,y_eye,theta,10,IR)
+
+class hypoIRranges(Drawable):
+    name = "Best Guess IR ranges"
+    def draw(self, view, state):
+        bestGuessHbot = localize.Hypobot(state.pose.x,
+                                        state.pose.y,
+                                        state.pose.theta)
+        bestGuessHbot.generateEyeData(world.World().landmarkList)
+        x0 = 4*view.CC
+        y0 = 4*view.CC
+        for eye in bestGuessHbot.localEyeList:
             import settings
             x_eye=int(x0 + eye.x_offset*view.CC)
             y_eye=int(y0 + eye.y_offset*view.CC)
