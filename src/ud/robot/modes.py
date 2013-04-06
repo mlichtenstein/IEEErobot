@@ -125,7 +125,7 @@ class Go( Mode ):
         self.state = state
         state.mode = "Go"
     def act( self, state ):
-        nextState = self.makeAMove(Mode.graph, state)
+        nextState = self.makeAMove(state)
         if nextState == None:
             # Handle error.
             raise Exception( "Need to handle error." )
@@ -134,20 +134,21 @@ class Go( Mode ):
         if nextState == NEXT_STATE_LOCALIZE:
             return Localize( state )
         return self
-    def makeAMove( self, graph, state):
+    def makeAMove( self, state):
         """
         decides between 3 actions:  Grab, travel along path, go to path.
         """
         import theGuts
         import graph
-        whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
+        import math
+        whatNode = theGuts.whatNode( state.graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
                                             nearestNode.X- state.pose.x)
         #scoot to the nearest node
         if distance > nearestNode.radius:
-            angle =  nodeTheta - theta
+            angle =  nodeTheta - state.pose.theta
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
                 return NEXT_STATE_GO
@@ -198,7 +199,7 @@ class Go( Mode ):
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_SCOOT, distance, angle  )
-        state.hypobotCloud.scoot(distance, angle)
+        self.state.hypobotCloud.scootAll(distance, angle)
         return self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
     def rotate( self, angle ):
         """
@@ -215,7 +216,7 @@ class Go( Mode ):
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
-        state.hypobotCloud.scoot(angle)
+        self.state.hypobotCloud.rotateAll(angle)
         self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
 
 

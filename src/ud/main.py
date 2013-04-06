@@ -13,24 +13,7 @@ import world
 import time
 import random
 import settings
-
-import graph
-myGraph = Graph()
-myNodes = [graph.Node( 10, 10 ),
-            graph.Node( 10, 20 ),
-            graph.Node( 10, 30 ),
-            graph.Node( 5, 40 ),
-            graph.Node( 15, 40 ),
-            graph.Node( 5, 50 ),
-            graph.Node( 15, 50 ) ]
-myPucks = [10,15]
-myLinks( (myNodes[0], myNodes[1]),
-            (myNodes[1], myNodes[2]),
-            (myNodes[2], myNodes[3]),
-            (myNodes[2], myNodes[4]),
-            (myNodes[4], myNodes[5]))
-graph.links=myLinks
-modes.Mode.graph = graph
+import theGuts
 
 
 """=================SETUP============================================"""
@@ -49,6 +32,8 @@ landmarkList = world.World.landmarkList
 logList = world.World.logList
 
 #load nodelist however you do that
+state.graph = theGuts.loadFile("testGraph")
+
 
 #setup Gui
 if __debug__:

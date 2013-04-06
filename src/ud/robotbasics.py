@@ -37,6 +37,7 @@ class State:
         import world
         self.paused = False
         self.startTime = time.time()
+        self.graph = None #load with theGuts.loadFile()
         self.startPause = None
         self.mode = None
         self.moving = False
