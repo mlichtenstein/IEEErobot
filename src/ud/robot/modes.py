@@ -18,6 +18,7 @@ Module Tests:
 """
 
 class Mode:
+
     """
     Initializes the robot and provides a base of functionality to build on
      and override via polymorphism.
@@ -165,12 +166,13 @@ class Go( Mode ):
         if nextState == None:
             # Handle error.
             raise Exception( "Need to handle error." )
-        if nextState == NEXT_STATE_GRAB:
+        if nextState == self.NEXT_STATE_GRAB:
             return Grab( state )
-        if nextState == NEXT_STATE_LOCALIZE:
+        if nextState == self.NEXT_STATE_LOCALIZE:
             return Localize( state )
         return self
     def makeAMove( self, state):
+
         """
         decides between 3 actions:  Grab, travel along path, go to path.
         """
@@ -187,12 +189,13 @@ class Go( Mode ):
             angle =  nodeTheta - state.pose.theta
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
-                return NEXT_STATE_GO
+                return self.NEXT_STATE_GO
             else:
+                print "!!!"
                 return None
         #face puck and retrieve it
         elif 1 <= nearestNode.puck <= 16:
-            return NEXT_STATE_GRAB
+            return self.NEXT_STATE_GRAB
         #move along link
         else:
             try:

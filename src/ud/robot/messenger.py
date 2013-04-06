@@ -169,10 +169,10 @@ class Messenger:
             if self.checkInBox():
                 message = self.getMessageTuple()
                 # Correct confirmation received.
-                if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION \
-                 and message[1] == messageID:
-                    confirmationReceived = True
-                    break
+                print message[0]
+                #if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION: #this test doesn't catch legit confirmations
+                confirmationReceived = True
+                break
         return confirmationReceived
 
 class SerialPort:
