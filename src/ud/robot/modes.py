@@ -161,7 +161,7 @@ class Go( Mode ):
         else:
             try:
                 pendingLink = findPath( graph, nearestNode )
-                distance = pendingLink.length
+                distance = pendingLink.length #in pixels
                 if pendingLink == nearestNode.node1:
                     departureAngle = pendingLink.node1direction
                 elif pendingLink == nearestNode.node2:
@@ -198,9 +198,10 @@ class Go( Mode ):
             False -- when the operation failed.
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
-            settings.COMMAND_SCOOT, distance, angle  )
+            settings.COMMAND_SCOOT, int(distance), angle  )
+
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
+        return self.messenger.waitForConfirmation(messageID, distance * settings.MS_PER_DISTANCE / 1000 )
     def rotate( self, angle ):
         """
         Description
@@ -217,7 +218,7 @@ class Go( Mode ):
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
         self.state.hypobotCloud.rotateAll(angle)
-        self.messenger.waitForConfirmation(distance * MS_PER_DISTANCE / 1000 )
+        self.messenger.waitForConfirmation(distance * settings.MS_PER_DISTANCE / 1000 )
 
 
 """========================================================================================="""
