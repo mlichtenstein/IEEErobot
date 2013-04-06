@@ -122,9 +122,10 @@ class Go( Mode ):
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
+        self.state = state
         state.mode = "Go"
     def act( self, state ):
-        nextState = self.makeAMove()
+        nextState = self.makeAMove(Mode.graph, state)
         if nextState == None:
             # Handle error.
             raise Exception( "Need to handle error." )
@@ -133,14 +134,17 @@ class Go( Mode ):
         if nextState == NEXT_STATE_LOCALIZE:
             return Localize( state )
         return self
-    def makeAMove( self, ):
+    def makeAMove( self, graph, state):
         """
         decides between 3 actions:  Grab, travel along path, go to path.
         """
+        import theGuts
+        import graph
         whatNode = theGuts.whatNode( graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
-        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y-Y,nearestNode.X-X)
+        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
+                                            nearestNode.X- state.pose.x)
         #scoot to the nearest node
         if distance > nearestNode.radius:
             angle =  nodeTheta - theta

@@ -35,7 +35,7 @@ class Node:
 
 #===================================LINK===================================#
 class Link:
-    def __init__( self, node1, node2, (r,g,b) ):
+    def __init__( self, node1, node2, (r,g,b) = (0,0,0) ):
         self.red = r
         self.green = g
         self.blue = b

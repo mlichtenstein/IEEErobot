@@ -14,6 +14,23 @@ import time
 import random
 import settings
 
+import graph
+myGraph = Graph()
+myNodes = [graph.Node( 10, 10 ),
+            graph.Node( 10, 20 ),
+            graph.Node( 10, 30 ),
+            graph.Node( 5, 40 ),
+            graph.Node( 15, 40 ),
+            graph.Node( 5, 50 ),
+            graph.Node( 15, 50 ) ]
+myPucks = [10,15]
+myLinks( (myNodes[0], myNodes[1]),
+            (myNodes[1], myNodes[2]),
+            (myNodes[2], myNodes[3]),
+            (myNodes[2], myNodes[4]),
+            (myNodes[4], myNodes[5]))
+graph.links=myLinks
+modes.Mode.graph = graph
 
 
 """=================SETUP============================================"""
@@ -26,7 +43,7 @@ modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
 
 #pick a start mode (should be wait, eventually)
-robotMode = modes.Localize(state)
+robotMode = modes.Go(state)
 #create world
 landmarkList = world.World.landmarkList
 logList = world.World.logList
@@ -80,8 +97,8 @@ while running == True:
 
     if state.paused == False:
         nextMode = robotMode.act(state)
-        if nextMode != None:
-            robotMode = nextMode
+    #    if nextMode != None:
+    #        robotMode = nextMode
     
     #-------------------------------------------------------------------------
     # BEGIN Event Driven Architecture
