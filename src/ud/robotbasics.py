@@ -41,7 +41,7 @@ class State:
         self.mode = None
         self.moving = False
         self.pose = Pose(.5,.5,270) #make this the starting pose
-        self.poseUncertainty = Pose(1,1,5) #total guesswork
+        self.poseUncertainty = Pose(.3,.3,10) #total guesswork
         self.pitch = 0.0
         self.roll = 0.0
         self.distanceSinceScan = Pose(0,0,0) #distance, in feet, since last scan

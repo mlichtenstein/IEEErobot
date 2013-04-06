@@ -277,9 +277,13 @@ void loop() {
                         }
                     }
                     Serial.write( ';' );
-                    for (int i = 0; i<4; i++) {
-                        EyeServoWrite(i,0);
-                        //                      EyeServo[i].write(0);
+                    for (int rundown = 180; rundown >= 0; rundown-=5){
+                        for (int i = 0; i<4; i++) {
+                            EyeServoWrite(i,rundown);
+                            //                      EyeServo[i].write(0);
+                            delay(10);
+                        }
+
                     }
                     Serial.write( ":C," );
                     Serial.print( id );

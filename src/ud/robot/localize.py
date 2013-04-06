@@ -174,6 +174,7 @@ class Hypobot:
                 if real_eyeList[eyeNum].US[i] != 0 and real_eyeList[eyeNum].US[i] < 1.0:
                     a = self.localEyeList[eyeNum].US[i]
                     b =  real_eyeList[eyeNum].US[i]
+                    distance = abs(a-b)  #FAST
                     #print a,"=us=", b
                     self.weight *= math.exp((-(distance/self.weightingSigmaUS(a)/2)**2)) 
 
@@ -223,7 +224,7 @@ class Hypobot:
     def detectCollision(self):
         import world
         s = world.World().robotSide/2
-        if self.pose.x < 0.5 or self.pose.x > 7.5 or self.pose.y < 0.5 or self.pose.y > 7.5:
+        if self.pose.x < 0.4 or self.pose.x > 7.6 or self.pose.y < 0.4 or self.pose.y > 7.6:
             return True
         for landmark in world.World().landmarkList:
             dsquared = (self.pose.x-landmark.x)**2 + (self.pose.y-landmark.y)**2
@@ -245,7 +246,7 @@ class Hypobot:
                 dsquared = (corner[0]-landmark.x)**2 + (corner[1]-landmark.y)**2
                 if dsquared < landmark.effRadius**2:
                     return True
-            if corner[0]<0 or corner[0]>8 or corner[1]<0 or corner[1]>8:
+            if corner[0]<-.1 or corner[0]>8.1 or corner[1]<-0.1 or corner[1]>8.1:
                 return True
         return False
         """
@@ -278,7 +279,7 @@ class HypobotCloud:
     """
     def __init__(self):
         self.hypobotList = list()
-        self.cloudSize = 2000 #approx size of cloud--we will bloom and prune to stay near this
+        self.cloudSize = 300 #approx size of cloud--we will bloom and prune to stay near this
     def clear(self):
         l = len(self.hypobotList)
         self.hypobotList = list()
@@ -303,12 +304,17 @@ class HypobotCloud:
         print("Bloomed "+str(appended)+" hbots.")
         self.flatten()
     def appendBoost(self, poseSigma):
+        #adds a single hbot
         import random
-        cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
-        clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
+        clone = Hypobot(0,0,0,1)
+        while True:
+            cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
+            clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
                         random.gauss(cloneTarget.y, poseSigma.y),
                         random.gauss(cloneTarget.theta, poseSigma.theta),
                         cloneTarget.weight)
+            if clone.detectCollision() == False:
+                break
         self.hypobotList.append(clone)
     def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose

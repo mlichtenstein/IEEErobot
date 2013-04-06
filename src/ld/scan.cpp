@@ -39,16 +39,19 @@ void EyeServoWrite(int servoNum, int pt) {
         //rmin and rmax are the minimum and maximum unwrapped thetas the servos accept
         //find them with the M control char case below
     case 0:
+        rmin = 10;
+        rmax = 170;
+        break;
     case 1:
         rmin = 15;
         rmax = 170;
         break;
     case 2:
-        rmin = 25;
-        rmax = 160;
+        rmin = 20;
+        rmax = 170;
         break;
     case 3:
-        rmin = 20;
+        rmin = 35;
         rmax = 170;
         break;
     }

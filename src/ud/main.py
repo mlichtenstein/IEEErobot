@@ -12,6 +12,7 @@ import messenger
 import world
 import time
 import random
+import settings
 
 
 
@@ -22,24 +23,10 @@ state = robotbasics.State()
 #establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
-def signalNewMode( newMode ):
-    if nextMode != robotMode:
-        nextMode = newMode
-def switchMode():
-    if nextMode != None:
-        robotMode.end()
-        robotMode = newMode
-        nextmode = None
-        robotMode.begin()
-# Share the function used to change the states.
-modes.Mode.signalNewMode = switchMode
+
 
 #pick a start mode (should be wait, eventually)
 robotMode = modes.ReadUSBDrive(state)
-nextMode = None
-
-
-
 #create world
 landmarkList = world.World.landmarkList
 logList = world.World.logList
@@ -93,7 +80,8 @@ while running == True:
 
     if state.paused == False:
         nextMode = robotMode.act(state)
-    signalNewMode( nextMode )
+        if nextMode != None:
+            robotMode = nextMode
     
     #-------------------------------------------------------------------------
     # BEGIN Event Driven Architecture
@@ -108,7 +96,7 @@ while running == True:
         message = modes.Mode.messenger.getMessageTuple()
         category = message[0]
         # Trigger the confirmation event in the robot mode.
-        if category == SERIAL_MESSAGE_CONFIRMATION:
+        if category == settings.SERIAL_MESSAGE_CONFIRMATION:
             robotMode.onConfirmation( message[1] )
         else:
             robotMode.onMessage( message )
@@ -123,4 +111,3 @@ while running == True:
     gui.update(screen)
     pygame.display.update()
     time.sleep(.3)
-    switchMode()
