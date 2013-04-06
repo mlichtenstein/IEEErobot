@@ -161,6 +161,7 @@ class Messenger:
             False -- when the operation failed.
         """
         # Don't wait too long for the robot.
+        import support
         hasTime = support.makeTimer( maxWaitMS )
         confirmationReceived = False
         while hasTime():

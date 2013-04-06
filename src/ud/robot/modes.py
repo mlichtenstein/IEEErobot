@@ -148,7 +148,7 @@ class ReadUSBDrive( Mode):
         return Localize(state)
         
 class Go( Mode ):
-    MS_PER_DISTANCE = 100
+    MS_PER_FOOT = 4000
     NEXT_STATE_GO = 0
     NEXT_STATE_GRAB = 1
     NEXT_STATE_LOCALIZE = 2
@@ -200,7 +200,7 @@ class Go( Mode ):
         else:
             try:
                 pendingLink = findPath( graph, nearestNode )
-                distance = pendingLink.length #in pixels
+                distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 if pendingLink == nearestNode.node1:
                     departureAngle = pendingLink.node1direction
                 elif pendingLink == nearestNode.node2:
@@ -221,7 +221,7 @@ class Go( Mode ):
             except Exception as e:
                 print "Error: ", e
         #update botPose.theta with imu data
-        return NEXT_STATE_LOCALIZE
+        return Localize(state)
     def scoot( self, distance, angle ):
         """
         Description
@@ -240,7 +240,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
 
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(messageID, distance * settings.MS_PER_DISTANCE / 1000 )
+        return self.messenger.waitForConfirmation(messageID, distance * settings.MS_PER_FOOT / 1000 )
     def rotate( self, angle ):
         """
         Description
