@@ -106,8 +106,8 @@ class LoadAll( Mode):
             self.graph = graph.Graph()
         
     def act(self, state):
-        print "attemping to load ~IEEErobot/IEEErobot/src/ud/saveFile.graph"
-        self.loadGraph("/home/metro/IEEErobot/IEEErobot/src/ud/saveFile.graph")
+        print "attemping to load ~/IEEErobot/src/ud/saveFile"
+        self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile")
         #THIS MUST BE CHANGED ON PANDA
         script = "echo robot | sudo -S mkdir /mnt/robo"
         proc = subprocess.Popen(['bash', '-c', script],

@@ -13,8 +13,9 @@ def loadFile( name ) :
     try:
         f = open( name, "rb" )
         return pickle.load( f )
-    except:
-        print " no file selected "
+    except Exception as e:
+        print " no file selected"
+        print e
 
 def writeFile( name, graphData ):
     try:

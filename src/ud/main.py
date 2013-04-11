@@ -31,9 +31,9 @@ robotMode = modes.LoadAll(state)
 landmarkList = world.World.landmarkList
 logList = world.World.logList
 
-#load nodelist however you do that
-state.graph = theGuts.loadFile("testGraph")
 
+#load nodelist however you do that
+#state.graph = theGuts.loadFile("testGraph")
 
 #setup Gui
 if __debug__:
@@ -109,7 +109,6 @@ while running == True:
     # Update the GUI with the current robot state
     if __debug__:    
         state = gui.takeState(state)
-
-    gui.update(screen)
-    pygame.display.update()
-    time.sleep(.3)
+        gui.update(screen)
+        pygame.display.update()
+        time.sleep(.3)
