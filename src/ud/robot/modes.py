@@ -18,13 +18,13 @@ Module Tests:
 """
 
 class Mode:
-
     """
     Initializes the robot and provides a base of functionality to build on
      and override via polymorphism.
     Class Tests:
     >>> instance = Mode()
     """
+    graph = None
     # REQUIRED: Holds the messenger that connects to the arduino layer.
     messenger = None
     # REQUIRED: Holds the function which signals a change of modes.
@@ -91,12 +91,13 @@ class Mode:
     
 #opens graph from file, and opens usb, then preps the graph for use
 class LoadAll( Mode):
-    graph = None
+    #graph = None
     def __init__( self , state ):
         state.mode = "Loading..."
     def loadGraph(self, path ):
         try:
             self.graph = theGuts.loadFile( path )
+            Mode.graph = self.graph
         except (IOError, ImportError,RuntimeError, TypeError, NameError, AttributeError) as e:
             print "load File error"
             #import traceback
@@ -179,7 +180,7 @@ class Go( Mode ):
         import theGuts
         import graph
         import math
-        whatNode = theGuts.whatNode( state.graph, ( state.pose.x, state.pose.y ) )
+        whatNode = theGuts.whatNode( self.graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
         nodeTheta = -180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
@@ -325,7 +326,7 @@ class PruneAndBoost(LocStep):
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
             state.hypobotCloud.appendBoost(state.poseUncertainty)
         state.hypobotCloud.flatten()
-        return Scan() #REPLACE WITH GoToPathfind()
+        return GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):
         return None #escapes to next mode
@@ -340,14 +341,14 @@ class Localize( Mode ):
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        self.thisStep = PrimeCloud()
+        self.thisStep = GoToPathfind() #SWITCH TO PrimeCloud()
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
         if nextStep == None:
             return Go(state)
         else:
             self.thisStep = nextStep
-            return Go(state)
+            return self
 
 
 """========================================================================================="""
