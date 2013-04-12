@@ -16,26 +16,26 @@ void establishContact( );
 bool readMessage( );
 
 void setup() {
-#ifdef ROBOT_WAIT_MODE
-#define startButton 12
+    #ifdef ROBOT_WAIT_MODE
+    #define startButton 12
     pinMode(startButton, INPUT);
     digitalWrite(startButton, HIGH);
-#endif
-#ifdef ROBOT_SERVICE_SCAN
+    #endif
+    #ifdef ROBOT_SERVICE_SCAN
     setupScan();
-#endif
+    #endif
     Serial.begin( ROBOT_SERIAL_PORT_SPEED );
     establishContact( );
     Serial.flush();
     delay( 100 );
 
     //le arm setup
-#ifdef ROBOT_SERVICE_ARM_SERVO
+    #ifdef ROBOT_SERVICE_ARM_SERVO
     setupArm();
-#endif
-#ifdef ROBOT_SERVICE_GO
+    #endif
+    #ifdef ROBOT_SERVICE_GO
     setupGo();
-#endif
+    #endif
 }
 
 /* Go Example
