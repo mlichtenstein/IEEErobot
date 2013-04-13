@@ -208,7 +208,6 @@ class Go( Mode ):
             print "moving along link"
             try:
                 pendingLink = theGuts.findPath( self.graph, nearestNode )
-                print "!!!"
                 distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 if pendingLink.node1 == nearestNode:
                     departureAngle = self.rectifyAngle(int(pendingLink.node1direction))
@@ -224,8 +223,8 @@ class Go( Mode ):
                     print "updating angle"
                     state.pose.theta = departureAngle
                 else:
+                    print "this is what made success false"
                     success = False
-                print "???"
                 destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
                 scootAngle = 180/math.pi* math.atan2(nearestNode.Y- destinationNode.Y,
                                             nearestNode.X- destinationNode.X)
@@ -268,10 +267,11 @@ class Go( Mode ):
         print "ordering a scoot of",distance/120,"feet at",angle,"degrees."
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_SCOOT, int(distance), angle  )
+        #EG send ":T0,S,120,0;"
 
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(messageID, distance) #send the distance in pixels (ie tenth of an inches)
-    def rotate( self, angle ):
+        return self.messenger.waitForConfirmation(messageID, distance*settings.MS_PER_FOOT/120000 + 1) 
+    def rotate( self, angle ):          
         """
         Description
             Sends a scoot command to the Arduino and waits for the confirmation
@@ -287,7 +287,7 @@ class Go( Mode ):
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
         self.state.hypobotCloud.rotateAll(angle)
-        self.messenger.waitForConfirmation(messageID, angle)
+        self.messenger.waitForConfirmation(messageID, abs(angle) * settings.MS_PER_DEGREE/1000 + 1) 
 
 
 """========================================================================================="""
@@ -370,7 +370,8 @@ class Localize( Mode ):
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        self.thisStep = PrimeCloud() #SWITCH TO PrimeCloud()
+        self.thisStep = GoToPathfind() #use for fast testing,
+        #self.thisStep = PrimeCloud() #use for real operation
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
         if nextStep == None:

@@ -147,7 +147,7 @@ class Messenger:
             return False
         tup = string.split(",", 2)
         return tup
-    def waitForConfirmation( self, messageID, maxWaitMS ):
+    def waitForConfirmation( self, messageID, maxWaitSeconds ):
         """
         Description
             Waits for a confirmation message. Failure will be caused when the
@@ -162,17 +162,20 @@ class Messenger:
         """
         # Don't wait too long for the robot.
         import support
-        hasTime = support.makeTimer( maxWaitMS )
+        hasTime = support.makeTimer( maxWaitSeconds )
         confirmationReceived = False
+        print "waiting",maxWaitSeconds,"seconds for confirmation from LD..."
         while hasTime():
             # Read message.
             if self.checkInBox():
+                print "stuff in inbox"
                 message = self.getMessageTuple()
                 # Correct confirmation received.
                 print message[0]
                 #if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION: #this test doesn't catch legit confirmations
                 confirmationReceived = True
                 break
+        print "Confirmation recieved:",confirmationReceived
         return confirmationReceived
 
 class SerialPort:

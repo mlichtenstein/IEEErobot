@@ -162,8 +162,8 @@ void wheelAngle(double FL_SERVO, double FR_SERVO) {
 
 void faceWheels(double angle) {
     //this function writes out the servo values
-    Serial.write("Angle: \n");
-    Serial.println(angle);
+    Serial.write("Angle= ");
+    Serial.print(angle);
     FLSERVO.write(angle+90);   //set servos
     FRSERVO.write(angle+90);
     BLSERVO.write(angle+90);

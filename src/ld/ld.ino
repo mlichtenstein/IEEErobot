@@ -123,7 +123,7 @@ void loop() {
                     boolean messageGood = false;
                     numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c,%d", &subCategory, &temp );
                     float firstParam = (float)temp / 120.0; //Convert pixels to feet
-                    Serial.write("Feet:");
+                    Serial.write("Feet=");
                     Serial.print(firstParam);
                     // Should have received 2 parameters.
                     if ( numOfVars == 2 ) {

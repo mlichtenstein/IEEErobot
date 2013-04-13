@@ -22,3 +22,9 @@ def makeTimer( seconds ):
     import time
     startTime = time.time()
     return lambda : time.time() - startTime < seconds
+
+if __name__=="__main__":
+    import time
+    timer = makeTimer( 4 )
+    while timer():
+        print time.time()
