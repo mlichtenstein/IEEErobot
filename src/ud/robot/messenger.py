@@ -135,7 +135,7 @@ class Messenger:
             print("message of zero length")
             return False
         ret = self.__message
-        #print("Arduino says: " + ret) #to cutoff ret, replace with ret[:160]
+        print("Arduino says: " + ret[:160]) #to cutoff ret, replace with ret[:160]
         self.__message = ""
         #import copy
         return ret
@@ -170,9 +170,10 @@ class Messenger:
             if self.checkInBox():
                 message = self.getMessageTuple()
                 # Correct confirmation received.
-                print message[0]
-                #if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION: #this test doesn't catch legit confirmations
-                confirmationReceived = True
+                if message[0] == settings.SERIAL_MESSAGE_CONFIRMATION: 
+                    confirmationReceived = True
+                else:
+                    print "message recieved was not a confirmation"
                 break
         print "Confirmation recieved:",confirmationReceived
         return confirmationReceived

@@ -184,20 +184,20 @@ class Go( Mode ):
         """
         import theGuts
         import math
-        whatNode = theGuts.whatNode( self.graph, ( state.pose.x, state.pose.y ) )
+        whatNode = theGuts.whatNode( self.graph, ( state.pose.x*120, state.pose.y *120) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
         nodeTheta = 180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
                                             nearestNode.X- state.pose.x)
-        #scoot to the nearest node
+        #If we're off-graph, scoot to the nearest node
         if distance > nearestNode.radius:
-            print "scooting back onto graph"
+            print "Off graph! scooting back onto graph"
             angle =  nodeTheta - state.pose.theta
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
                 return self.NEXT_STATE_LOCALIZE
             else:
-                print "!!!"
+                print "scoot failed!"
                 return None
         #face puck and retrieve it
         elif 1 <= nearestNode.puck <= 16:
@@ -208,6 +208,7 @@ class Go( Mode ):
             print "moving along link"
             try:
                 pendingLink = theGuts.findPath( self.graph, nearestNode )
+                print "the link's destination is",pendingLink.node2.string()
                 distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 if pendingLink.node1 == nearestNode:
                     departureAngle = self.rectifyAngle(int(pendingLink.node1direction))
@@ -215,25 +216,22 @@ class Go( Mode ):
                     departureAngle = self.rectifyAngle(int(pendingLink.node2direction))
                 print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
                 rectifiedPoseTheta = self.rectifyAngle(state.pose.theta)
-                print rectifiedPoseTheta
                 angle = rectifiedPoseTheta - departureAngle
                 success = True
                 print "about to rotate..."
                 if self.rotate( angle ):
-                    print "updating angle"
-                    state.pose.theta = departureAngle
+                    print "updating angle to",state.pose.theta - angle,"ie",departureAngle
+                    state.pose.theta = -departureAngle
                 else:
-                    print "this is what made success false"
                     success = False
                 destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
-                scootAngle = 180/math.pi* math.atan2(nearestNode.Y- destinationNode.Y,
-                                            nearestNode.X- destinationNode.X)
+                scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
+                                            -nearestNode.X+ destinationNode.X)
                 scootAngle = self.rectifyAngle(scootAngle)
-                print "made it here"
                 if success and self.scoot( distance, scootAngle ):
-                    print "but not here"
-                    state.pose.X = nearestNode.X
-                    state.pose.Y = nearestNode.Y
+                    print "updating position"
+                    state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
+                    state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
                 else:
                     sucess = False
                 if not success:
@@ -270,7 +268,8 @@ class Go( Mode ):
         #EG send ":T0,S,120,0;"
 
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(messageID, distance*settings.MS_PER_FOOT/120000 + 1) 
+        return self.messenger.waitForConfirmation(messageID, 
+                distance*settings.MS_PER_FOOT/120000 + 1) 
     def rotate( self, angle ):          
         """
         Description
@@ -287,7 +286,8 @@ class Go( Mode ):
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
         self.state.hypobotCloud.rotateAll(angle)
-        self.messenger.waitForConfirmation(messageID, abs(angle) * settings.MS_PER_DEGREE/1000 + 1) 
+        return self.messenger.waitForConfirmation(messageID, 
+                abs(angle) * settings.MS_PER_DEGREE/1000 + 1) 
 
 
 """========================================================================================="""
@@ -303,7 +303,7 @@ class PrimeCloud(LocStep):
         print "Priming cloud in sector 1..."
         #add hbots at the current best guess, if nec
         state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, .50, 10.0)
-        Localize.thisStep = Scan() #we only want to prime the cloud once
+        Localize.thisStep = CleanAndBoostCloud() #we only want to prime the cloud once
         return ClearCollided()
 class CleanAndBoostCloud(LocStep):
     def do(self,mode,state):
@@ -370,8 +370,8 @@ class Localize( Mode ):
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        self.thisStep = GoToPathfind() #use for fast testing,
-        #self.thisStep = PrimeCloud() #use for real operation
+        #self.thisStep = GoToPathfind() #use for fast testing,
+        self.thisStep = PrimeCloud() #use for real operation
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
         if nextStep == None:

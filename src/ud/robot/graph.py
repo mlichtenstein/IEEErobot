@@ -32,6 +32,13 @@ class Node:
         self.puck = -1
         self.radius = 10
         self.localize = 0
+    def string(self): #this string summarizes the properties of a node
+        puckstr = None
+        if self.puck == -1:
+            puckstr="puckless"
+        else:
+            puckstr="adj to puck "+str(self.puck)
+        return "x= "+ str(float(self.X)/120)+"', y="+str(float(self.Y)/120)+"', "+puckstr
 
 
 #===================================LINK===================================#
