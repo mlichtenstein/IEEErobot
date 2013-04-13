@@ -200,7 +200,7 @@ class Go( Mode ):
         #move along link
         else:
             try:
-                pendingLink = findPath( graph, nearestNode )
+                pendingLink = theGuts.findPath( self.graph, nearestNode )
                 distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 if pendingLink == nearestNode.node1:
                     departureAngle = pendingLink.node1direction

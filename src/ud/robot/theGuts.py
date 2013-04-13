@@ -2,12 +2,12 @@
 #from pygame.locals import *
 import math, pickle
 
-"""
-pose = (0,0,0)
-pucks = random.sample(range(1,17),6) #get this from USB drive
-dummy = graph.addNode(-1000,-1000)
-botPose = g.Pose()
-"""
+
+#pose = (0,0,0)
+pucks = [1,2,3,4,5] #test puckset
+#dummy = graph.addNode(-1000,-1000)]
+#botPose = g.Pose()
+#
 name = "FinalFile"# <========================================================= File where Graph is stored
 def loadFile( name ) :
     try:
@@ -142,12 +142,12 @@ def explorePath( allLinks, roots, startingNode ):
                     forwardLinks.append( link )
         # No forward links.
         if len( forwardLinks ) == 0:
-            if DEBUG:
+            if __debug__:
                 print "Deadend"
             return None
         # One forward link. Proceed forward.
         elif len( forwardLinks ) == 1:
-            if DEBUG:
+            if __debug__:
                 print "One forward link"
             # Access the oposite node from currentNode.
             distance = distance + forwardLinks[0].length
@@ -159,18 +159,18 @@ def explorePath( allLinks, roots, startingNode ):
             # For each possible branch, launch an explorer. The explorer will
             #  return the path and the distance. Next, append the branch with
             #  the shortest path.
-            if DEBUG:
+            if __debug__:
                 print "Multiple forward links"
             minBranch = None
             minLink = None
             for link in forwardLinks:
-                if DEBUG:
+                if __debug__:
                     print "link: ", link
                 otherNode = getOtherNode( link, currentNode )
                 rootsCopy = roots[:]
                 rootsCopy.append( currentNode )
                 branch = explorePath( allLinks, rootsCopy, otherNode )
-                if DEBUG:
+                if __debug__:
                     print "minBranch: ", minBranch
                     print "Branch: ", branch
                 # Select the shortest branch only.
@@ -178,7 +178,7 @@ def explorePath( allLinks, roots, startingNode ):
                 branch[1] < minBranch[1] ):
                     minBranch = branch
                     minLink = link
-                    if DEBUG:
+                    if __debug__:
                         print "minBranch set"
             if minLink == None:
                 return None
