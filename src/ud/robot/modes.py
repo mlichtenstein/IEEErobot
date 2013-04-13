@@ -275,7 +275,7 @@ class PrimeCloud(LocStep):
         print "Priming cloud in sector 1..."
         #add hbots at the current best guess, if nec
         state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, .50, 10.0)
-        Localize.nextStep = Scan() #we only want to prime the cloud once
+        Localize.thisStep = Scan() #we only want to prime the cloud once
         return ClearCollided()
 class CleanAndBoostCloud(LocStep):
     def do(self,mode,state):
