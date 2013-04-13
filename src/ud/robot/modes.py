@@ -178,7 +178,6 @@ class Go( Mode ):
         decides between 3 actions:  Grab, travel along path, go to path.
         """
         import theGuts
-        import graph
         import math
         whatNode = theGuts.whatNode( self.graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
@@ -201,6 +200,7 @@ class Go( Mode ):
         else:
             try:
                 pendingLink = theGuts.findPath( self.graph, nearestNode )
+                print "!!!"
                 distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 if pendingLink == nearestNode.node1:
                     departureAngle = pendingLink.node1direction
@@ -222,7 +222,7 @@ class Go( Mode ):
             except Exception as e:
                 print "Error: ", e
         #update botPose.theta with imu data
-        return Localize(state)
+        return self.NEXT_STATE_LOCALIZE
     def scoot( self, distance, angle ):
         """
         Description

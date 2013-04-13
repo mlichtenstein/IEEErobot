@@ -193,6 +193,7 @@ def findPath( graph, startingNode ):
     The path.
     """
     pathInfo = explorePath( graph.links, [startingNode], startingNode )
+    print "explorePath must have succeded"
     if pathInfo == None:
         raise Exception( "Puck not found" )
     print "Distance: ", pathInfo[1]
