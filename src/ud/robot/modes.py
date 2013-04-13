@@ -123,12 +123,17 @@ class LoadAll( Mode):
         reader = csv.reader(USB)
         self.graph.pucks=list()
         for row in reader:
-            state.remainingPucks.append(row)
-            self.graph.pucks.append(row)
-            for n in self.graph.nodes:
-                for p in self.graph.pucks:
-                    if not(n.puck==p):
-                        n.puck=-1
+            for r in row:
+                state.remainingPucks.append(int(r))
+                self.graph.pucks.append(int(r))
+        print self.graph.pucks
+        for n in self.graph.nodes:
+            temp = -1
+            for p in self.graph.pucks:
+                if n.puck==p:
+                    temp = p
+                    print temp
+            n.puck=temp
         return Localize(state)
         
 class Ready( Mode):
@@ -153,7 +158,7 @@ class Go( Mode ):
     NEXT_STATE_LOCALIZE = 2
     """
     Class Tests:
-    >>> instance = Go()
+    >>> instance = Go()distance
     >>> isinstance( instance, Mode )
     True
     """
@@ -186,6 +191,7 @@ class Go( Mode ):
                                             nearestNode.X- state.pose.x)
         #scoot to the nearest node
         if distance > nearestNode.radius:
+            print "scooting back onto graph"
             angle =  nodeTheta - state.pose.theta
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
@@ -195,26 +201,40 @@ class Go( Mode ):
                 return None
         #face puck and retrieve it
         elif 1 <= nearestNode.puck <= 16:
+            print "INSERT CODE THAT ROTATES TO FACE node.theta THEN GRAB"
             return self.NEXT_STATE_GRAB
         #move along link
         else:
+            print "moving along link"
             try:
                 pendingLink = theGuts.findPath( self.graph, nearestNode )
                 print "!!!"
                 distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
-                if pendingLink == nearestNode.node1:
-                    departureAngle = pendingLink.node1direction
-                elif pendingLink == nearestNode.node2:
-                    departureAngle = pendingLink.node2direction
-                angle = departureAngle - theta
+                if pendingLink.node1 == nearestNode:
+                    departureAngle = self.rectifyAngle(int(pendingLink.node1direction))
+                elif pendingLink.node2 == nearestNode:
+                    departureAngle = self.rectifyAngle(int(pendingLink.node2direction))
+                print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
+                rectifiedPoseTheta = self.rectifyAngle(state.pose.theta)
+                print rectifiedPoseTheta
+                angle = rectifiedPoseTheta - departureAngle
                 success = True
+                print "about to rotate..."
                 if self.rotate( angle ):
-                    botPose.theta = nearestNode.theta
+                    print "updating angle"
+                    state.pose.theta = departureAngle
                 else:
                     success = False
-                if success and self.scoot( pendingLink.length ):
-                    botPose.X = nearestNode.X
-                    botPose.Y = nearestNode.Y
+                print "???"
+                destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
+                scootAngle = 180/math.pi* math.atan2(nearestNode.Y- destinationNode.Y,
+                                            nearestNode.X- destinationNode.X)
+                scootAngle = self.rectifyAngle(scootAngle)
+                print "made it here"
+                if success and self.scoot( distance, scootAngle ):
+                    print "but not here"
+                    state.pose.X = nearestNode.X
+                    state.pose.Y = nearestNode.Y
                 else:
                     sucess = False
                 if not success:
@@ -223,6 +243,14 @@ class Go( Mode ):
                 print "Error: ", e
         #update botPose.theta with imu data
         return self.NEXT_STATE_LOCALIZE
+
+    def rectifyAngle(self, angle):
+        while angle>180:
+            angle-=360
+        while angle<-180:
+            angle+=360
+        return angle    
+
     def scoot( self, distance, angle ):
         """
         Description
@@ -242,7 +270,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
 
         self.state.hypobotCloud.scootAll(distance, angle)
-        return self.messenger.waitForConfirmation(messageID, distance) #send the distance in pixels (ie tentsh of inches)
+        return self.messenger.waitForConfirmation(messageID, distance) #send the distance in pixels (ie tenth of an inches)
     def rotate( self, angle ):
         """
         Description
@@ -259,7 +287,7 @@ class Go( Mode ):
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
         self.state.hypobotCloud.rotateAll(angle)
-        self.messenger.waitForConfirmation(distance)
+        self.messenger.waitForConfirmation(messageID, angle)
 
 
 """========================================================================================="""

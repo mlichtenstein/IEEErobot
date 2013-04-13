@@ -114,9 +114,11 @@ def explorePath( allLinks, roots, startingNode ):
     result = []
     distance = 0
     while True:
+        print "currentNode is",currentNode
+        print "currentNode puck property is",currentNode.puck
         result.append( currentNode )
         if currentNode.puck != -1:
-            # puck found!
+            print "puck found!"
             break
         relatedLinks = findLinksWithNode( allLinks, currentNode )
         forwardLinks = []
@@ -193,7 +195,6 @@ def findPath( graph, startingNode ):
     The path.
     """
     pathInfo = explorePath( graph.links, [startingNode], startingNode )
-    print "explorePath must have succeded"
     if pathInfo == None:
         raise Exception( "Puck not found" )
     print "Distance: ", pathInfo[1]
