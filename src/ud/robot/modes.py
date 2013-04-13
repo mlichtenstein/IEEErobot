@@ -25,6 +25,7 @@ class Mode:
     Class Tests:
     >>> instance = Mode()
     """
+    graph = None
     # REQUIRED: Holds the messenger that connects to the arduino layer.
     messenger = None
     # REQUIRED: Holds the function which signals a change of modes.
@@ -104,12 +105,13 @@ class LoadAll( Mode):
             #traceback.print_stack()
         if self.graph == None:
             self.graph = graph.Graph()
+            Mode.graph = self.graph
         
     def act(self, state):
-        print "attemping to load ~/IEEErobot/src/ud/saveFile"
-        self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile")
+        print "attemping to load ~/IEEErobot/src/ud/saveFile.graph"
+        self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile.graph")
         #THIS MUST BE CHANGED ON PANDA
-        script = "echo robot | sudo -S mkdir /mnt/robo"
+        script = "echo rty456 | sudo -S mkdir /mnt/robo"
         proc = subprocess.Popen(['bash', '-c', script],
                                 stdout=subprocess.PIPE)
         stdout = proc.communicate()
@@ -182,14 +184,14 @@ class Go( Mode ):
         whatNode = theGuts.whatNode( state.graph, ( state.pose.x, state.pose.y ) )
         nearestNode = whatNode[0]
         distance = whatNode[1]
-        nodeTheta = -180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
-                                            nearestNode.X- state.pose.x)
+        nodeTheta = -180/math.pi* math.atan2(-nearestNode.Y+ state.pose.y,
+                                            -nearestNode.X+ state.pose.x)
         #scoot to the nearest node
         if distance > nearestNode.radius:
             angle =  nodeTheta - state.pose.theta
             if self.scoot( distance, angle ):
                 state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
-                return self.NEXT_STATE_GO
+                return self.NEXT_STATE_LOCALIZE
             else:
                 print "!!!"
                 return None
@@ -236,6 +238,7 @@ class Go( Mode ):
             True -- when the operation is a success.
             False -- when the operation failed.
         """
+        print "ordering a scoot of",distance/120,"feet at",angle,"degrees."
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_SCOOT, int(distance), angle  )
 
