@@ -108,19 +108,23 @@ class LoadAll( Mode):
         
     def act(self, state):
         print "attemping to load ~IEEErobot/IEEErobot/src/ud/saveFile.graph"
-        self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile.graph")
-        #THIS MUST BE CHANGED ON PANDA
-        script = "echo rty456 | sudo -S mkdir /mnt/robo"
-        proc = subprocess.Popen(['bash', '-c', script],
-                                stdout=subprocess.PIPE)
-        stdout = proc.communicate()
-        script = "echo rty456 | sudo -S mount /dev/disk/by-label/IEEER5 /mnt/robo"
-        #replace rty456 with robot
-        proc = subprocess.Popen(['bash', '-c', script], 
-            stdout=subprocess.PIPE)
-        stdout = proc.communicate()
-        USB = open("/mnt/robo/Locatio.csv")
-        reader = csv.reader(USB)
+        try:
+            self.loadGraph("/home/max/IEEErobot/IEEErobot/src/ud/saveFile.graph")
+            #THIS MUST BE CHANGED ON PANDA
+            script = "echo rty456 | sudo -S mkdir /mnt/robo"
+            proc = subprocess.Popen(['bash', '-c', script],
+                                    stdout=subprocess.PIPE)
+            stdout = proc.communicate()
+            script = "echo rty456 | sudo -S mount /dev/disk/by-label/IEEER5 /mnt/robo"
+            #replace rty456 with robot
+            proc = subprocess.Popen(['bash', '-c', script], 
+                stdout=subprocess.PIPE)
+            stdout = proc.communicate()
+            USB = open("/mnt/robo/Locatio.csv")
+            reader = csv.reader(USB)
+        except:
+            print "Could not read thumb drive. Using full puck list."
+            reader=[[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],]
         self.graph.pucks=list()
         for row in reader:
             for r in row:
@@ -150,6 +154,14 @@ class Ready( Mode):
         #"Start" command
         return ReadUSBDrive(state)
         
+
+"""========================================================================================="""
+"""                                            GO                                          """
+"""========================================================================================="""
+
+class LocStep: #A step is any object with a .do method.  Included only as a template.
+    def do(self, mode, state):
+        pass
         
 class Go( Mode ):
     MS_PER_FOOT = 4000
