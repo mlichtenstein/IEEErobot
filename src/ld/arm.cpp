@@ -44,20 +44,13 @@ void armControl() {
 }
 void magnet(char inChar)
 {
+	Serial.write( inChar );
    if(inChar == 'i')
      digitalWrite(8, HIGH);
    else if(inChar == 'o')
      digitalWrite(8,LOW);
 }
 
-void magnet(char inChar)
-{
-  Serial.println("farts");
-  if(inChar == 'i')
-   digitalWrite(8, HIGH);
-  else if(inChar =='o')
-    digitalWrite(8, LOW);
-}
 
 // Servo angle conversion and callibration functions
 // retrun [offset] + (inputDegrees/360 * [scale]

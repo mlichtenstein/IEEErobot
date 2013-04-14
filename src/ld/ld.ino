@@ -292,14 +292,18 @@ void loop() {
                 }
                 break;
 #endif
-                case 'm':
+#ifdef ROBOT_SERVICE_MAGNET
+                case ROBOT_SERVICE_MAGNET:
                 {
-                  Serial.println("hi");
                   char aChar;
                   numOfVars = sscanf( inBoxBuffer, "%*c%*d,%c", &aChar);
                   magnet(aChar);
+                    Serial.write( ":C," );
+                    Serial.print( id );
+                    Serial.write( ';' );
                 }
                 break;
+#endif 
 #ifdef ROBOT_SERVICE_ARM_SERVO
                 case ROBOT_SERVICE_ARM_SERVO: {
                     numOfVars = sscanf( inBoxBuffer, "%*c%*d,%d,%d,%d",
