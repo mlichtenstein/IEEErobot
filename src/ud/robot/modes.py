@@ -159,10 +159,10 @@ class Ready( Mode):
 """                                            GO                                          """
 """========================================================================================="""
 
-class LocStep: #A step is any object with a .do method.  Included only as a template.
+class GoStep: #A step is any object with a .do method.  Included only as a template.
     def do(self, mode, state):
         pass
-        
+
 class Go( Mode ):
     MS_PER_FOOT = 4000
     NEXT_STATE_GO = 0
@@ -380,11 +380,11 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
+    thisStep = GoToPathfind() #use for fast testing,
+    thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        #self.thisStep = GoToPathfind() #use for fast testing,
-        self.thisStep = PrimeCloud() #use for real operation
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
         if nextStep == None:
