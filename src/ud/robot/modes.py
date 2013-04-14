@@ -226,8 +226,9 @@ class Go( Mode ):
                     success = False
                 destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
                 scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
-                                            -nearestNode.X+ destinationNode.X)
+                                            -nearestNode.X+ destinationNode.X) - state.pose.theta
                 scootAngle = self.rectifyAngle(scootAngle)
+                print "scootAngle=",scootAngle
                 if success and self.scoot( distance, scootAngle ):
                     print "updating position"
                     state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
@@ -267,7 +268,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
         #EG send ":T0,S,120,0;"
 
-        self.state.hypobotCloud.scootAll(distance, angle)
+        self.state.hypobotCloud.scootAll(distance, -angle)
         return self.messenger.waitForConfirmation(messageID, 
                 distance*settings.MS_PER_FOOT/120000 + 1) 
     def rotate( self, angle ):          
@@ -285,7 +286,7 @@ class Go( Mode ):
         """
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
-        self.state.hypobotCloud.rotateAll(angle)
+        self.state.hypobotCloud.rotateAll(-angle)
         return self.messenger.waitForConfirmation(messageID, 
                 abs(angle) * settings.MS_PER_DEGREE/1000 + 1) 
 
