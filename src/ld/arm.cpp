@@ -21,7 +21,7 @@ void setupArm() {
     pinMode(8, OUTPUT);
 }
 void armControl() {
-    newArmTheta[2] = 280 - newArmTheta[2];
+    newArmTheta[2] = 275 - newArmTheta[2];
     for(int i = 1; i <= 200; i++) {
         //Serial.write( 'i' );
         R1.writeMicroseconds((int)(convertR1(oldArmTheta[0]) + (convertR1(newArmTheta[0]) - convertR1(oldArmTheta[0]))*i/200));
@@ -36,6 +36,15 @@ void armControl() {
 
 }
 
+void magnet(char inChar)
+{
+  Serial.println("farts");
+  if(inChar == 'i')
+   digitalWrite(8, HIGH);
+  else if(inChar =='o')
+    digitalWrite(8, LOW);
+}
+
 // Servo angle conversion and callibration functions
 // retrun [offset] + (inputDegrees/360 * [scale]
 // scale = the difference between the offset and the value
@@ -47,7 +56,7 @@ double convertR2_1(int inDegree) {
     return 1005 + ((double)inDegree/360 * 2180);
 }
 double convertR2_2(int inDegree) {
-    return 1030 + ((double)(inDegree)/360 * 230);
+    return 980 + ((double)(inDegree)/360 * 2430);
 }
 double convertR3(int inDegree) {
     return 650 + ((double)inDegree/360 * 1800);

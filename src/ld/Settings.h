@@ -47,6 +47,7 @@
 #define ROBOT_CALIB_IR 'i'
 #define ROBOT_WAIT_MODE 'W'
 #define ROBOT_COMMAND_FORWARD 'F'
+#define ROBOT_SERVICE_MAGNET 'm'
 // END Services
 
 // BEGIN Responses

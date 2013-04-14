@@ -3,6 +3,7 @@
 extern int newArmTheta[];
 void setupArm();
 void armControl();
+void magnet(char aChar);
 #ifndef TESTING
 #if ARDUINO >= 100
 #include "Arduino.h"
