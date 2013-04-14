@@ -382,7 +382,7 @@ while GUILoop:
 
             clickedLink = False
             for link in graph.links:
-                if math.hypot(posDown[0]-(link.node1.X+link.node2.X)/2, posDown[1]-(link.node1.Y+link.node2.Y)/2)<6:
+                if math.hypot((posDown[0]-link.node1.X+link.node2.X)/2, (posDown[1]-(link.node1.Y+link.node2.Y))/2)<6:
                     clickedLink = True
 
 
