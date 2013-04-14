@@ -14,11 +14,18 @@ double convertR2_2(int inDegree);
 double convertR3(int inDegree);
 
 void setupArm() {
+  //write arm to a safe angle befor bringing it online
+    R1.writeMicroseconds(convertR1(90));
+    R2_1.writeMicroseconds(convertR2_1(0));
+    R2_2.writeMicroseconds(convertR2_1(0));
+    R3.writeMicroseconds(convertR3(90));
+    
     R1.attach(36);
     R2_1.attach(37);
     R2_2.attach(38);
     R3.attach(39);
     pinMode(8, OUTPUT);
+    delay(1000);
 }
 void armControl() {
     newArmTheta[2] = 275 - newArmTheta[2];
@@ -34,6 +41,13 @@ void armControl() {
         oldArmTheta[i] = newArmTheta[i];
     }
 
+}
+void magnet(char inChar)
+{
+   if(inChar == 'i')
+     digitalWrite(8, HIGH);
+   else if(inChar == 'o')
+     digitalWrite(8,LOW);
 }
 
 void magnet(char inChar)
