@@ -250,6 +250,7 @@ class Hypobot:
                     return True
             if corner[0]<-.1 or corner[0]>8.1 or corner[1]<-0.1 or corner[1]>8.1:
                 return True
+
         return False
         """
         
@@ -354,6 +355,7 @@ class HypobotCloud:
             if hbot.detectCollision() == True:
                 killList.append(hbot)
                 deleted += 1
+        print "average hbot is ",self.average().string()
         for hbot in killList:
             self.hypobotList.remove(hbot)
         print "Deleted",deleted,"hbots due to collisions.",len(self.hypobotList),"remain."

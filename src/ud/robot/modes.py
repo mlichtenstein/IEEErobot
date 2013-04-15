@@ -280,7 +280,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
         #EG send ":T0,S,120,0;"
 
-        self.state.hypobotCloud.scootAll(distance, -angle)
+        self.state.hypobotCloud.scootAll(distance/120, -angle)
         return self.messenger.waitForConfirmation(messageID, 
                 distance*settings.MS_PER_FOOT/120000 + 1) 
     def rotate( self, angle ):          
@@ -312,18 +312,17 @@ class LocStep: #A step is any object with a .do method.  Included only as a temp
         pass
 class PrimeCloud(LocStep):
     def do(self, mode, state):
-        print("=========Beginning localization.=========")
-        print "Priming cloud in sector 1..."
+        print "Priming cloud at current pose..."
         #add hbots at the current best guess, if nec
         state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, .50, 10.0)
         Localize.thisStep = CleanAndBoostCloud() #we only want to prime the cloud once
         return ClearCollided()
 class CleanAndBoostCloud(LocStep):
     def do(self,mode,state):
-        self.hypobotCloud.clearCollided()
+        print "repopulating cloud..."
+        state.hypobotCloud.clearCollided()
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
-            print "repopulating cloud..."
-            hypobotCloud.appendBoost(robotbasics.Pose(.5,.5,10))
+            state.hypobotCloud.appendBoost(Pose(.5,.5,10))
 class ClearCollided(LocStep):
     def do(self, mode, state):
         print "clearing out collided hbots"
@@ -380,10 +379,11 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    thisStep = GoToPathfind() #use for fast testing,
+    #thisStep = GoToPathfind() #use for fast testing,
     thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
+        print("=========Beginning localization.=========")
         state.mode = "Localize"
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
