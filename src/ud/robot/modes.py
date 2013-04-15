@@ -160,6 +160,21 @@ class Ready( Mode):
 """                                            GO                                          """
 """========================================================================================="""
 
+"""NOTES ABOUT THIS TRANSPARENTIZATION, by max
+The main mechanism behind transparentization is to break the act() up into steps.
+EAch time you call act(), it does the do() 
+in go.thisStep.  The do() does some stuff, and returns the next step.  It's like 
+a finite state machine, where each state determines the next state.
+If you return none, the Act will try to go to its nextMode.
+(this makes it go back to the beginning of that step.)  To escape the Go, you should
+change mode.nextMode to the next mode you want, then return none.  By default it localizes.
+
+One drawback is that variables do not, by default, carry to the next step.  The
+way around this is to make persistent variables attributes of the mode instance,
+so distance became mode.distance.  Also, what used to be self now refers to the step,
+not the mode, so self.rectifyAngle is now mode.rectifyAngle.
+"""
+
 class GoStep: #A step is any object with a .do method.  Included only as a template.
     def do(self, mode, state):
         pass
@@ -171,31 +186,31 @@ class ExamineCurrentPose(GoStep):
     """
     def do(self,mode,state):
         print "deciding where to go next..."
-        whatNode = theGuts.whatNode( self.graph, ( state.pose.x*120, state.pose.y *120) )
+        whatNode = theGuts.whatNode( mode.graph, ( state.pose.x*120, state.pose.y *120) )
         mode.nearestNode = whatNode[0]
         mode.distance = whatNode[1]
-        mode.nodeTheta = 180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
-                                            nearestNode.X- state.pose.x)
+        mode.nodeTheta = 180/math.pi* math.atan2(mode.nearestNode.Y- state.pose.y,
+                                            mode.nearestNode.X- state.pose.x)
         #If we're off-graph, scoot to the nearest node
-        if mode.distance > nearestNode.radius:
+        if mode.distance > mode.nearestNode.radius:
             return GetOnGraph()
         #If we're close to a puck, turn to face it
         elif 1 <= mode.nearestNode.puck <= 16:
             return FacePuck()
         #If none of the above occured, it's time to move along the path
         else:
-            return MoveAlongLink()
+            return RotateToMoveAlongLink()
 
 class GetOnGraph(GoStep):
     def do(self,mode,state):
         print "Bot seems to be off-graph.  Trying to get back on"
         angle =  mode.nodeTheta - state.pose.theta
-        if mode.scoot( distance, angle ):
-            state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
+        if mode.scoot( mode.distance, angle ):
+            state.pose.X, state.pose.Y = mode.nearestNode.X, mode.nearestNode.Y
             return RotateToMoveAlongLink()
         else:
             print "scoot failed! Going to Localize..."
-            mode = Localize(state)
+            mode.nextMode = Localize(state)
             return None
 
 class FacePuck(GoStep):
@@ -204,56 +219,52 @@ class FacePuck(GoStep):
         print "Turning to face puck"
         angle = mode.nearestNode.angle+state.pose.theta
         mode.rotate(angle)
-        mode = Grab(state) #go to grab
+        mode.nextMode = Grab(state) #go to grab
         return None 
 
 class RotateToMoveAlongLink(GoStep):
     def do(self,mode,state):
-        print "moving to next node..."
-            try:
-                mode.pendingLink = theGuts.findPath( self.graph, mode.nearestNode )
-                mode.distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
-                #pick which node to aim for
-                if pendingLink.node1 == nearestNode:
-                    departureAngle = mode.rectifyAngle(int(pendingLink.node1direction))
-                    print "the destination node is",pendingLink.node1.string()
-                elif pendingLink.node2 == nearestNode:
-                    departureAngle = mode.rectifyAngle(int(pendingLink.node2direction))
-                    print "the destination node is",pendingLink.node2.string()
-                print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
-                rectifiedPoseTheta = self.rectifyAngle(state.pose.theta)
-                angle = rectifiedPoseTheta - departureAngle
-                print "about to rotate..."
-                if self.rotate( angle ):
-                    print "updating angle to",state.pose.theta - angle,"ie",departureAngle
-                    state.pose.theta = -departureAngle
-                    return ScootAlongLink()
-                else:
-                    mode = Localize(state)
-                    return None
-            except Exception as e:
-                print "Error: ", e
-                return None
+        print "rotating to align with nearest node's departure angle..."
+        mode.pendingLink = theGuts.findPath( mode.graph, mode.nearestNode )
+        mode.distance = mode.pendingLink.length #in tenths of inches (Matt Bird's pixels)
+        #pick which node to aim for
+        if mode.pendingLink.node1 == mode.nearestNode:
+            departureAngle = mode.rectifyAngle(int(mode.pendingLink.node1direction))
+            print "the destination node is",mode.pendingLink.node1.string()
+        elif mode.pendingLink.node2 == mode.nearestNode:
+            departureAngle = mode.rectifyAngle(int(mode.pendingLink.node2direction))
+            print "the destination node is",mode.pendingLink.node2.string()
+        print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
+        rectifiedPoseTheta = mode.rectifyAngle(state.pose.theta)
+        angle = rectifiedPoseTheta - departureAngle
+        print "about to rotate..."
+        if mode.rotate( angle ):
+            print "updating angle to",state.pose.theta - angle,"ie",departureAngle
+            state.pose.theta = -departureAngle
+            return ScootAlongLink()
+        else:
+            mode.nextMode = Localize(state)
+            return None
 
-class ScootAlongLink()
+class ScootAlongLink(GoStep):
     def do(self,mode,state):
         print "Scooting along link..."
-            destinationNode = theGuts.getOtherNode(mode.pendingLink,mode.nearestNode)
-            scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
-                    -nearestNode.X+ destinationNode.X) - state.pose.theta
-            scootAngle = self.rectifyAngle(scootAngle)
-            print "scootAngle=",scootAngle
-            self.scoot( distance, scootAngle ):
-            print "updating position"
-            state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
-            state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
-            mode = Localize(state)
-            return None
+        destinationNode = theGuts.getOtherNode(mode.pendingLink,mode.nearestNode)
+        scootAngle = 180/math.pi* math.atan2(-mode.nearestNode.Y+ destinationNode.Y,
+                -mode.nearestNode.X+ destinationNode.X) - state.pose.theta
+        scootAngle = mode.rectifyAngle(scootAngle)
+        print "scootAngle=",scootAngle
+        mode.scoot( mode.distance, scootAngle )
+        state.pose.x = state.pose.x + mode.distance/120*math.cos(scootAngle*math.pi/180)
+        state.pose.y = state.pose.y + mode.distance/120*math.sin(scootAngle*math.pi/180)
+        print "updating position to",state.pose.string()
+        mode.nextMode = Localize(state)
+        return None
 
 class Go( Mode ):
     """
     Class Tests:
-    >>> instance = Go()distance
+    >>> instance = Go()
     >>> isinstance( instance, Mode )
     True
     """
@@ -261,12 +272,19 @@ class Go( Mode ):
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
+        print("==========Beginning Go=========")
         self.state = state
         state.mode = "Go"
     def act( self, state ):
+        #the action happens in this line:
         nextStep = self.thisStep.do(self, state)
+        #this part parses the return from nextStep, and decides
+        #whether to go to a new step or a new mode
         if nextStep == None:
-            return self #generally speaking, we should escape to Localize
+            if self.nextMode == None:
+                return Loalize(state) #the default new state is localize
+            else:
+                return self.nextMode
         else:
             self.thisStep = nextStep
             return self
@@ -450,6 +468,7 @@ class PruneAndBoost(LocStep):
         return GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):
+        print "switching to go...."
         return None #escapes to next mode
 
 class Localize( Mode ):
@@ -459,8 +478,8 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    #thisStep = GoToPathfind() #use for fast testing,
-    thisStep = PrimeCloud() #use for real operation
+    thisStep = GoToPathfind() #use for fast testing,
+    #thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         print("=========Beginning localization.=========")
