@@ -211,8 +211,8 @@ class RotateToMoveAlongLink(GoStep):
     def do(self,mode,state):
         print "moving to next node..."
             try:
-                pendingLink = theGuts.findPath( self.graph, mode.nearestNode )
-                distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
+                mode.pendingLink = theGuts.findPath( self.graph, mode.nearestNode )
+                mode.distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
                 #pick which node to aim for
                 if pendingLink.node1 == nearestNode:
                     departureAngle = mode.rectifyAngle(int(pendingLink.node1direction))
@@ -236,25 +236,19 @@ class RotateToMoveAlongLink(GoStep):
                 return None
 
 class ScootAlongLink()
-    
-
-
-
-                destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
-                scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
-                                            -nearestNode.X+ destinationNode.X) - state.pose.theta
-                scootAngle = self.rectifyAngle(scootAngle)
-                print "scootAngle=",scootAngle
-                if success and self.scoot( distance, scootAngle ):
-                    print "updating position"
-                    state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
-                    state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
-                else:
-                    sucess = False
-                if not success:
-                    return None
-
-
+    def do(self,mode,state):
+        print "Scooting along link..."
+            destinationNode = theGuts.getOtherNode(mode.pendingLink,mode.nearestNode)
+            scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
+                    -nearestNode.X+ destinationNode.X) - state.pose.theta
+            scootAngle = self.rectifyAngle(scootAngle)
+            print "scootAngle=",scootAngle
+            self.scoot( distance, scootAngle ):
+            print "updating position"
+            state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
+            state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
+            mode = Localize(state)
+            return None
 
 class Go( Mode ):
     """
