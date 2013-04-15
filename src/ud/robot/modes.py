@@ -190,7 +190,8 @@ class ExamineCurrentPose(GoStep):
         mode.nearestNode = whatNode[0]
         mode.distance = whatNode[1]
         mode.nodeTheta = 180/math.pi* math.atan2(mode.nearestNode.Y- state.pose.y,
-                                            mode.nearestNode.X- state.pose.x)
+                mode.nearestNode.X - state.pose.x)
+                #nodeTheta is postive in CW direction
         #If we're off-graph, scoot to the nearest node
         if mode.distance > mode.nearestNode.radius:
             return GetOnGraph()
@@ -204,9 +205,8 @@ class ExamineCurrentPose(GoStep):
 class GetOnGraph(GoStep):
     def do(self,mode,state):
         print "Bot seems to be off-graph.  Trying to get back on"
-        angle =  mode.nodeTheta - state.pose.theta
-        if mode.scoot( mode.distance, angle ):
-            state.pose.X, state.pose.Y = mode.nearestNode.X, mode.nearestNode.Y
+        angle =  mode.nodeTheta + state.pose.theta
+        if mode.scoot(state,  mode.distance, angle ):
             return RotateToMoveAlongLink()
         else:
             print "scoot failed! Going to Localize..."
@@ -218,7 +218,7 @@ class FacePuck(GoStep):
     def do(self,mode,state):
         print "Turning to face puck"
         angle = mode.nearestNode.angle+state.pose.theta
-        mode.rotate(angle)
+        mode.rotate(state, angle)
         mode.nextMode = Grab(state) #go to grab
         return None 
 
@@ -238,7 +238,7 @@ class RotateToMoveAlongLink(GoStep):
         rectifiedPoseTheta = mode.rectifyAngle(state.pose.theta)
         angle = rectifiedPoseTheta - departureAngle
         print "about to rotate..."
-        if mode.rotate( angle ):
+        if mode.rotate(state,  angle ):
             print "updating angle to",state.pose.theta - angle,"ie",departureAngle
             state.pose.theta = -departureAngle
             return ScootAlongLink()
@@ -254,9 +254,7 @@ class ScootAlongLink(GoStep):
                 -mode.nearestNode.X+ destinationNode.X) - state.pose.theta
         scootAngle = mode.rectifyAngle(scootAngle)
         print "scootAngle=",scootAngle
-        mode.scoot( mode.distance, scootAngle )
-        state.pose.x = state.pose.x + mode.distance/120*math.cos(scootAngle*math.pi/180)
-        state.pose.y = state.pose.y + mode.distance/120*math.sin(scootAngle*math.pi/180)
+        mode.scoot(state,  mode.distance, scootAngle )
         print "updating position to",state.pose.string()
         mode.nextMode = Localize(state)
         return None
@@ -288,69 +286,6 @@ class Go( Mode ):
         else:
             self.thisStep = nextStep
             return self
-    def makeAMove( self, state):
-
-        """
-        decides between 3 actions:  Grab, travel along path, go to path.
-        """
-
-        whatNode = theGuts.whatNode( self.graph, ( state.pose.x*120, state.pose.y *120) )
-        nearestNode = whatNode[0]
-        distance = whatNode[1]
-        nodeTheta = 180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
-                                            nearestNode.X- state.pose.x)
-        #If we're off-graph, scoot to the nearest node
-        if distance > nearestNode.radius:
-            print "Off graph! scooting back onto graph"
-            angle =  nodeTheta - state.pose.theta
-            if self.scoot( distance, angle ):
-                state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
-                return self.NEXT_STATE_LOCALIZE
-            else:
-                print "scoot failed!"
-                return None
-        #face puck and retrieve it
-        elif 1 <= nearestNode.puck <= 16:
-            print "INSERT CODE THAT ROTATES TO FACE node.theta THEN GRAB"
-            return self.NEXT_STATE_GRAB
-        #move along link
-        else:
-            print "moving along link"
-            try:
-                pendingLink = theGuts.findPath( self.graph, nearestNode )
-                print "the link's destination is",pendingLink.node2.string()
-                distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
-                if pendingLink.node1 == nearestNode:
-                    departureAngle = self.rectifyAngle(int(pendingLink.node1direction))
-                elif pendingLink.node2 == nearestNode:
-                    departureAngle = self.rectifyAngle(int(pendingLink.node2direction))
-                print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
-                rectifiedPoseTheta = self.rectifyAngle(state.pose.theta)
-                angle = rectifiedPoseTheta - departureAngle
-                success = True
-                print "about to rotate..."
-                if self.rotate( angle ):
-                    print "updating angle to",state.pose.theta - angle,"ie",departureAngle
-                    state.pose.theta = -departureAngle
-                else:
-                    success = False
-                destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
-                scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
-                                            -nearestNode.X+ destinationNode.X) - state.pose.theta
-                scootAngle = self.rectifyAngle(scootAngle)
-                print "scootAngle=",scootAngle
-                if success and self.scoot( distance, scootAngle ):
-                    print "updating position"
-                    state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
-                    state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
-                else:
-                    sucess = False
-                if not success:
-                    return None
-            except Exception as e:
-                print "Error: ", e
-        #update botPose.theta with imu data
-        return self.NEXT_STATE_LOCALIZE
 
     def rectifyAngle(self, angle):
         while angle>180:
@@ -359,7 +294,7 @@ class Go( Mode ):
             angle+=360
         return angle    
 
-    def scoot( self, distance, angle ):
+    def scoot( self, state, distance, angle ):
         """
         Description
             Sends a scoot command to the Arduino and waits for the confirmation
@@ -373,15 +308,22 @@ class Go( Mode ):
             True -- when the operation is a success.
             False -- when the operation failed.
         """
-        print "ordering a scoot of",distance/120,"feet at",angle,"degrees."
+        angle = self.rectifyAngle(angle)
+        print "ordering a scoot of",distance/120,"feet at",angle,"degrees from heading."
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_SCOOT, int(distance), angle  )
         #EG send ":T0,S,120,0;"
-
-        self.state.hypobotCloud.scootAll(distance/120, -angle)
-        return self.messenger.waitForConfirmation(messageID, 
-                distance*settings.MS_PER_FOOT/120000 + 1) 
-    def rotate( self, angle ):          
+        if self.messenger.waitForConfirmation(messageID, 
+                distance*settings.MS_PER_FOOT/120000 + 1):
+            self.state.hypobotCloud.scootAll(distance/120, -angle)
+            scootAngle = angle - state.pose.theta
+            state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
+            state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
+            return True
+        else:
+            print "No confirmation of scoot!"
+            return False     
+    def rotate( self, state, angle ):          
         """
         Description
             Sends a scoot command to the Arduino and waits for the confirmation
@@ -394,11 +336,18 @@ class Go( Mode ):
             True -- when the operation is a success.
             False -- when the operation failed.
         """
+        print "ordering a rotate of",angle,"degrees."
         messageID = self.messenger.sendMessage( settings.SERVICE_GO, \
             settings.COMMAND_TURN, angle  )
-        self.state.hypobotCloud.rotateAll(-angle)
-        return self.messenger.waitForConfirmation(messageID, 
-                abs(angle) * settings.MS_PER_DEGREE/1000 + 1) 
+        if self.messenger.waitForConfirmation(messageID, 
+                abs(angle) * settings.MS_PER_DEGREE/100 + 1): #NOTE:  This timeout
+                #has been increased by a factor of 10 to work around an unsquashed bug
+            self.state.hypobotCloud.rotateAll(-angle)
+            state.pose.theta -= angle
+            return True
+        else:
+            print "No confirmation of rotate!"
+            return False
 
 
 """========================================================================================="""
