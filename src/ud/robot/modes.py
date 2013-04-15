@@ -12,6 +12,7 @@ import csv
 import subprocess
 import theGuts
 import graph
+import math
 
 """
 Module Tests:
@@ -162,40 +163,125 @@ class Ready( Mode):
 class GoStep: #A step is any object with a .do method.  Included only as a template.
     def do(self, mode, state):
         pass
+class ExamineCurrentPose(GoStep):
+    """
+    This step is a sorter--it looks at the current pose, then
+    decides between going to Grab, moving to a node, or moving
+    along a link.
+    """
+    def do(self,mode,state):
+        print "deciding where to go next..."
+        whatNode = theGuts.whatNode( self.graph, ( state.pose.x*120, state.pose.y *120) )
+        mode.nearestNode = whatNode[0]
+        mode.distance = whatNode[1]
+        mode.nodeTheta = 180/math.pi* math.atan2(nearestNode.Y- state.pose.y,
+                                            nearestNode.X- state.pose.x)
+        #If we're off-graph, scoot to the nearest node
+        if mode.distance > nearestNode.radius:
+            return GetOnGraph()
+        #If we're close to a puck, turn to face it
+        elif 1 <= mode.nearestNode.puck <= 16:
+            return FacePuck()
+        #If none of the above occured, it's time to move along the path
+        else:
+            return MoveAlongLink()
+
+class GetOnGraph(GoStep):
+    def do(self,mode,state):
+        print "Bot seems to be off-graph.  Trying to get back on"
+        angle =  mode.nodeTheta - state.pose.theta
+        if mode.scoot( distance, angle ):
+            state.pose.X, state.pose.Y = nearestNode.X, nearestNode.Y
+            return RotateToMoveAlongLink()
+        else:
+            print "scoot failed! Going to Localize..."
+            mode = Localize(state)
+            return None
+
+class FacePuck(GoStep):
+    #NOTE:  MAX WROTE THIS STEP IN HASTE, IT IS PROLLY BUG-FUL
+    def do(self,mode,state):
+        print "Turning to face puck"
+        angle = mode.nearestNode.angle+state.pose.theta
+        mode.rotate(angle)
+        mode = Grab(state) #go to grab
+        return None 
+
+class RotateToMoveAlongLink(GoStep):
+    def do(self,mode,state):
+        print "moving to next node..."
+            try:
+                pendingLink = theGuts.findPath( self.graph, mode.nearestNode )
+                distance = pendingLink.length #in tenths of inches (Matt Bird's pixels)
+                #pick which node to aim for
+                if pendingLink.node1 == nearestNode:
+                    departureAngle = mode.rectifyAngle(int(pendingLink.node1direction))
+                    print "the destination node is",pendingLink.node1.string()
+                elif pendingLink.node2 == nearestNode:
+                    departureAngle = mode.rectifyAngle(int(pendingLink.node2direction))
+                    print "the destination node is",pendingLink.node2.string()
+                print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
+                rectifiedPoseTheta = self.rectifyAngle(state.pose.theta)
+                angle = rectifiedPoseTheta - departureAngle
+                print "about to rotate..."
+                if self.rotate( angle ):
+                    print "updating angle to",state.pose.theta - angle,"ie",departureAngle
+                    state.pose.theta = -departureAngle
+                    return ScootAlongLink()
+                else:
+                    mode = Localize(state)
+                    return None
+            except Exception as e:
+                print "Error: ", e
+                return None
+
+class ScootAlongLink()
+    
+
+
+
+                destinationNode = theGuts.getOtherNode(pendingLink,nearestNode)
+                scootAngle = 180/math.pi* math.atan2(-nearestNode.Y+ destinationNode.Y,
+                                            -nearestNode.X+ destinationNode.X) - state.pose.theta
+                scootAngle = self.rectifyAngle(scootAngle)
+                print "scootAngle=",scootAngle
+                if success and self.scoot( distance, scootAngle ):
+                    print "updating position"
+                    state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
+                    state.pose.y = state.pose.y + distance/120*math.sin(scootAngle*math.pi/180)
+                else:
+                    sucess = False
+                if not success:
+                    return None
+
+
 
 class Go( Mode ):
-    MS_PER_FOOT = 4000
-    NEXT_STATE_GO = 0
-    NEXT_STATE_GRAB = 1
-    NEXT_STATE_LOCALIZE = 2
     """
     Class Tests:
     >>> instance = Go()distance
     >>> isinstance( instance, Mode )
     True
     """
+    thisStep = ExamineCurrentPose()
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
         self.state = state
         state.mode = "Go"
     def act( self, state ):
-        nextState = self.makeAMove(state)
-        if nextState == None:
-            # Handle error.
-            raise Exception( "Need to handle error." )
-        if nextState == self.NEXT_STATE_GRAB:
-            return Grab( state )
-        if nextState == self.NEXT_STATE_LOCALIZE:
-            return Localize( state )
-        return self
+        nextStep = self.thisStep.do(self, state)
+        if nextStep == None:
+            return self #generally speaking, we should escape to Localize
+        else:
+            self.thisStep = nextStep
+            return self
     def makeAMove( self, state):
 
         """
         decides between 3 actions:  Grab, travel along path, go to path.
         """
-        import theGuts
-        import math
+
         whatNode = theGuts.whatNode( self.graph, ( state.pose.x*120, state.pose.y *120) )
         nearestNode = whatNode[0]
         distance = whatNode[1]

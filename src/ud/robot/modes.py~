@@ -337,17 +337,18 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
+    thisStep = PrimeCloud()
+    #thisStep = GoToPathfind()
     def __init__( self , state):
         print("Mode is now Localize")
         state.mode = "Localize"
-        self.thisStep = PrimeCloud()
     def act(self, state):
         nextStep = self.thisStep.do(self, state)
         if nextStep == None:
             return Go(state)
         else:
             self.thisStep = nextStep
-            return Go(state)
+            return self
 
 
 """========================================================================================="""
