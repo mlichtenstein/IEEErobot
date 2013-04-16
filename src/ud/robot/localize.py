@@ -312,12 +312,13 @@ class HypobotCloud:
         clone = Hypobot(0,0,0,1)
         while True:
             cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
-            clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
-                        random.gauss(cloneTarget.y, poseSigma.y),
-                        random.gauss(cloneTarget.theta, poseSigma.theta),
-                        cloneTarget.weight)
-            if clone.detectCollision() == False:
-                break
+            if cloneTarget.weight > random.random():
+                clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
+                            random.gauss(cloneTarget.y, poseSigma.y),
+                            random.gauss(cloneTarget.theta, poseSigma.theta),
+                            cloneTarget.weight)
+                if clone.detectCollision() == False:
+                    break
         self.hypobotList.append(clone)
     def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose

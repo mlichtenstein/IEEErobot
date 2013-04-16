@@ -401,7 +401,7 @@ class AverageCloud(LocStep):
         print "averaging cloud... "
         state.hypobotCloud.normalize()           
         avg = state.hypobotCloud.average()
-        state.hypobotCloud.describeCloud()
+        #state.hypobotCloud.describeCloud()
         state.pose = avg
         print "Changing pose to",avg.x,",",avg.y,",",avg.theta
         return PruneAndBoost()
@@ -411,7 +411,7 @@ class PruneAndBoost(LocStep):
         state.hypobotCloud.pruneThreshold(0.5) #approx 1 sigma
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
             state.hypobotCloud.appendBoost(state.poseUncertainty)
-        state.hypobotCloud.flatten()
+        #state.hypobotCloud.flatten()
         return GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):
