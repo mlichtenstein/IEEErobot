@@ -425,8 +425,8 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    thisStep = GoToPathfind() #use for fast testing,
-    #thisStep = PrimeCloud() #use for real operation
+    #thisStep = GoToPathfind() #use for fast testing,
+    thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         print("=========Beginning localization.=========")
