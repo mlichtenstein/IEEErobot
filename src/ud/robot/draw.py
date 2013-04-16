@@ -165,9 +165,9 @@ class LandmarkSet(Drawable):
         if default!=None:
             self.active = default
     def draw(self, view, state):
-        from world import *
-        side = int(World().treeSide * view.CC)
-        radius = int(World().rockRadius * view.CC)
+        import world
+        side = int(world.World().treeSide * view.CC)
+        radius = int(world.World().rockRadius * view.CC)
         for landmark in self.landmarkList:
             x = int(landmark.x * view.CC)
             y = int(landmark.y * view.CC)
@@ -177,6 +177,56 @@ class LandmarkSet(Drawable):
             if landmark.landmarkType == "ROCK":
                 pygame.draw.circle(view.surface, self.color,
                         (x,y), radius)
+
+class GraphImage(Drawable):
+    name = "Nodes and Links"
+    def __init__(self, color=None, default=None):
+        self.color=(255,255,255)
+        if color is None:
+            import random
+            self.color = (int(random.random()*256),
+                            int(random.random()*256),
+                            int(random.random()*256))
+        else:
+            self.color = color
+        if default!=None:
+            self.active = default
+    def draw(self, view, state):
+        if view.mode != None:
+            for node in view.mode.graph.nodes:
+                #draw the nodes:
+                x = node.X*view.CC/120
+                y = node.Y*view.CC/120
+                radius = node.radius*view.CC/120
+                pygame.draw.circle(view.surface, self.color,(x,y), radius,1)
+            for link in view.mode.graph.links:
+                #draw the links:
+                x1 = link.node1.X*view.CC/120
+                y1 = link.node1.Y*view.CC/120
+                x2 = link.node2.X*view.CC/120
+                y2 = link.node2.Y*view.CC/120
+                pygame.draw.line(view.surface, self.color, (x1,y1),(x2,y2))
+                #draw departure and arrival angles:
+                #departure first:
+                edg = 1.0/4
+                depX1 = (1-edg)*x1 + edg*x2
+                depY1 = (1-edg)*y1 + edg*y2
+                ariX1 = (1-edg)*x2 + edg*x1
+                ariY1 = (1-edg)*y2 + edg*y1
+                depRect = pygame.Rect((depX1-1,depY1-1),(3,3))
+                ariRect = pygame.Rect((ariX1-1,ariY1-1),(3,3))
+                pygame.draw.rect(view.surface,self.color,depRect)
+                pygame.draw.rect(view.surface,self.color,ariRect)
+
+                depX2 = depX1 + 20*math.cos(180/math.pi * link.node1direction)
+                depY2 = depY1 + 20*math.sin(180/math.pi * link.node1direction)
+                ariX2 = ariX1 + 20*math.cos(180/math.pi * link.node2direction)
+                ariY2 = ariY1 + 20*math.sin(180/math.pi * link.node2direction)
+
+                pygame.draw.line(view.surface, self.color, (depX1,depY1),(depX2,depY2))
+                pygame.draw.line(view.surface, self.color, (ariX1,ariY1),(ariX2,ariY2))
+
+
 
 """====================DRAWABLES FOR RANGEVIEW======================"""
 """Drawables for the RangeView class"""

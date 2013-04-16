@@ -61,6 +61,8 @@ class Frame:
         pass
     def takeState(self, state):
         return state
+    def takeMode(self, mode):
+        return mode
                 
 class Button(Frame): 
     down = False
@@ -98,12 +100,16 @@ class View(Frame): # a frame for representations of physical data (boardView, bo
     state = State()
     selectedHypobot=0
     drawList = [EmptyDrawable()]
+    mode = None
     def optionsWindow(self):
         #put a dialog to change the active state of the drawables here
         pass
     def takeState(self, state):
         self.state = state
         return state
+    def takeMode(self, mode):
+        self.mode = mode
+        return mode
     def takeWorld(self, logList, landmarkList): #DEPRECATED -- delete this when you're in the mood for a bughunt
         self.logList = logList
         self.landmarkList = landmarkList
@@ -143,8 +149,10 @@ class BoardView(View):
         self.logSet = LogSet(world.World().logList,(139,105,20) )
         self.landmarkSet = LandmarkSet(world.World().landmarkList,(162,68,3))
         self.hypobotSet = HypobotSet((0,255,0))
+        self.graphImage = GraphImage((0,0,255))
         #the bottom of the list appears on top
         self.drawList = [   self.hypobotSet,
+                            self.graphImage,
                             self.logSet,
                             self.landmarkSet , self.robot]
 
@@ -246,6 +254,10 @@ class GUI:
         for frame in self.frameList:
             frame.takeState(state)
         return state
+    def takeMode(self,mode):
+        self.mode = mode
+        for frame in self.frameList:
+            frame.takeMode(mode)
     def update(self,screen):
         for frame in self.frameList:
             frame.update(screen)

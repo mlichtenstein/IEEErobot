@@ -109,6 +109,7 @@ while running == True:
     # Update the GUI with the current robot state
     if __debug__:    
         state = gui.takeState(state)
+        gui.takeMode(robotMode)
         gui.update(screen)
         pygame.display.update()
         time.sleep(.3)
