@@ -214,10 +214,9 @@ class GetOnGraph(GoStep):
             return None
 
 class FacePuck(GoStep):
-    #NOTE:  MAX WROTE THIS STEP IN HASTE, IT IS PROLLY BUG-FUL
     def do(self,mode,state):
         print "Turning to face puck"
-        angle = mode.nearestNode.angle+state.pose.theta
+        angle = mode.rectifyAngle(mode.nearestNode.theta+state.pose.theta)
         mode.rotate(state, angle)
         mode.nextMode = Grab(state) #go to grab
         return None 
@@ -235,12 +234,11 @@ class RotateToMoveAlongLink(GoStep):
             departureAngle = mode.rectifyAngle(int(mode.pendingLink.node2direction))
             print "the destination node is",mode.pendingLink.node2.string()
         print "departure angle is",departureAngle,"and pose theta is",state.pose.theta
-        rectifiedPoseTheta = mode.rectifyAngle(state.pose.theta)
-        angle = rectifiedPoseTheta - departureAngle
+        angle =  departureAngle + state.pose.theta
+        angle = mode.rectifyAngle(angle)
         print "about to rotate..."
         if mode.rotate(state,  angle ):
             print "updating angle to",state.pose.theta - angle,"ie",departureAngle
-            state.pose.theta = -departureAngle
             return ScootAlongLink()
         else:
             mode.nextMode = Localize(state)
@@ -251,7 +249,7 @@ class ScootAlongLink(GoStep):
         print "Scooting along link..."
         destinationNode = theGuts.getOtherNode(mode.pendingLink,mode.nearestNode)
         scootAngle = 180/math.pi* math.atan2(-mode.nearestNode.Y+ destinationNode.Y,
-                -mode.nearestNode.X+ destinationNode.X) - state.pose.theta
+                -mode.nearestNode.X+ destinationNode.X) + state.pose.theta
         scootAngle = mode.rectifyAngle(scootAngle)
         print "scootAngle=",scootAngle
         mode.scoot(state,  mode.distance, scootAngle )

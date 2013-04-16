@@ -218,10 +218,10 @@ class GraphImage(Drawable):
                 pygame.draw.rect(view.surface,self.color,depRect)
                 pygame.draw.rect(view.surface,self.color,ariRect)
 
-                depX2 = depX1 + 20*math.cos(180/math.pi * link.node1direction)
-                depY2 = depY1 + 20*math.sin(180/math.pi * link.node1direction)
-                ariX2 = ariX1 + 20*math.cos(180/math.pi * link.node2direction)
-                ariY2 = ariY1 + 20*math.sin(180/math.pi * link.node2direction)
+                depX2 = depX1 + 20*math.cos(math.pi/180 * link.node1direction)
+                depY2 = depY1 + 20*math.sin(math.pi/180 * link.node1direction)
+                ariX2 = ariX1 + 20*math.cos(math.pi/180 * link.node2direction)
+                ariY2 = ariY1 + 20*math.sin(math.pi/180 * link.node2direction)
 
                 pygame.draw.line(view.surface, self.color, (depX1,depY1),(depX2,depY2))
                 pygame.draw.line(view.surface, self.color, (ariX1,ariY1),(ariX2,ariY2))
