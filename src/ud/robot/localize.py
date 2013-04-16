@@ -143,6 +143,8 @@ class Hypobot:
         self.blue = random.random() *256
         self.green = random.random() *256
         self.color = (int(self.red),int(self.green), int(self.blue))
+    def string(self):
+        return self.pose.string()+" with weight "+str(self.weight)
     def changeWeight(self, real_eyeList, landmarkList):
         """
         this method weights each hypobot according to how well its 
@@ -306,8 +308,25 @@ class HypobotCloud:
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
         self.flatten()
-    def appendBoost(self, poseSigma):
-        #adds a single hbot
+    def resample(self):
+        resampleNum = 0
+        while self.count() < self.cloudSize:
+            self.resampleOne()
+            resampleNum += 1
+        print "resampled",resampleNum,"bots"
+    def resampleOne(self):
+        #like appendBoost but no sigma
+        import random
+        while True:
+            cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
+            if cloneTarget.weight > random.random():
+                clone = cloneTarget
+                break
+        #print "appended:",clone.string()
+        self.hypobotList.append(clone)
+    def resampleOneWithGaussian(self, poseSigma):
+        #adds a single hbot with a random element.  THIS DOES NOT WORK for reasons passing
+        #max's understanding, use resampleOne instead (it'll be fine)
         import random
         clone = Hypobot(0,0,0,1)
         while True:
@@ -319,6 +338,7 @@ class HypobotCloud:
                             cloneTarget.weight)
                 if clone.detectCollision() == False:
                     break
+        #print "appended:",clone.string()
         self.hypobotList.append(clone)
     def appendFlatSquare(self, cloudSize, centerPose, xyside, thetaside):
         #makes a statistically flat square  of hbots centered around centerpose with sides defined by edgePose

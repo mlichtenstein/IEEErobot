@@ -210,6 +210,10 @@ class PauseButton(Frame):
     def feelClickDown(self, screen_pos):
         self.paused = not self.paused
     def takeState(self, state):
+        if state.paused == False and self.paused == True:
+                state.paused = True
+        if self.paused == False and state.paused == True:
+                state.paused = False
         state.paused = self.paused
         return state
     def draw(self):

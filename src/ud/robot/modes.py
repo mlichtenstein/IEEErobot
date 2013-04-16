@@ -366,8 +366,10 @@ class CleanAndBoostCloud(LocStep):
     def do(self,mode,state):
         print "repopulating cloud..."
         state.hypobotCloud.clearCollided()
+        state.hypobotCloud.normalize()
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
-            state.hypobotCloud.appendBoost(Pose(.5,.5,10))
+            state.hypobotCloud.resample()
+        #state.hypobotCloud.normalize()
 class ClearCollided(LocStep):
     def do(self, mode, state):
         print "clearing out collided hbots"
@@ -395,11 +397,11 @@ class WeightCloud(LocStep):
         print "weighting hbots..."
         state.hypobotCloud.weight(state.eyeList, world.World().landmarkList)
         state.hypobotCloud.describeCloud()
+        state.hypobotCloud.normalize()
         return AverageCloud()
 class AverageCloud(LocStep):
     def do(self, mode, state):
         print "averaging cloud... "
-        state.hypobotCloud.normalize()           
         avg = state.hypobotCloud.average()
         #state.hypobotCloud.describeCloud()
         state.pose = avg
@@ -408,10 +410,10 @@ class AverageCloud(LocStep):
 class PruneAndBoost(LocStep):
     def do(self, mode, state):
         print "pruning and boosting..."
-        state.hypobotCloud.pruneThreshold(0.5) #approx 1 sigma
+        state.hypobotCloud.pruneFraction(0.32) #approx 1 sigma
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
-            state.hypobotCloud.appendBoost(state.poseUncertainty)
-        #state.hypobotCloud.flatten()
+            state.hypobotCloud.resampleOne()
+        state.hypobotCloud.normalize()
         return GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):
@@ -425,8 +427,8 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    thisStep = GoToPathfind() #use for fast testing,
-    #thisStep = PrimeCloud() #use for real operation
+    #thisStep = GoToPathfind() #use for fast testing,
+    thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         print("=========Beginning localization.=========")

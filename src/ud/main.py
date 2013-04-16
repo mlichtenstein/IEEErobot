@@ -84,6 +84,7 @@ while running == True:
         nextMode = robotMode.act(state)
         if nextMode != None:
             robotMode = nextMode
+        print ".....................step..................................."
     
     #-------------------------------------------------------------------------
     # BEGIN Event Driven Architecture
@@ -108,8 +109,10 @@ while running == True:
     
     # Update the GUI with the current robot state
     if __debug__:    
+        state.paused = True #debug control
         state = gui.takeState(state)
         gui.takeMode(robotMode)
         gui.update(screen)
         pygame.display.update()
-        time.sleep(.3)
+       
+      

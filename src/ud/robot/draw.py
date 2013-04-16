@@ -122,7 +122,7 @@ class HypobotSet(Drawable):
             peakWeight = state.hypobotCloud.peakWeight()
         for hypobot in state.hypobotCloud.hypobotList:
             import robotbasics
-            alpha = int(256*hypobot.weight/peakWeight)
+            alpha = int(50 + 206*hypobot.weight/peakWeight)
             pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
             Robot(self.color,alpha).drawPose(view,hypobot.pose)
 
