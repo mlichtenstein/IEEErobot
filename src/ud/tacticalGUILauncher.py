@@ -78,7 +78,7 @@ def drawGraph():
         blue = 255
         if not ( node.localize == 0):
             green = 150
-        if 0 <= node.puck <= 15:
+        if 0 <= node.puck <= 16:
             blue = 150
             pygame.draw.line(screen,(0,0,200), (node.X,node.Y),(node.X+60*math.cos(node.theta*math.pi/180),node.Y-60*math.sin(node.theta*math.pi/180)),4)
             pygame.draw.circle(screen, (0,0,200), (int(node.X+100*math.cos(node.theta*math.pi/180)),int(node.Y-100*math.sin(node.theta*math.pi/180))), 40, 4)
@@ -380,16 +380,16 @@ while GUILoop:
             clickedLink = False
             for link in graph.links:
                
-                 if math.hypot(posDown[0]-abs(link.node1.X+link.node2.X)/2, posDown[1]-abs(link.node1.Y+link.node2.Y)/2)<6:
+                 if math.hypot(abs(posDown[0]-abs(link.node1.X+link.node2.X)/2), abs(posDown[1]-abs(link.node1.Y+link.node2.Y)/2))<6:
+                    editMeLink = link
                     clickedLink = True
 
 
             #clicked on link - so edit link
             if clickedLink:
                 clickedLink=False
-                link.update()
                 while 1:
-                    if edit.editLink(link):
+                    if edit.editLink(editMeLink):
                         drawAll()
                         link.update()
                     else:
@@ -428,7 +428,8 @@ while GUILoop:
                                         for link in graph.links:
                                             link.update()
                                     else:
-                                        link.update()
+                                        for link in graph.links:
+                                            link.update()
                                         break
                                 # Ignore mouse clicks for the next 250 ms
                                 ignoreNextMouseUpEvent = support.makeTimer(0.250)
