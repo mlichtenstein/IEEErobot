@@ -78,7 +78,7 @@ def drawGraph():
         blue = 255
         if not ( node.localize == 0):
             green = 150
-        if 0 <= node.puck <= 15:
+        if 0 <= node.puck <= 16:
             blue = 150
             pygame.draw.line(screen,(0,0,200), (node.X,node.Y),(node.X+60*math.cos(node.theta*math.pi/180),node.Y-60*math.sin(node.theta*math.pi/180)),4)
             pygame.draw.circle(screen, (0,0,200), (int(node.X+100*math.cos(node.theta*math.pi/180)),int(node.Y-100*math.sin(node.theta*math.pi/180))), 40, 4)
@@ -91,7 +91,7 @@ def drawGraph():
         pygame.draw.line( screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
         #draw link click location as a small circle
         pygame.draw.circle ( screen, (link.red/2,link.green/2,link.blue/2), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 2)
-                #draw link directionality vectors (two of them)
+        #draw link directionality vectors (two of them)
 
         temp1=int(link.node1.X+12*math.cos(math.pi/180*float(link.node1direction)))
         temp2=int(link.node1.Y-12*math.sin(math.pi/180*float(link.node1direction)))
@@ -315,8 +315,7 @@ if __name__ == "__main__":
         #traceback.print_stack()
     if graph == None:
         graph = g.Graph()
-    pucks = random.sample(range(1,17),6)
-    dummy = graph.addNode(-1000,-1000)
+    pucks = random.sample(range(1,17),16)
     pygame.init()
     screen=pygame.display.set_mode((960,960),0,32)
     pose = (0,0,0)
@@ -339,8 +338,6 @@ if __name__ == "__main__":
     if graph == None:
         graph = g.Graph()
     '''
-    
-    pucks = random.sample(range(1,17),6)
     dummy = graph.addNode(-1000,-1000)
     pose = (0,0,0)
     drawFlag = 1
@@ -383,16 +380,16 @@ while GUILoop:
             clickedLink = False
             for link in graph.links:
                
-                 if math.hypot((posDown[0]-link.node1.X+link.node2.X)/2, (posDown[1]-(link.node1.Y+link.node2.Y))/2)<6:
+                 if math.hypot(abs(posDown[0]-abs(link.node1.X+link.node2.X)/2), abs(posDown[1]-abs(link.node1.Y+link.node2.Y)/2))<6:
+                    editMeLink = link
                     clickedLink = True
 
 
             #clicked on link - so edit link
             if clickedLink:
                 clickedLink=False
-                link.update()
                 while 1:
-                    if edit.editLink(link):
+                    if edit.editLink(editMeLink):
                         drawAll()
                         link.update()
                     else:
@@ -431,7 +428,8 @@ while GUILoop:
                                         for link in graph.links:
                                             link.update()
                                     else:
-                                        link.update()
+                                        for link in graph.links:
+                                            link.update()
                                         break
                                 # Ignore mouse clicks for the next 250 ms
                                 ignoreNextMouseUpEvent = support.makeTimer(0.250)
