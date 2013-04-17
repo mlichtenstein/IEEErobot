@@ -91,7 +91,7 @@ def drawGraph():
         pygame.draw.line( screen, (link.red,link.green,link.blue), (link.node1.X,link.node1.Y),(link.node2.X,link.node2.Y),2)
         #draw link click location as a small circle
         pygame.draw.circle ( screen, (link.red/2,link.green/2,link.blue/2), ((link.node1.X+link.node2.X)/2,(link.node1.Y+link.node2.Y)/2), 6, 2)
-                #draw link directionality vectors (two of them)
+        #draw link directionality vectors (two of them)
 
         temp1=int(link.node1.X+12*math.cos(math.pi/180*float(link.node1direction)))
         temp2=int(link.node1.Y-12*math.sin(math.pi/180*float(link.node1direction)))
