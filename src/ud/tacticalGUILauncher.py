@@ -315,8 +315,7 @@ if __name__ == "__main__":
         #traceback.print_stack()
     if graph == None:
         graph = g.Graph()
-    pucks = random.sample(range(1,17),6)
-    dummy = graph.addNode(-1000,-1000)
+    pucks = random.sample(range(1,17),16)
     pygame.init()
     screen=pygame.display.set_mode((960,960),0,32)
     pose = (0,0,0)
@@ -339,8 +338,6 @@ if __name__ == "__main__":
     if graph == None:
         graph = g.Graph()
     '''
-    
-    pucks = random.sample(range(1,17),6)
     dummy = graph.addNode(-1000,-1000)
     pose = (0,0,0)
     drawFlag = 1
@@ -383,7 +380,7 @@ while GUILoop:
             clickedLink = False
             for link in graph.links:
                
-                 if math.hypot((posDown[0]-link.node1.X+link.node2.X)/2, (posDown[1]-(link.node1.Y+link.node2.Y))/2)<6:
+                 if math.hypot(posDown[0]-abs(link.node1.X+link.node2.X)/2, posDown[1]-abs(link.node1.Y+link.node2.Y)/2)<6:
                     clickedLink = True
 
 
