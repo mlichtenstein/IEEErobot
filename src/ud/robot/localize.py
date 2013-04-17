@@ -212,7 +212,8 @@ class Hypobot:
         import robotbasics
         thetaEff = (self.pose.theta + random.gauss(scootAngle, self.scootAngleSigma))*math.pi/180
         dEff = random.gauss(scootDistance,self.scootDistanceSigma)
-        newPose = robotbasics.Pose(self.pose.x + dEff*math.cos(thetaEff),
+        newPose = robotbasics.Pose(
+                        self.pose.x + dEff*math.cos(thetaEff),
                         self.pose.y - dEff*math.sin(thetaEff),
                         self.theta)
         self.pose = newPose
