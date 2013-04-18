@@ -26,6 +26,7 @@ class Mode:
     >>> instance = Mode()
     """
     graph = None
+    nearestPuck = -1 #will change later
     # REQUIRED: Holds the messenger that connects to the arduino layer.
     messenger = None
     # REQUIRED: Holds the function which signals a change of modes.
@@ -125,7 +126,7 @@ class LoadAll( Mode):
             reader = csv.reader(USB)
         except:
             print "Could not read thumb drive. Using full puck list."
-            reader=[[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16],]
+            reader=[[1,2,3,4,5,6,7,8,9,10,11,12,13,15,16],]
         self.graph.pucks=list()
         for row in reader:
             for r in row:
@@ -178,6 +179,7 @@ not the mode, so self.rectifyAngle is now mode.rectifyAngle.
 class GoStep: #A step is any object with a .do method.  Included only as a template.
     def do(self, mode, state):
         pass
+
 class ExamineCurrentPose(GoStep):
     """
     This step is a sorter--it looks at the current pose, then
@@ -185,19 +187,22 @@ class ExamineCurrentPose(GoStep):
     along a link.
     """
     def do(self,mode,state):
+        import copy
         print "deciding where to go next..."
         whatNode = theGuts.whatNode( mode.graph, ( state.pose.x*120, state.pose.y *120) )
         mode.nearestNode = whatNode[0]
+        state.nearestPuck = mode.nearestNode.puck
         mode.distance = whatNode[1]
-        mode.nodeTheta = 180/math.pi* math.atan2(mode.nearestNode.Y- state.pose.y,
-                mode.nearestNode.X - state.pose.x)
+        mode.nodeTheta = 180/math.pi* math.atan2(mode.nearestNode.Y - state.pose.y*120,
+                mode.nearestNode.X - state.pose.x*120)
                 #nodeTheta is postive in CW direction
         #If we're off-graph, scoot to the nearest node
+        print "nearest node is",mode.nearestNode.string()
         if mode.distance > mode.nearestNode.radius:
             return GetOnGraph()
         #If we're close to a puck, turn to face it
         elif 1 <= mode.nearestNode.puck <= 16:
-            return FacePuck()
+            return FacePuck()#also goes to grab
         #If none of the above occured, it's time to move along the path
         else:
             return RotateToMoveAlongLink()
@@ -206,18 +211,17 @@ class GetOnGraph(GoStep):
     def do(self,mode,state):
         print "Bot seems to be off-graph.  Trying to get back on"
         angle =  mode.nodeTheta + state.pose.theta
-        if mode.scoot(state,  mode.distance, angle ):
-            return RotateToMoveAlongLink()
-        else:
+        if not mode.scoot(state,  mode.distance, angle ):
             print "scoot failed! Going to Localize..."
-            mode.nextMode = Localize(state)
-            return None
+        mode.nextMode = Localize(state)
+        return None
 
 class FacePuck(GoStep):
     def do(self,mode,state):
         print "Turning to face puck"
         angle = mode.rectifyAngle(mode.nearestNode.theta+state.pose.theta)
         mode.rotate(state, angle)
+        Mode.nearestPuck = mode.nearestNode.puck
         mode.nextMode = Grab(state) #go to grab
         return None 
 
@@ -312,7 +316,7 @@ class Go( Mode ):
             settings.COMMAND_SCOOT, int(distance), angle  )
         #EG send ":T0,S,120,0;"
         if self.messenger.waitForConfirmation(messageID, 
-                distance*settings.MS_PER_FOOT/120000 + 1):
+                distance*settings.MS_PER_FOOT/12000 + 1):
             self.state.hypobotCloud.scootAll(distance/120, -angle)
             scootAngle = angle - state.pose.theta
             state.pose.x = state.pose.x + distance/120*math.cos(scootAngle*math.pi/180)
@@ -458,6 +462,16 @@ class Grab( Mode ):
         print("Mode is now Grab")
         state.mode = "Grab"
     pass
+    def act(self, state):
+        print "PRETENDING TO GRAB PUCK, INSERT REAL GRAB CODE HERE"
+        for node in self.graph.nodes:
+            if node.puck == state.nearestPuck:
+                node.puck = -1
+        Mode.graph = self.graph
+        state.remainingPucks.remove(state.nearestPuck)
+        Mode.nearestPuck = -1
+        return Go(state)
+
 
 # Only run when someone specifically runs this module.
 if __name__ == "__main__":

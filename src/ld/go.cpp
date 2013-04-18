@@ -48,7 +48,7 @@ void scoot(double distance, double angle) {
         //Serial.println(angle-180);
         faceWheels(angle);
     } else if (angle > 90) {
-        Serial.write("angle is: \n");
+        Serial.write("angle = \n");
         Serial.println(angle-180);
         faceWheels(angle-180);
         forwardFlag *= -1;

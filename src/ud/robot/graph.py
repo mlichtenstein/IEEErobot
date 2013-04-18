@@ -8,7 +8,7 @@ class Graph:
         
     def addNode( self, x, y):
         self.nodes.append(Node(x,y))
-
+        
     def addLink( self, node1, node2, (r,g,b) ):
         self.links.append( Link (node1,node2,(r,g,b)) )
 

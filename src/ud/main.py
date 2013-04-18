@@ -20,6 +20,7 @@ import theGuts
 
 #give the robot a state:
 state = robotbasics.State()
+print "current pose is", state.pose.string()
 #establish a serial connection that will persist into modes.py:
 modes.Mode.messenger = messenger.Messenger(messenger.SerialPort())
 
@@ -86,6 +87,7 @@ while running == True:
             robotMode = nextMode
         print ".....................step..................................."
     
+
     #-------------------------------------------------------------------------
     # BEGIN Event Driven Architecture
     #
