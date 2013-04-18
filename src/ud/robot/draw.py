@@ -123,7 +123,7 @@ class HypobotSet(Drawable):
         for hypobot in state.hypobotCloud.hypobotList:
             import robotbasics
             alpha = int(50 + 206*hypobot.weight/peakWeight)
-            pose = robotbasics.Pose(hypobot.x,hypobot.y,hypobot.theta)
+            pose = robotbasics.Pose(hypobot.pose.x,hypobot.pose.y,hypobot.pose.theta)
             Robot(self.color,alpha).drawPose(view,hypobot.pose)
 
 class LogSet(Drawable):

@@ -368,6 +368,7 @@ class PrimeCloud(LocStep):
             return RepopulateCloud()    
         else:
             print "Cloud does not need priming."
+            return RepopulateCloud()
 class RepopulateCloud(LocStep):
     def do(self,mode,state):
         print "clearing collisions, repopulating cloud..."

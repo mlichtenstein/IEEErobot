@@ -131,9 +131,6 @@ class Hypobot:
         self.scootAngleSigma = 5
         self.scootDistanceSigma = .3
         self.rotateSigma = 5 
-        self.x = x
-        self.y = y
-        self.theta = theta
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
@@ -198,11 +195,11 @@ class Hypobot:
         #important that it be a deep copy, since each hbot really should have its own version of the data
         for eye in self.localEyeList:
             #apply rotational matrix
-            x = self.x + math.cos(self.theta)*eye.x_offset + math.sin(self.theta)*eye.y_offset
-            y = self.y - math.sin(self.theta)*eye.x_offset + math.cos(self.theta)*eye.y_offset
-            theta = self.theta + eye.theta_offset 
+            x = self.pose.x + math.cos(self.pose.theta)*eye.x_offset + math.sin(self.pose.theta)*eye.y_offset
+            y = self.pose.y - math.sin(self.pose.theta)*eye.x_offset + math.cos(self.pose.theta)*eye.y_offset
+            theta = self.pose.theta + eye.theta_offset 
             for j in range(settings.SCAN_DATA_POINTS):
-                effective_theta = self.theta + eye.thetaList[j]
+                effective_theta = self.pose.theta + eye.thetaList[j]
                 #----------------------change generation speed here ---------------------
                 distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "FAST")
                 eye.IR[j] = feetToRawIR(distInFeetIR)
@@ -215,16 +212,14 @@ class Hypobot:
         newPose = robotbasics.Pose(
                         self.pose.x + dEff*math.cos(thetaEff),
                         self.pose.y - dEff*math.sin(thetaEff),
-                        self.theta)
+                        self.pose.theta)
         self.pose = newPose
     def rotateHypobot(self,rotateAngle):
         import random
         newTheta = self.pose.theta + random.gauss(rotateAngle, self.rotateSigma)
         self.pose.theta = newTheta
     """
-    DetectCollision is used to kill off any hypobot that is colliding with another object since no two 
-    objects can exist in the same space.
-    CURRENTLY THIS FUNCTION DOES NOT OPERATE CORRECTLY! Half of all hypobots seem to be killed each time. (500/1000)
+    DetectCollision is used to kill off any hypobot that is colliding with another object
     """
     def detectCollision(self):
         import world
@@ -327,9 +322,9 @@ class HypobotCloud:
         while True:
             cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
             if cloneTarget.weight > random.random():
-                clone = Hypobot(random.gauss(cloneTarget.x, poseSigma.x),
-                            random.gauss(cloneTarget.y, poseSigma.y),
-                            random.gauss(cloneTarget.theta, poseSigma.theta),
+                clone = Hypobot(random.gauss(cloneTarget.pose.x, poseSigma.x),
+                            random.gauss(cloneTarget.pose.y, poseSigma.y),
+                            random.gauss(cloneTarget.pose.theta, poseSigma.theta),
                             cloneTarget.weight)
                 if clone.detectCollision() == False:
                     break
@@ -408,15 +403,17 @@ class HypobotCloud:
             hypobot = self.hypobotList[i]
             oldWeight = hypobot.weight
             hypobot.weight /= totWeight
-            
             print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
             if peakWeight < hypobot.weight:
                 peakWeight = max(peakWeight, hypobot.weight)
                 peakBot = hypobot
-        print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
-                +", "+str(peakBot.y)+", "+str(peakBot.theta)
+        totWeight = 0
+        for hypobot in self.hypobotList:
+            totWeight += hypobot.weight
+        print ("Normalized cloud.  Peak hbot is at " + str(peakBot.pose.x)
+                +", "+str(peakBot.pose.y)+", "+str(peakBot.pose.theta)
                 +" with weight " + str(peakBot.weight))
-        print "Tot weight is", totWeight
+        print ("Total weight is now",totWeight)
     def getPeakBot(self):
         peakWeight = 0
         retBot = Hypobot(-1,-1,0, -1)
@@ -437,9 +434,9 @@ class HypobotCloud:
         avg = robotbasics.Pose(0,0,0)
         totWeight = 0
         for hypobot in self.hypobotList:
-            avg.x += hypobot.x * hypobot.weight
-            avg.y += hypobot.y * hypobot.weight
-            avg.theta += hypobot.theta * hypobot.weight
+            avg.x += hypobot.pose.x * hypobot.weight
+            avg.y += hypobot.pose.y * hypobot.weight
+            avg.theta += hypobot.pose.theta * hypobot.weight
             totWeight += hypobot.weight
         try:
             avg.x /= totWeight
