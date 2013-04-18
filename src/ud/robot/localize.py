@@ -130,7 +130,7 @@ class Hypobot:
         import robotbasics
         self.scootAngleSigma = 5
         self.scootDistanceSigma = .3
-        self.rotateSigma = 15 
+        self.rotateSigma = 5 
         self.x = x
         self.y = y
         self.theta = theta
@@ -207,7 +207,7 @@ class Hypobot:
                 distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "FAST")
                 eye.IR[j] = feetToRawIR(distInFeetIR)
                 distInFeetUS = calcIdealRangeUS(x, y, effective_theta, landmarkList)
-    def scoot(self, scootDistance, scootAngle):
+    def scootHypobot(self, scootDistance, scootAngle):
         import random
         import robotbasics
         thetaEff = (self.pose.theta + random.gauss(scootAngle, self.scootAngleSigma))*math.pi/180
@@ -217,7 +217,7 @@ class Hypobot:
                         self.pose.y - dEff*math.sin(thetaEff),
                         self.theta)
         self.pose = newPose
-    def rotate(self,rotateAngle):
+    def rotateHypobot(self,rotateAngle):
         import random
         newTheta = self.pose.theta + random.gauss(rotateAngle, self.rotateSigma)
         self.pose.theta = newTheta
@@ -474,10 +474,10 @@ class HypobotCloud:
         print"========================================="
     def scootAll(self, distance, angle):
         for hbot in self.hypobotList:
-            hbot.scoot(distance,angle)
+            hbot.scootHypobot(distance,angle)
     def rotateAll(self, angle):
         for hbot in self.hypobotList:
-            hbot.rotate(angle)
+            hbot.rotateHypobot(angle)
 
 def calcIdealRangeIR(x_eye, y_eye, theta_board, landmarkList, speed): #theta_board is WRT board
     """
