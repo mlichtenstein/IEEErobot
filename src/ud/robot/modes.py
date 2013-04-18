@@ -361,23 +361,21 @@ class LocStep: #A step is any object with a .do method.  Included only as a temp
         pass
 class PrimeCloud(LocStep):
     def do(self, mode, state):
-        print "Priming cloud at current pose..."
-        #add hbots at the current best guess, if nec
-        state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, .50, 10.0)
-        Localize.thisStep = CleanAndBoostCloud() #we only want to prime the cloud once
-        return ClearCollided()
-class CleanAndBoostCloud(LocStep):
+        if state.hypobotCloud.count() == 0:
+            print "No hypobots in cloud!  Priming cloud at current best-guess pose..."
+            #add hbots at the current best guess, if nec
+            state.hypobotCloud.appendFlatSquare(state.hypobotCloud.cloudSize, state.pose, .50, 10.0)
+            return RepopulateCloud()    
+        else:
+            print "Cloud does not need priming."
+class RepopulateCloud(LocStep):
     def do(self,mode,state):
-        print "repopulating cloud..."
+        print "clearing collisions, repopulating cloud..."
         state.hypobotCloud.clearCollided()
-        state.hypobotCloud.normalize()
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
-            state.hypobotCloud.resample()
+            state.hypobotCloud.resampleOneWithGaussian(Pose(.1,.1,5))
+        state.hypobotCloud.normalize()
         #state.hypobotCloud.normalize()
-class ClearCollided(LocStep):
-    def do(self, mode, state):
-        print "clearing out collided hbots"
-        state.hypobotCloud.clearCollided();
         return Scan()
 class Scan(LocStep):
     def do(self, mode, state):
@@ -409,10 +407,12 @@ class AverageCloud(LocStep):
         avg = state.hypobotCloud.average()
         #state.hypobotCloud.describeCloud()
         state.pose = avg
+        print "state.poseA",state.pose
         print "Changing pose to",avg.x,",",avg.y,",",avg.theta
         return PruneAndBoost()
 class PruneAndBoost(LocStep):
     def do(self, mode, state):
+        print "state.pose",state.pose
         print "pruning and boosting..."
         state.hypobotCloud.pruneFraction(0.32) #approx 1 sigma
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:

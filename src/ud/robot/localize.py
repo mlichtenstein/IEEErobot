@@ -309,12 +309,6 @@ class HypobotCloud:
                     appended +=1
         print("Bloomed "+str(appended)+" hbots.")
         self.flatten()
-    def resample(self):
-        resampleNum = 0
-        while self.count() < self.cloudSize:
-            self.resampleOne()
-            resampleNum += 1
-        print "resampled",resampleNum,"bots"
     def resampleOne(self):
         #like appendBoost but no sigma
         import random
@@ -401,20 +395,28 @@ class HypobotCloud:
         #go through the hypbobots
         totWeight = 0
         peakWeight = 0
-        peakBot = Hypobot(-1,-1,0, -1)
+        peakBot = Hypobot(-1,-1,0, 1)
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
-        try:    
-            for hypobot in self.hypobotList:
-                hypobot.weight /= totWeight
-                if peakWeight < hypobot.weight:
-                    peakWeight = max(peakWeight, hypobot.weight)
-                    peakBot = hypobot
-            print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
-                    +", "+str(peakBot.y)+", "+str(peakBot.theta)
-                    +" with weight " + str(peakBot.weight))
-        except:
-            print "total weight is zero.  Your eye modules likely do not function."
+        print "totweight =", totWeight
+        if totWeight == 0:
+            print "TOTAL WEIGHT IS ZERO, DANGER"
+        for i in range(0,len(self.hypobotList)):
+            if hypobot.weight > 1 or hypobot.weight == 0: #NOTE:  This is an ugly workaround....please fix me later!
+                self.hypobotList.remove(hypobot)
+                break
+            hypobot = self.hypobotList[i]
+            oldWeight = hypobot.weight
+            hypobot.weight /= totWeight
+            
+            print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
+            if peakWeight < hypobot.weight:
+                peakWeight = max(peakWeight, hypobot.weight)
+                peakBot = hypobot
+        print ("Normalized cloud.  Peak hbot is at " + str(peakBot.x)
+                +", "+str(peakBot.y)+", "+str(peakBot.theta)
+                +" with weight " + str(peakBot.weight))
+        print "Tot weight is", totWeight
     def getPeakBot(self):
         peakWeight = 0
         retBot = Hypobot(-1,-1,0, -1)
