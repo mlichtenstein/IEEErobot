@@ -39,6 +39,8 @@ def feetToRawIR(dInFeet):
         interval = d - lower
         interpolated = table[lower-4][1]*(1-interval) + table[upper-4][1]*(interval) #the 0th entry corresponds to 4 inches
         return interpolated
+    elif d >= 60:
+        return 180
     else:
         return 0
 
@@ -128,9 +130,9 @@ class Hypobot:
     """
     def __init__(self, x, y, theta, weight = 1):
         import robotbasics
-        self.scootAngleSigma = 5
-        self.scootDistanceSigma = .3
-        self.rotateSigma = 5 
+        self.scootAngleSigma = 2
+        self.scootDistanceSigma = 0.1
+        self.rotateSigma = 2 
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
@@ -145,7 +147,7 @@ class Hypobot:
     def changeWeight(self, real_eyeList, landmarkList):
         """
         this method weights each hypobot according to how well its 
-        generated eye data resembles the real eye data.  It's more or
+        generated eye data resembles the real eye data.  It's more or 
         less a simple product of beysian probabilities--a monte carlo
         kalman filter.  ONLY call it after you've generated eye data,
         or else it will think the robot is in a rock or something.
@@ -158,7 +160,7 @@ class Hypobot:
         if len(real_eyeList)!= len(self.localEyeList):
             print("eyeList mismatch!")
             return -1
-        self.weight = 1
+        logWeight = 0
         for eyeNum in range(0,len(self.localEyeList)):
             distSum = 0
             for i in range(settings.SCAN_DATA_POINTS):
@@ -168,7 +170,7 @@ class Hypobot:
                     b =  real_eyeList[eyeNum].IR[i]
                     #print a,"=ir=", b
                     distance = abs(a-b)  #FAST
-                    self.weight *= math.exp((-(distance/self.weightingSigmaIR(a)/2)**2)) 
+                    logWeight += -(distance/self.weightingSigmaIR(a)/2)**2
                     #^Gaussian function of approximation for computing weight of a measurement."
                 #Next do US
                 if real_eyeList[eyeNum].US[i] != 0 and real_eyeList[eyeNum].US[i] < 1.0:
@@ -176,7 +178,8 @@ class Hypobot:
                     b =  real_eyeList[eyeNum].US[i]
                     distance = abs(a-b)  #FAST
                     #print a,"=us=", b
-                    self.weight *= math.exp((-(distance/self.weightingSigmaUS(a)/2)**2)) 
+                    logWeight += -(distance/self.weightingSigmaUS(a)/2)**2
+        self.weight = math.exp(logWeight)
 
     def weightingSigmaIR(self, IRrange):
         #finding sigma in a method allows it to be non-constant, making this an Extended Kalman Filter
@@ -278,9 +281,9 @@ class HypobotCloud:
     6) normalize
     7) prune
     """
-    def __init__(self):
+    def __init__(self, cloudSize):
         self.hypobotList = list()
-        self.cloudSize = 300 #approx size of cloud--we will bloom and prune to stay near this
+        self.cloudSize = cloudSize #approx size of cloud--we will bloom and prune to stay near this
     def clear(self):
         l = len(self.hypobotList)
         self.hypobotList = list()
@@ -309,19 +312,18 @@ class HypobotCloud:
         import random
         while True:
             cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
-            if cloneTarget.weight > random.random():
+            #if cloneTarget.weight > random.random(): 
+            if True:
                 clone = cloneTarget
                 break
-        #print "appended:",clone.string()
         self.hypobotList.append(clone)
     def resampleOneWithGaussian(self, poseSigma):
-        #adds a single hbot with a random element.  THIS DOES NOT WORK for reasons passing
-        #max's understanding, use resampleOne instead (it'll be fine)
         import random
         clone = Hypobot(0,0,0,1)
         while True:
             cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
-            if cloneTarget.weight > random.random():
+            #if cloneTarget.weight > random.random():
+            if True:
                 clone = Hypobot(random.gauss(cloneTarget.pose.x, poseSigma.x),
                             random.gauss(cloneTarget.pose.y, poseSigma.y),
                             random.gauss(cloneTarget.pose.theta, poseSigma.theta),
@@ -403,7 +405,7 @@ class HypobotCloud:
             hypobot = self.hypobotList[i]
             oldWeight = hypobot.weight
             hypobot.weight /= totWeight
-            print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
+            #print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
             if peakWeight < hypobot.weight:
                 peakWeight = max(peakWeight, hypobot.weight)
                 peakBot = hypobot

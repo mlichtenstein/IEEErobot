@@ -216,7 +216,7 @@ void loop() {
                         Serial.write( "\";" );
                     }
 #endif
-                    // Command succeeded.
+                    // Command succeeded.instance at 0x98dc28c>
                     if ( messageGood ) {
                         Serial.write( ":C," );
                         Serial.print( id );

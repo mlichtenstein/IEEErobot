@@ -401,24 +401,22 @@ class WeightCloud(LocStep):
         state.hypobotCloud.weight(state.eyeList, world.World().landmarkList)
         state.hypobotCloud.describeCloud()
         state.hypobotCloud.normalize()
-        return AverageCloud()
-class AverageCloud(LocStep):
+        return GetNewPose()
+class GetNewPose(LocStep):
     def do(self, mode, state):
-        print "averaging cloud... "
-        avg = state.hypobotCloud.average()
+        print "getting new best guess pose... "
+        peak = state.hypobotCloud.getPeakBot()
         #state.hypobotCloud.describeCloud()
-        state.pose = avg
+        state.pose = peak.pose
         print "state.poseA",state.pose
-        print "Changing pose to",avg.x,",",avg.y,",",avg.theta
+        print "Changing pose to",peak.pose.x,",",peak.pose.y,",",peak.pose.theta
         return PruneAndBoost()
 class PruneAndBoost(LocStep):
     def do(self, mode, state):
-        print "state.pose",state.pose
         print "pruning and boosting..."
         state.hypobotCloud.pruneFraction(0.32) #approx 1 sigma
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
             state.hypobotCloud.resampleOne()
-        state.hypobotCloud.normalize()
         return GoToPathfind()
 class GoToPathfind(LocStep):
     def do(self, mode, state):

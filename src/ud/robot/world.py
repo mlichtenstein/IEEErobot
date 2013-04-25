@@ -16,20 +16,11 @@ class World:
     import localize
     treeSide = 3.5 / 12 #a tree is 3.5 inches on each side
     rockRadius = 6.7/12/2 #a paint can has a 6.7 inch diameter
-    logList = [(0.00,4.00,3.00,0.00),
-                (3.07,0.16,4.00,4.04),
-                (7.54,0.00,5.00,1.49),
-                (7.54,3.00,5.00,5.85),
-                (7.96,5.60,4.00,1.92),
-                (0.02,6.00,6.02,7.96),
-                (3.33,7.96,2.17,4.30)]
-    landmarkList=[Landmark(1.50,7.29,"ROCK"),
-                    Landmark(1.96,5.06, "TREE"),
-                    Landmark(2.15,2.08, "TREE"),
-                    Landmark(4.15,0.98, "ROCK"),
-                    Landmark(3.91,4.98, "ROCK"),
-                    Landmark(6.14,6.16, "TREE"),
-                    Landmark(7.85,1.65, "TREE")]
+    logList = []
+    landmarkList=[  Landmark(3.0,3.0,"ROCK"),
+                    Landmark(5.0,3.0, "TREE"),
+                    Landmark(3.0,5.0, "TREE"),
+                    ]
     wheelOffset=(.5,.5) #the x and y offsets of the wheels' stems from the center of the bot
     wheelDims=(2/12, 3/12)
     eyeList=(localize.Eye( 0 ,0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
