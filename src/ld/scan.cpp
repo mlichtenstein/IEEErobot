@@ -29,7 +29,7 @@ int PingFire(int servoNum) {
     delayMicroseconds(5);
     digitalWrite(pin, LOW);
     pinMode(pin, INPUT);
-    return pulseIn(pin,HIGH,20000);
+    return pulseIn(pin,HIGH,2000);
 }
 //here is a function that wraps the Savox servos
 void EyeServoWrite(int servoNum, int pt) {

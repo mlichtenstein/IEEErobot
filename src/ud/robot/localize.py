@@ -390,25 +390,24 @@ class HypobotCloud:
     def normalize(self):
         #this method adjusts the weights so their total is 1.  Returns peak hbot
         #go through the hypbobots
-        totWeight = 0
-        peakWeight = 0
+        totWeight = 0.0
+        peakWeight = 0.0
         peakBot = Hypobot(-1,-1,0, 1)
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
-        print "totweight =", totWeight
         if totWeight == 0:
             print "TOTAL WEIGHT IS ZERO, DANGER"
         for i in range(0,len(self.hypobotList)):
             if hypobot.weight > 1 or hypobot.weight == 0: #NOTE:  This is an ugly workaround....please fix me later!
                 self.hypobotList.remove(hypobot)
-                break
-            hypobot = self.hypobotList[i]
-            oldWeight = hypobot.weight
-            hypobot.weight /= totWeight
-            #print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
-            if peakWeight < hypobot.weight:
-                peakWeight = max(peakWeight, hypobot.weight)
-                peakBot = hypobot
+            else:
+                hypobot = self.hypobotList[i]
+                oldWeight = hypobot.weight
+                hypobot.weight /= totWeight
+                #print "for hbot number",i,"new,old =",oldWeight,hypobot.weight
+                if peakWeight < hypobot.weight:
+                    peakWeight = max(peakWeight, hypobot.weight)
+                    peakBot = hypobot
         totWeight = 0
         for hypobot in self.hypobotList:
             totWeight += hypobot.weight
@@ -440,6 +439,7 @@ class HypobotCloud:
             avg.y += hypobot.pose.y * hypobot.weight
             avg.theta += hypobot.pose.theta * hypobot.weight
             totWeight += hypobot.weight
+        self.totWeight=totWeight
         try:
             avg.x /= totWeight
             avg.y /= totWeight
@@ -447,6 +447,23 @@ class HypobotCloud:
         except:
             print "Total weight is zero.  Probably, something is wrong with your eye modules"
         return avg
+    def stdDev(self,average):
+        """
+        stdDev() is meant to be called after average() and normalize,
+         otherwise self.average will be wrong or the weights won't make
+         sense
+        """
+        import robotbasics
+        import math
+        stdDev = robotbasics.Pose(0,0,0)
+        for hbot in self.hypobotList:
+            stdDev.x += (hbot.pose.x - average.x)**2*hbot.weight
+            stdDev.y += (hbot.pose.y - average.y)**2*hbot.weight
+            stdDev.theta += (hbot.pose.theta - average.theta)**2*hbot.weight
+        stdDev.x = math.sqrt(stdDev.x)
+        stdDev.y = math.sqrt(stdDev.y)
+        stdDev.theta = math.sqrt(stdDev.theta)
+        return stdDev
     def pruneThreshold(self, threshold):
         #this method cuts all weights that are below threshold
         deleted = 0
@@ -464,13 +481,17 @@ class HypobotCloud:
         for i in range(0,toPrune):
             self.hypobotList.remove(killList[i])
     def describeCloud(self):
-        print"========HypobotCloud Report:============="
-        print"The cloud has ",len(self.hypobotList)," hbots."
-        print("The max weight is "
+        print "========HypobotCloud Report:============="
+        print "The cloud has ",len(self.hypobotList)," hbots."
+        print ("The max weight is "
                 +str(max(self.hypobotList,key=lambda hbot: hbot.weight).weight)
                 +" and the min weight is "
                 +str(min(self.hypobotList,key=lambda hbot: hbot.weight).weight))
-        print"========================================="
+        avg = self.average()
+        print "The average hypobot is at", avg.string()
+        stdDev = self.stdDev(avg)
+        print "The standard deviation is", stdDev.string()
+        print "========================================="
     def scootAll(self, distance, angle):
         for hbot in self.hypobotList:
             hbot.scootHypobot(distance,angle)
@@ -564,3 +585,16 @@ if __name__ == "__main__":
 
     import robotbasics
     print calcIdealRangeUS(0,6.5/12,222,[robotbasics.Landmark(0.0,0, "ROCK")])
+
+    if __name__ == "__main__":
+        from robotbasics import *
+        hCloud = HypobotCloud(10)
+        hCloud.appendGaussianCloud(hCloud.cloudSize, Pose(4,4,0), Pose(.5,.5,10))
+        hCloud.normalize()
+        for hbot in hCloud.hypobotList:
+            print hbot.string()
+        hCloud.describeCloud()    
+        hCloud.scootAll(1,0)
+        for hbot in hCloud.hypobotList:
+            print hbot.string()
+        hCloud.describeCloud()

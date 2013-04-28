@@ -243,7 +243,6 @@ void loop() {
 #endif
 #ifdef ROBOT_SERVICE_SCAN
                 case ROBOT_SERVICE_SCAN: {
-
                     float deltaTheta = ROBOT_SCAN_ANGLE/(ROBOT_SCAN_DATA_POINTS-1);
                     unsigned int IRreading[4][ROBOT_SCAN_DATA_POINTS];
                     unsigned int USreading[4][ROBOT_SCAN_DATA_POINTS];
@@ -255,7 +254,7 @@ void loop() {
                             USreading[eye][pt] = PingFire(eye);  //this can be slow if we do it 4 times...might need more delicate code
                             IRreading[eye][pt] = analogRead(IRpin[eye]);
                         }
-                        while (millis() <= lastTime+DELAY) {} //wait for minimum read time to elapse, if nec
+                        while (millis() <= lastTime+ROBOT_SCAN_DELAY) {} //wait for minimum read time to elapse, if nec
                     }
                     //now send the message
                     Serial.write( ":J," );

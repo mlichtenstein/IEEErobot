@@ -392,9 +392,10 @@ class Scan(LocStep):
             while not mode.messenger.checkInBox():
                 pass
         tup = mode.messenger.getMessageTuple()
+        mode.messenger.waitForConfirmation(tup[1],5.0)
         self.real_eyeList = localize.messageTupleToEyeList(tup)
         state.eyeList=self.real_eyeList
-        return WeightCloud()
+        WeightCloud()
 class WeightCloud(LocStep):
     def do(self, mode, state):
         print "weighting hbots..."
@@ -430,8 +431,8 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    #thisStep = GoToPathfind() #use for fast testing,
-    thisStep = PrimeCloud() #use for real operation
+    thisStep = GoToPathfind() #use for fast testing,
+    #thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         print("=========Beginning localization.=========")
