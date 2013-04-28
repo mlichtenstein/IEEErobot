@@ -23,8 +23,8 @@ class World:
                     Landmark(5.0,5.0,"ROCK")]
     wheelOffset=(.5,.5) #the x and y offsets of the wheels' stems from the center of the bot
     wheelDims=(2/12, 3/12)
-    eyeList=(localize.Eye( 0 ,0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),
-            localize.Eye(  1 ,-0.415,-0.415,  225.0, SCAN_DATA_POINTS, SCAN_ANGLE),
-            localize.Eye(  2 ,-0.415,0.415,  270.0, SCAN_DATA_POINTS, SCAN_ANGLE),
-            localize.Eye(  3 ,0.415,0.415,  45, SCAN_DATA_POINTS, SCAN_ANGLE))
+    eyeList=(localize.Eye( 0 ,0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE, "CW"),
+            localize.Eye(  1 ,-0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE, "CCW"),
+            localize.Eye(  2 ,-0.415,0.415,  270.0, SCAN_DATA_POINTS, SCAN_ANGLE, "CW"),
+            localize.Eye(  3 ,0.415,0.415,  270, SCAN_DATA_POINTS, SCAN_ANGLE, "CCW"))
     robotSide = 1.0

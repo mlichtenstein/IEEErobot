@@ -6,8 +6,12 @@ Servo EyeServo[4];
 //the minimum read time--used to ensure that the scan doesn't go so fast
 int pos;
 int deltaPos = 1;
+int IRpin[] = {A3,A2,A1,A0};
+int pingPin[] = {52,50,48,46};
+/*
 int IRpin[] = {A0,A1,A2,A3};
 int pingPin[] = {46,48,50,52};
+*/
 int servoPin[] = {10,11,12,13};
 #define IRMATION 'C'
 // END Message Settings

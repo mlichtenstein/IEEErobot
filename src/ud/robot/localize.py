@@ -61,7 +61,7 @@ center of the robot. It is the container to store and manipulate readings from t
 
 class Eye:
     def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
-                    dataPointNum, subtendedAngle):
+                    dataPointNum, subtendedAngle, direction):
         self.eyeNum = eyeNum
         self.x_offset=x_offset
         self.y_offset=y_offset
@@ -70,15 +70,17 @@ class Eye:
         self.IR = [0.0]*(dataPointNum+1)
         self.US = [0.0]*(dataPointNum+1)
         self.thetaList = list() #a list of the theta at which each measurement occurs
-        if eyeNum == 0 or eyeNum == 2: #clockwise
+        if direction == "CW": #clockwise
             for i in range(self.dataPointNum):
                 self.thetaList.append(float(self.theta_offset)
                  - float(i)/(dataPointNum-1) * subtendedAngle)    
-        else:
+        elif direction == "CCW":
             for j in range(self.dataPointNum):
                 i=self.dataPointNum - j - 1
                 self.thetaList.append(float(self.theta_offset)
-                 - float(i)/(dataPointNum-1) * subtendedAngle)
+                 + float(i)/(dataPointNum-1) * subtendedAngle)
+        else:
+            print "EYE INITIALIZED WITH INVALID DIRECTION, MUST BE CW OR CCW"
     def clear(self):
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
