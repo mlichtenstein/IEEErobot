@@ -213,8 +213,7 @@ class GetOnGraph(GoStep):
         angle =  mode.nodeTheta + state.pose.theta
         if not mode.scoot(state,  mode.distance, angle ):
             print "scoot failed! Going to Localize..."
-        mode.nextMode = Localize(state)
-        return None
+        return GoToLocalize()
 
 class FacePuck(GoStep):
     def do(self,mode,state):
@@ -261,6 +260,11 @@ class ScootAlongLink(GoStep):
         mode.nextMode = Localize(state)
         return None
 
+class GoToLocalize(GoStep):
+    def do(self,mode,state):
+        mode.nextMode = Localize(state)
+        return None
+
 class Go( Mode ):
     """
     Class Tests:
@@ -268,7 +272,8 @@ class Go( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    thisStep = ExamineCurrentPose()
+    #thisStep = ExamineCurrentPose()
+    thisStep = GoToLocalize()
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
@@ -431,8 +436,8 @@ class Localize( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    thisStep = GoToPathfind() #use for fast testing,
-    #thisStep = PrimeCloud() #use for real operation
+    #thisStep = GoToPathfind() #use for fast testing,
+    thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
         print("=========Beginning localization.=========")

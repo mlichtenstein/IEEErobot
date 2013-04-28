@@ -20,7 +20,7 @@ class World:
     landmarkList=[  Landmark(3.0,3.0,"ROCK"),
                     Landmark(5.0,3.0, "TREE"),
                     Landmark(3.0,5.0, "TREE"),
-                    ]
+                    Landmark(5.0,5.0,"ROCK")]
     wheelOffset=(.5,.5) #the x and y offsets of the wheels' stems from the center of the bot
     wheelDims=(2/12, 3/12)
     eyeList=(localize.Eye( 0 ,0.415,-0.415,  90.0, SCAN_DATA_POINTS, SCAN_ANGLE),

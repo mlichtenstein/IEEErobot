@@ -102,9 +102,9 @@ class Robot(Drawable):
                 ((x-xa+xb,y+ya+yb),
                 (x-xa-xb,y+ya-yb),
                 (x+xa-xb,y-ya-yb),
-                (x+xa+xb,y-ya+yb)), 1)
+                (x+xa+xb,y-ya+yb)), 2)
         #and draw a line for the heading:
-        pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya),1)
+        pygame.draw.line(tempSurface, self.color, (x,y),(x+2*xa,y-2*ya),2)
         #finally blit it:
         tempSurface.set_alpha(self.alpha)
         tempSurface.set_colorkey((0,0,0))
@@ -289,7 +289,7 @@ class hypoIRranges(Drawable):
             for i in range(0,settings.SCAN_DATA_POINTS):
                 theta = eye.thetaList[i]
                 IR = eye.IR[i] / 3
-                drawRange(view.surface, self.color, x_eye,y_eye,theta,10,IR)
+                drawRange(view.surface, self.color, x_eye,y_eye,theta+.5,10,IR)
 
 class USranges(Drawable):
     name = "US ranges"

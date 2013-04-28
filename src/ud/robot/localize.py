@@ -40,7 +40,7 @@ def feetToRawIR(dInFeet):
         interpolated = table[lower-4][1]*(1-interval) + table[upper-4][1]*(interval) #the 0th entry corresponds to 4 inches
         return interpolated
     elif d >= 60:
-        return 180
+        return 80
     else:
         return 0
 

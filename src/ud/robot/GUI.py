@@ -166,7 +166,7 @@ class RangeView(View):
         self.robot = RangeRobot((255,255,255))
         self.IRs = IRranges((255,0,0))
         self.USs = USranges((122,0,255))
-        self.hIRs = hypoIRranges((122,0,0))
+        self.hIRs = hypoIRranges((63,255,0))
         self.drawList = [self.hIRs, self.robot,self.USs, self.IRs]
 
 """=============================ACCOUTREMENTS====================================="""
