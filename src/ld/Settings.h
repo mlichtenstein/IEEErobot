@@ -28,7 +28,7 @@
 
 // BEGIN Scan Settings
 #define ROBOT_SCAN_DELAY 30
-#define ROBOT_SCAN_DATA_POINTS 100
+#define ROBOT_SCAN_DATA_POINTS 50
 #define ROBOT_SCAN_ANGLE 145
 #define ROBOT_SCAN_IR_RANGELIM 4
 // END Scan Settings

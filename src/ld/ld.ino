@@ -16,6 +16,8 @@ void establishContact( );
 bool readMessage( );
 
 void setup() {
+    //the analogReference line is VERY important. DO NOT DELETE.
+    //analogReference(EXTERNAL);  //I MUST BE UNCOMMENTED IF EXTERNAL AREF IS USED
     #ifdef ROBOT_WAIT_MODE
     #define startButton 12
     pinMode(startButton, INPUT);

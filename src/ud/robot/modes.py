@@ -272,12 +272,13 @@ class Go( Mode ):
     >>> isinstance( instance, Mode )
     True
     """
-    #thisStep = ExamineCurrentPose()
-    thisStep = GoToLocalize()
+    thisStep = ExamineCurrentPose()
+    #thisStep = GoToLocalize()
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
         print("==========Beginning Go=========")
+        print "Current best guess pose is",state.pose.string()
         self.state = state
         state.mode = "Go"
     def act( self, state ):
@@ -400,7 +401,7 @@ class Scan(LocStep):
         mode.messenger.waitForConfirmation(tup[1],5.0)
         self.real_eyeList = localize.messageTupleToEyeList(tup)
         state.eyeList=self.real_eyeList
-        WeightCloud()
+        return WeightCloud()
 class WeightCloud(LocStep):
     def do(self, mode, state):
         print "weighting hbots..."

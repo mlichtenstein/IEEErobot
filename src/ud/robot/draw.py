@@ -254,7 +254,7 @@ class RangeRobot(Drawable):
         for eye in eyeList:
             x_numeral=int(x0 + eye.x_offset*view.CC/2-7)
             y_numeral=int(y0 + eye.y_offset*view.CC/2-7)
-            tempSurface = font.render(str(eye.eyeNum), True, (255,255,255))
+            tempSurface = font.render(str(eye.eyeNum), True, eye.color)
             view.surface.blit(tempSurface,(x_numeral,y_numeral))
         #and draw a line for the heading:
         pygame.draw.line(view.surface, self.color, (x0,y0),(x0+side, y0))

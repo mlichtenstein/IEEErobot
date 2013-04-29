@@ -40,7 +40,7 @@ def feetToRawIR(dInFeet):
         interpolated = table[lower-4][1]*(1-interval) + table[upper-4][1]*(interval) #the 0th entry corresponds to 4 inches
         return interpolated
     elif d >= 60:
-        return 80
+        return 40
     else:
         return 0
 
@@ -56,12 +56,11 @@ def rawUStoFeet(rawUS):
 """
 Class Eye represents the Eye Module. You pass the relevant eye in as eyenum. X_offset and y_offset are used to find the distance from the
 center of the robot. It is the container to store and manipulate readings from the IR and US Sensors.
-
 """
 
 class Eye:
     def __init__(self, eyeNum, x_offset, y_offset, theta_offset,
-                    dataPointNum, subtendedAngle, direction):
+                    dataPointNum, subtendedAngle, direction, color):
         self.eyeNum = eyeNum
         self.x_offset=x_offset
         self.y_offset=y_offset
@@ -70,17 +69,19 @@ class Eye:
         self.IR = [0.0]*(dataPointNum+1)
         self.US = [0.0]*(dataPointNum+1)
         self.thetaList = list() #a list of the theta at which each measurement occurs
+        self.color = color
         if direction == "CW": #clockwise
             for i in range(self.dataPointNum):
                 self.thetaList.append(float(self.theta_offset)
                  - float(i)/(dataPointNum-1) * subtendedAngle)    
         elif direction == "CCW":
             for j in range(self.dataPointNum):
-                i=self.dataPointNum - j - 1
+                i=j
                 self.thetaList.append(float(self.theta_offset)
                  + float(i)/(dataPointNum-1) * subtendedAngle)
         else:
             print "EYE INITIALIZED WITH INVALID DIRECTION, MUST BE CW OR CCW"
+        #print "Eyenum, thetalist::",direction, eyeNum, self.thetaList
     def clear(self):
         IR = [0.0]*self.dataPointNum
         US = [0.0]*self.dataPointNum
@@ -200,15 +201,15 @@ class Hypobot:
         #important that it be a deep copy, since each hbot really should have its own version of the data
         for eye in self.localEyeList:
             #apply rotational matrix
-            x = self.pose.x + math.cos(self.pose.theta)*eye.x_offset + math.sin(self.pose.theta)*eye.y_offset
-            y = self.pose.y - math.sin(self.pose.theta)*eye.x_offset + math.cos(self.pose.theta)*eye.y_offset
-            theta = self.pose.theta + eye.theta_offset 
+            x = self.pose.x + math.cos(self.pose.theta*math.pi/180)*eye.x_offset + math.sin(self.pose.theta*math.pi/180)*eye.y_offset
+            y = self.pose.y - math.sin(self.pose.theta*math.pi/180)*eye.x_offset + math.cos(self.pose.theta*math.pi/180)*eye.y_offset
             for j in range(settings.SCAN_DATA_POINTS):
                 effective_theta = self.pose.theta + eye.thetaList[j]
-                #----------------------change generation speed here ---------------------
+                #-change generation speed here-
                 distInFeetIR = calcIdealRangeIR(x, y, effective_theta, landmarkList, "FAST")
                 eye.IR[j] = feetToRawIR(distInFeetIR)
                 distInFeetUS = calcIdealRangeUS(x, y, effective_theta, landmarkList)
+                eye.US[j] = distInFeetUS
     def scootHypobot(self, scootDistance, scootAngle):
         import random
         import robotbasics
@@ -401,6 +402,7 @@ class HypobotCloud:
             print "TOTAL WEIGHT IS ZERO, DANGER"
         for i in range(0,len(self.hypobotList)):
             if hypobot.weight > 1 or hypobot.weight == 0: #NOTE:  This is an ugly workaround....please fix me later!
+                print "weight error for hypobot",hypobot.string()
                 self.hypobotList.remove(hypobot)
             else:
                 hypobot = self.hypobotList[i]
