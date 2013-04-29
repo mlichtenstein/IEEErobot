@@ -116,5 +116,5 @@ while running == True:
         gui.takeMode(robotMode)
         gui.update(screen)
         pygame.display.update()
-       
+        time.sleep(1.0)
       

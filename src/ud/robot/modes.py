@@ -277,7 +277,7 @@ class Go( Mode ):
     def __init__( self , state):
         import theGuts
         print("Mode is now Go")
-        print("==========Beginning Go=========")
+        print("========================Beginning Go=======================")
         print "Current best guess pose is",state.pose.string()
         self.state = state
         state.mode = "Go"
@@ -381,7 +381,7 @@ class RepopulateCloud(LocStep):
         state.hypobotCloud.clearCollided()
         while state.hypobotCloud.count() < state.hypobotCloud.cloudSize:
             state.hypobotCloud.resampleOneWithGaussian(Pose(.1,.1,5))
-        state.hypobotCloud.normalize()
+        state.hypobotCloud.flatten()
         #state.hypobotCloud.normalize()
         return Scan()
 class Scan(LocStep):
@@ -412,11 +412,11 @@ class WeightCloud(LocStep):
 class GetNewPose(LocStep):
     def do(self, mode, state):
         print "getting new best guess pose... "
-        peak = state.hypobotCloud.getPeakBot()
+        avg = state.hypobotCloud.average()
         #state.hypobotCloud.describeCloud()
-        state.pose = peak.pose
+        state.pose = avg
         print "state.poseA",state.pose
-        print "Changing pose to",peak.pose.x,",",peak.pose.y,",",peak.pose.theta
+        print "Changing pose to",avg.x,",",avg.y,",",avg.theta
         return PruneAndBoost()
 class PruneAndBoost(LocStep):
     def do(self, mode, state):
@@ -441,7 +441,7 @@ class Localize( Mode ):
     thisStep = PrimeCloud() #use for real operation
     def __init__( self , state):
         print("Mode is now Localize")
-        print("=========Beginning localization.=========")
+        print("===================================Beginning localization.===================================")
         state.mode = "Localize"
     def act(self, state):
         nextStep = self.thisStep.do(self, state)

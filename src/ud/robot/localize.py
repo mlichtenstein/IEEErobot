@@ -133,9 +133,10 @@ class Hypobot:
     """
     def __init__(self, x, y, theta, weight = 1):
         import robotbasics
-        self.scootAngleSigma = 2
-        self.scootDistanceSigma = 0.1
-        self.rotateSigma = 2 
+        import settings
+        self.scootAngleSigma = settings.SCOOT_ANGLE_SIGMA
+        self.scootDistanceSigma = settings.SCOOT_DISTANCE_SIGMA
+        self.turnRotateSigma = settings.TURN_ROTATE_SIGMA 
         self.pose = robotbasics.Pose(x,y,theta)
         self.localEyeList = list()
         self.weight = weight
@@ -222,7 +223,7 @@ class Hypobot:
         self.pose = newPose
     def rotateHypobot(self,rotateAngle):
         import random
-        newTheta = self.pose.theta + random.gauss(rotateAngle, self.rotateSigma)
+        newTheta = self.pose.theta + random.gauss(rotateAngle, self.turnRotateSigma)
         self.pose.theta = newTheta
     """
     DetectCollision is used to kill off any hypobot that is colliding with another object
@@ -313,11 +314,12 @@ class HypobotCloud:
     def resampleOne(self):
         #like appendBoost but no sigma
         import random
+        import copy
         while True:
             cloneTarget = self.hypobotList[int(random.random()*len(self.hypobotList))]
             #if cloneTarget.weight > random.random(): 
             if True:
-                clone = cloneTarget
+                clone = copy.deepcopy(cloneTarget)
                 break
         self.hypobotList.append(clone)
     def resampleOneWithGaussian(self, poseSigma):
@@ -450,6 +452,9 @@ class HypobotCloud:
             avg.theta /= totWeight
         except:
             print "Total weight is zero.  Probably, something is wrong with your eye modules"
+        stdDev = self.stdDev(avg)
+        print "Averaged hbot cloud.  Total weight is",totWeight,","
+        print "  average pose is",avg.string(),"with a stdDev of",stdDev.string()
         return avg
     def stdDev(self,average):
         """
@@ -485,7 +490,7 @@ class HypobotCloud:
         for i in range(0,toPrune):
             self.hypobotList.remove(killList[i])
     def describeCloud(self):
-        print "========HypobotCloud Report:============="
+        print "   '''HypobotCloud Report:'''"
         print "The cloud has ",len(self.hypobotList)," hbots."
         print ("The max weight is "
                 +str(max(self.hypobotList,key=lambda hbot: hbot.weight).weight)
@@ -495,7 +500,7 @@ class HypobotCloud:
         print "The average hypobot is at", avg.string()
         stdDev = self.stdDev(avg)
         print "The standard deviation is", stdDev.string()
-        print "========================================="
+        print "   ''''''''''''''''''''''''''"
     def scootAll(self, distance, angle):
         for hbot in self.hypobotList:
             hbot.scootHypobot(distance,angle)
@@ -592,13 +597,13 @@ if __name__ == "__main__":
 
     if __name__ == "__main__":
         from robotbasics import *
-        hCloud = HypobotCloud(10)
-        hCloud.appendGaussianCloud(hCloud.cloudSize, Pose(4,4,0), Pose(.5,.5,10))
+        hCloud = HypobotCloud(100)
+        hCloud.appendGaussianCloud(hCloud.cloudSize, Pose(4.0,4.0,0), Pose(.5,.5,10))
         hCloud.normalize()
         for hbot in hCloud.hypobotList:
             print hbot.string()
         hCloud.describeCloud()    
-        hCloud.scootAll(1,0)
+        hCloud.scootAll(1.0,0)
         for hbot in hCloud.hypobotList:
             print hbot.string()
         hCloud.describeCloud()
