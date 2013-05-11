@@ -59,9 +59,9 @@ def generateNode(node):
         newY=y+r*math.sin(math.pi/180*theta)
         distance=math.hypot(newX-end[0],newY-end[1]) #distance to end
 
-        #for line in lines:
-        #    if math.hypot(x+r*math.cos(math.pi/180*theta)-line[0],y+r*math.sin(math.pi/180*theta)-line[1])<=105:
-        #        distance+=10**10
+        for line in lines:
+            if math.hypot(x+r*math.cos(math.pi/180*theta)-line[0],y+r*math.sin(math.pi/180*theta)-line[1])<=105:
+                distance+=10**10
         for circle in circles:
             if math.hypot(x+r*math.cos(math.pi/180*theta)-circle[0],y+r*math.sin(math.pi/180*theta)-circle[1])<=105:
                 distance+=10**10
